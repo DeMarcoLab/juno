@@ -6,7 +6,7 @@ import pylab
 
 
 class Simulation:
-    
+    pass
 
 
 
