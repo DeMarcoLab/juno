@@ -1,39 +1,78 @@
 
+from dataclasses import dataclass
 import numpy as np
 
-class Lens:
-    def __init__(self, width: float, height: float, exponent: float) -> None:
+from scipy import ndimage
 
-        self.width = width
+
+class Mask:
+    pass
+
+
+
+#TODO: 488 comes from sim
+@dataclass
+class Medium:
+
+    def __init__(self, refractive_index) -> None:
+        self.refractive_index = refractive_index
+        self.wavelength_medium: float = 488e-9 / self.refractive_index
+        self.wave_number: float = 2 * np.pi / self.wavelength_medium
+
+@dataclass
+class Water(Medium):
+    refractive_index: float = 1.33
+
+class Lens:
+    def __init__(self, diameter: float, height: float, exponent: float, medium: Medium) -> None:
+
+        self.diameter = diameter
         self.height = height
         self.exponent = exponent
+        self.medium = medium 
+        self.escape_path
 
     def __repr__(self):
 
-        return f""" Lens (width: {self.width}, height: {self.height}, medium: {self.exponent}"""
+        return f""" Lens (diameter: {self.diameter}, height: {self.height}, medium: {self.exponent}"""
 
-    def generate_profile(self) -> np.ndarray:
+    def generate_profile(self, pixel_size=10e-9) -> np.ndarray:
         """[summary]
 
         Returns:
             np.ndarray: [description]
         """
+        # TODO: someone might define using the n_pixels
 
-        radius = self.width / 2
-        # n_pixels = 10000
-        radius_step_size = 10e-6
-        n_pixels = int(radius / radius_step_size)
+        radius = self.diameter / 2
+        n_pixels = int(radius / pixel_size)
+        print("RAD PX: ", n_pixels)
+        # n_pixels must be odd (symmetry).
+        if n_pixels % 2 == 0:
+            n_pixels += 1
 
+        print("LENS PIX: ", n_pixels * 2 - 1)
+        
+        # x coordinate of pixels (TODO: better name)
         radius_px = np.linspace(0, radius, n_pixels)
-    
-        # axicon only
-        # heights = (self.height / self.width ) * radius_px
-        coefficient = self.height / (radius ** self.exponent)
 
+        # determine coefficent at boundary conditions
+        # TODO: will be different for Hershel, Paraxial approximation)
+        coefficient = self.height / (radius ** self.exponent) 
+
+        # generic lens formula 
+        # H = h - C*r ^ e
         heights = self.height - coefficient * radius_px ** self.exponent
         
+        # generate symmetric height profile (TODO: assumed symmetric lens). 
         profile =  np.append(np.flip(heights[1:]), heights)
-        profile = profile - np.max(profile) # 
+        
+        # ASSUMPTION: profile is defined with max height at zero (negative profile)
+        profile = profile - np.max(profile) 
+
+        # always smooth
+        profile = ndimage.gaussian_filter(profile, sigma=3)
 
         return profile
     
+
