@@ -14,7 +14,7 @@ class Mask:
 @dataclass
 class Medium:
 
-    def __init__(self, refractive_index) -> None:
+    def __init__(self, refractive_index: float = 1.0) -> None:
         self.refractive_index = refractive_index
         self.wavelength_medium: float = 488e-9 / self.refractive_index
         self.wave_number: float = 2 * np.pi / self.wavelength_medium
@@ -24,13 +24,13 @@ class Water(Medium):
     refractive_index: float = 1.33
 
 class Lens:
-    def __init__(self, diameter: float, height: float, exponent: float, medium: Medium) -> None:
+    def __init__(self, diameter: float, height: float, exponent: float, medium: Medium = Medium()) -> None:
 
         self.diameter = diameter
         self.height = height
         self.exponent = exponent
         self.medium = medium 
-        self.escape_path
+        self.escape_path = None
 
     def __repr__(self):
 
@@ -46,12 +46,9 @@ class Lens:
 
         radius = self.diameter / 2
         n_pixels = int(radius / pixel_size)
-        print("RAD PX: ", n_pixels)
         # n_pixels must be odd (symmetry).
         if n_pixels % 2 == 0:
             n_pixels += 1
-
-        print("LENS PIX: ", n_pixels * 2 - 1)
         
         # x coordinate of pixels (TODO: better name)
         radius_px = np.linspace(0, radius, n_pixels)
