@@ -1,13 +1,9 @@
-
 import numpy as np
-
 from scipy import fftpack
-import pylab
 
 
 class Simulation:
     pass
-
 
 
 def generate_squared_frequency_array(n_pixels: int, pixel_size: float) -> np.ndarray:
