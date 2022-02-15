@@ -12,7 +12,7 @@ class Simulation:
 
 def generate_frequency_array(n_pixels: int, pixel_size: float) -> np.ndarray:
 
-    f_u = fftpack.fftfreq(n_pixels, 1)
+    f_u = fftpack.fftfreq(n_pixels, pixel_size)
 
     frequency_array = f_u ** 2
 
@@ -21,7 +21,7 @@ def generate_frequency_array(n_pixels: int, pixel_size: float) -> np.ndarray:
 
 def generate_frequency_array_custom(n_pixels: int, pixel_size: float) -> np.ndarray:
     """n_pixels: number of pixels in the profile"""
-    space_size = pixel_size * n_pixels 
+    space_size = pixel_size * n_pixels
     du = 1 / space_size
     U = pylab.arange(-n_pixels / 2, n_pixels / 2  , 1) * du
 
