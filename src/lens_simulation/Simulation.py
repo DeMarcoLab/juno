@@ -10,27 +10,19 @@ class Simulation:
 
 
 
-def generate_frequency_array(n_pixels: int, pixel_size: float) -> np.ndarray:
+def generate_squared_frequency_array(n_pixels: int, pixel_size: float) -> np.ndarray:
+    """Generates the squared frequency array used in the fresnel diffraction integral
 
-    f_u = fftpack.fftfreq(n_pixels, pixel_size)
+    Parameters
+    ----------
+    n_pixels : int
+        number of pixels in the lens array
+    pixel_size : float
+        realspace size of each pixel in the lens array
 
-    frequency_array = f_u ** 2
-
-    return frequency_array
-
-
-def generate_frequency_array_custom(n_pixels: int, pixel_size: float) -> np.ndarray:
-    """n_pixels: number of pixels in the profile"""
-    space_size = pixel_size * n_pixels
-    du = 1 / space_size
-    U = pylab.arange(-n_pixels / 2, n_pixels / 2  , 1) * du
-
-    U = U.astype(np.float32)
-    f_u = fftpack.fftshift(U)
-
-    frequency_array = f_u ** 2
-
-    return frequency_array
-
-
-
+    Returns
+    -------
+    np.ndarray
+        squared frequency array
+    """
+    return np.power(fftpack.fftfreq(n_pixels, pixel_size), 2)
