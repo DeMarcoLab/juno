@@ -80,3 +80,5 @@ def test_discretise_profile_0_rounding():
     for layer in discrete_profile:
         for pixel in layer:
             assert pixel % z_step == 0
+
+    # TODO: add test for phase differential

@@ -1,3 +1,4 @@
+from dis import dis
 import numpy as np
 from scipy import fftpack
 import os
@@ -6,12 +7,12 @@ import uuid
 
 import petname
 
-class Simulation:
 
+class Simulation:
     def __init__(self, config: dict) -> None:
 
         self.sim_id = uuid.uuid4()
-        self.petname = petname.Generate(2) # TODO: maybe
+        self.petname = petname.Generate(2)  # TODO: maybe
         self.read_configuration(config=config)
         self.setup_simulation()
 
@@ -28,7 +29,7 @@ class Simulation:
         os.makedirs(self.log_dir, exist_ok=True)
 
     def run_simulation(self):
-        print("-"*50)
+        print("-" * 50)
         print(f"Running Simulation {self.petname} ({str(self.sim_id)[-10:]})")
         print(f"Parameters:  {self.parameters}")
 
@@ -40,11 +41,7 @@ class Simulation:
         # internal_lens_propagation
         # free_space_propagation
 
-        print("-"*50)
-
-
-
-
+        print("-" * 50)
 
 
 def generate_squared_frequency_array(n_pixels: int, pixel_size: float) -> np.ndarray:
@@ -92,7 +89,11 @@ def calculate_equivalent_focal_distance(lens: Lens, medium: Medium) -> float:
 
 
 def generate_discrete_profile(
-    profile: np.ndarray, z_resolution: int, rounding: int
+    profile: np.ndarray,
+    z_resolution: int,
+    rounding: int,
+    lens_medium: Medium,
+    output_medium: Medium,
 ) -> np.ndarray:
     """Creates an n+1 dimensional array from an n dimensional lens to split the
     height map into discrete blocks to be simulated separately
@@ -113,7 +114,7 @@ def generate_discrete_profile(
     """
 
     # calculate the number of layers to split the lens into
-    n_steps = int(np.ceil(max(profile)/z_resolution))
+    n_steps = int(np.ceil(max(profile) / z_resolution))
 
     # empty array for new profile
     discrete_profile = np.zeros(shape=(n_steps, len(profile)))
@@ -122,10 +123,25 @@ def generate_discrete_profile(
     interpolated_profile = (profile / max(profile)) * n_steps
 
     for i, pixel in enumerate(interpolated_profile):
-        interpolated_profile[i] = round(interpolated_profile[i], rounding) * z_resolution
+        interpolated_profile[i] = (
+            round(interpolated_profile[i], rounding) * z_resolution
+        )
 
     for step in range(n_steps):
         values_above_step = interpolated_profile > z_resolution * step
-        discrete_profile[step] = values_above_step * z_resolution
+        discrete_profile[step] = values_above_step * lens_medium.refractive_index
 
-    return discrete_profile
+    # set the other pixel values to the output medium
+    discrete_profile[discrete_profile == 0] = output_medium.refractive_index
+
+    # calculate phase differential
+    phase_differential_profile = np.zeros(
+        shape=(discrete_profile.shape[0] - 1, discrete_profile.shape[1])
+    )
+
+    for j, layer in enumerate(phase_differential_profile, 1):
+        phase_differential_profile[j - 1] = (
+            discrete_profile[j] - discrete_profile[j - 1]
+        )
+
+    return discrete_profile, phase_differential_profile
