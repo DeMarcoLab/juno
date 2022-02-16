@@ -89,7 +89,7 @@ print("Prop Size: ", len(prop))
 
 from lens_simulation import utils
 
-print("SIM SHAPE: ", sim.shape)
+# static simulation image
 fig = utils.plot_simulation(
         sim, 
         width=200, height=100, 
@@ -100,3 +100,7 @@ fig = utils.plot_simulation(
 utils.save_figure(fig, "sim.png")
 
 plt.show()
+
+# interactive simulation
+fig = utils.plot_interactive_simulation(sim)
+fig.show()
