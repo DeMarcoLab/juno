@@ -1,6 +1,12 @@
 # Lens Simulation
  A lens simulation package.
 
+<figure>
+  <img
+  src="doc/img/sim.png"
+  alt="Simulation Image">
+  <figcaption style="text-align:center">Simulation Image</figcaption>
+</figure>
 
 ## Getting Started
 
