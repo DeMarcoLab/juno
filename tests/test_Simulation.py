@@ -61,15 +61,15 @@ def test_calculate_equivalent_focal_distance_fail_due_to_height(lens_exponent):
     assert not np.isclose(focal_distance, 0.0268514, rtol=1e-6)
 
 
-def test_discretise_profile():
-    pixel_size = 1e-3
+# def test_discretise_profile():
+#     pixel_size = 1e-3
 
-    lens = Lens.Lens(diameter=5, height=3, exponent=0.5, medium=Lens.Medium(2.348))
+#     lens = Lens.Lens(diameter=5, height=3, exponent=0.5, medium=Lens.Medium(2.348))
 
-    profile = lens.generate_profile(pixel_size=pixel_size)
-    discrete_profile = Simulation.generate_discrete_profile(
-        profile=profile, z_resolution=0.1, rounding=0
-    )
+#     profile = lens.generate_profile(pixel_size=pixel_size)
+#     discrete_profile = Simulation.generate_discrete_profile(
+#         profile=profile, z_resolution=0.1, rounding=0
+#     )
 
-    for pixel in discrete_profile:
-        assert pixel == int(pixel)
+#     for pixel in discrete_profile:
+#         assert pixel == int(pixel)
