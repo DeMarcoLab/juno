@@ -5,3 +5,4 @@ build/*
 dist/*
 */lens_simulation.egg-info/*
 .pytest_cache/*
+*.profile
