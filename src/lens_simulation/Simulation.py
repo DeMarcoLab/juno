@@ -50,3 +50,9 @@ def calculate_equivalent_focal_distance(lens: Lens, medium: Medium) -> float:
     ) / (lens.medium.refractive_index - medium.refractive_index)
 
     return equivalent_focal_distance
+
+
+def generate_discrete_profile(
+    profile: np.ndarray, z_resolution: int, rounding: int
+) -> np.ndarray:
+    return 2 * profile
