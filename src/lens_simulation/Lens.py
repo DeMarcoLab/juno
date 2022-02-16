@@ -1,4 +1,3 @@
-
 from dataclasses import dataclass
 import numpy as np
 
@@ -9,27 +8,29 @@ class Mask:
     pass
 
 
-
-#TODO: 488 comes from sim
+# TODO: 488 comes from sim
 @dataclass
 class Medium:
-
     def __init__(self, refractive_index: float = 1.0) -> None:
         self.refractive_index = refractive_index
         self.wavelength_medium: float = 488e-9 / self.refractive_index
         self.wave_number: float = 2 * np.pi / self.wavelength_medium
 
+
 @dataclass
 class Water(Medium):
     refractive_index: float = 1.33
 
+
 class Lens:
-    def __init__(self, diameter: float, height: float, exponent: float, medium: Medium = Medium()) -> None:
+    def __init__(
+        self, diameter: float, height: float, exponent: float, medium: Medium = Medium()
+    ) -> None:
 
         self.diameter = diameter
         self.height = height
         self.exponent = exponent
-        self.medium = medium 
+        self.medium = medium
         self.escape_path = None
 
     def __repr__(self):
@@ -49,27 +50,22 @@ class Lens:
         # n_pixels must be odd (symmetry).
         if n_pixels % 2 == 0:
             n_pixels += 1
-        
+
         # x coordinate of pixels (TODO: better name)
         radius_px = np.linspace(0, radius, n_pixels)
 
         # determine coefficent at boundary conditions
         # TODO: will be different for Hershel, Paraxial approximation)
-        coefficient = self.height / (radius ** self.exponent) 
+        coefficient = self.height / (radius**self.exponent)
 
-        # generic lens formula 
+        # generic lens formula
         # H = h - C*r ^ e
-        heights = self.height - coefficient * radius_px ** self.exponent
-        
-        # generate symmetric height profile (TODO: assumed symmetric lens). 
-        profile =  np.append(np.flip(heights[1:]), heights)
-        
-        # ASSUMPTION: profile is defined with max height at zero (negative profile)
-        profile = profile - np.max(profile) 
+        heights = self.height - coefficient * radius_px**self.exponent
+
+        # generate symmetric height profile (TODO: assumed symmetric lens).
+        profile = np.append(np.flip(heights[1:]), heights)
 
         # always smooth
         profile = ndimage.gaussian_filter(profile, sigma=3)
 
         return profile
-    
-
