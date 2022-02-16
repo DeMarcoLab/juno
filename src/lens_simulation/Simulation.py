@@ -7,9 +7,9 @@ import uuid
 import petname
 
 class Simulation:
-    
+
     def __init__(self, config: dict) -> None:
-        
+
         self.sim_id = uuid.uuid4()
         self.petname = petname.Generate(2) # TODO: maybe
         self.read_configuration(config=config)
@@ -23,7 +23,7 @@ class Simulation:
         self.parameters = config["parameters"]
 
     def setup_simulation(self):
-        
+
         self.log_dir = os.path.join(self.config["log_dir"], str(self.sim_id))
         os.makedirs(self.log_dir, exist_ok=True)
 
@@ -31,20 +31,20 @@ class Simulation:
         print("-"*50)
         print(f"Running Simulation {self.petname} ({str(self.sim_id)[-10:]})")
         print(f"Parameters:  {self.parameters}")
-        
-        # TODO: actually run the simulation 
+
+        # TODO: actually run the simulation
         # generate_lens_profile
         # generate_medium_mesh
         # generate_frequency_array
         # generate_differential_refractive_profile
         # internal_lens_propagation
         # free_space_propagation
-        
+
         print("-"*50)
 
 
 
-        
+
 
 
 def generate_squared_frequency_array(n_pixels: int, pixel_size: float) -> np.ndarray:
@@ -94,4 +94,21 @@ def calculate_equivalent_focal_distance(lens: Lens, medium: Medium) -> float:
 def generate_discrete_profile(
     profile: np.ndarray, z_resolution: int, rounding: int
 ) -> np.ndarray:
+    """Creates an n+1 dimensional array from an n dimensional lens to split the
+    height map into discrete blocks to be simulated separately
+
+    Parameters
+    ----------
+    profile : np.ndarray
+        original n-dimensional profile to be discretised
+    z_resolution : int
+        step size in the direction of light propagation
+    rounding : int
+        the integer digit to round to (0 is binary)
+
+    Returns
+    -------
+    np.ndarray
+        discretised n+1 dimensional array
+    """
     return 2 * profile
