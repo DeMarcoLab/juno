@@ -74,23 +74,53 @@ for i, z in enumerate(distances):
 
 print("Prop Size: ", len(prop))
 
-print(lens)
-print(medium)
+# print(lens)
+# print(medium)
 
-fig, ax = plt.subplots(3, 1, figsize=(15, 15))
+# fig, ax = plt.subplots(3, 1, figsize=(15, 15))
 
-ax[0].plot(profile)
-ax[0].set_title("PROFILE")
+# ax[0].plot(profile)
+# ax[0].set_title("PROFILE")
 
-ax[1].plot(phase)
-ax[1].set_title("PHASE")
+# ax[1].plot(phase)
+# ax[1].set_title("PHASE")
 
-plt.show()
-# # print(sim.shape)
-# ax[2].set_title("SIM")
-# low, high = sim.shape[1] // 2 - 1000, sim.shape[1] // 2 + 1000
-# # print(low, high)
-# ax[2].imshow(sim[:, low : high + 1], aspect="auto")
+# plt.show()
 
 from lens_simulation import utils
-utils.plot_simulation(sim, width=1000, height=100)
+
+# static simulation image
+# fig = utils.plot_simulation(
+#         sim, 
+#         width=200, height=100, 
+#         pixel_size_x=pixel_size, 
+#         start_distance=start_distance, 
+#         finish_distance=finish_distance)
+
+# utils.save_figure(fig, "sim.png")
+
+# plt.show()
+
+# # interactive simulation
+# fig = utils.plot_interactive_simulation(sim)
+# fig.show()
+
+
+# save simulation data
+
+import numpy as np
+
+# np.savez_compressed("sim.npz", sim.astype(np.float32)) # 
+np.save("sim.npy", sim)
+
+del sim
+
+sim = np.load("sim.npy")
+
+import matplotlib.pyplot as plt
+
+plt.imshow(sim)
+plt.show()
+
+# fig = utils.plot_interactive_simulation(sim)
+# fig.show()
