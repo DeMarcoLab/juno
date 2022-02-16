@@ -48,11 +48,9 @@ freq_array = Simulation.generate_squared_frequency_array(
 
 delta = (lens.medium.refractive_index - medium.refractive_index) * profile
 phase = (2 * np.pi * delta / medium.wavelength_medium) % (2 * np.pi)
-
 wavefront = A * np.exp(1j * phase)
 
 # print("Wavefront shape: ", wavefront.shape)
-
 wavefront = fftpack.fft(wavefront)
 
 equivalent_focal_distance = Simulation.calculate_equivalent_focal_distance(lens, medium)
@@ -87,10 +85,12 @@ ax[0].set_title("PROFILE")
 ax[1].plot(phase)
 ax[1].set_title("PHASE")
 
-# print(sim.shape)
-ax[2].set_title("SIM")
-low, high = sim.shape[1] // 2 - 1000, sim.shape[1] // 2 + 1000
-# print(low, high)
-ax[2].imshow(sim[:, low : high + 1], aspect="auto")
-
 plt.show()
+# # print(sim.shape)
+# ax[2].set_title("SIM")
+# low, high = sim.shape[1] // 2 - 1000, sim.shape[1] // 2 + 1000
+# # print(low, high)
+# ax[2].imshow(sim[:, low : high + 1], aspect="auto")
+
+from lens_simulation import utils
+utils.plot_simulation(sim, width=1000, height=100)
