@@ -1,11 +1,50 @@
 import numpy as np
 from scipy import fftpack
-
+import os
 from lens_simulation.Lens import Lens, Medium
+import uuid
 
+import petname
 
 class Simulation:
-    pass
+    
+    def __init__(self, config: dict) -> None:
+        
+        self.sim_id = uuid.uuid4()
+        self.petname = petname.Generate(2) # TODO: maybe
+        self.read_configuration(config=config)
+        self.setup_simulation()
+
+    def read_configuration(self, config):
+
+        # TODO: add a check to the config
+        self.config = config
+        self.run_id = config["run_id"]
+        self.parameters = config["parameters"]
+
+    def setup_simulation(self):
+        
+        self.log_dir = os.path.join(self.config["log_dir"], str(self.sim_id))
+        os.makedirs(self.log_dir, exist_ok=True)
+
+    def run_simulation(self):
+        print("-"*50)
+        print(f"Running Simulation {self.petname} ({str(self.sim_id)[-10:]})")
+        print(f"Parameters:  {self.parameters}")
+        
+        # TODO: actually run the simulation 
+        # generate_lens_profile
+        # generate_medium_mesh
+        # generate_frequency_array
+        # generate_differential_refractive_profile
+        # internal_lens_propagation
+        # free_space_propagation
+        
+        print("-"*50)
+
+
+
+        
 
 
 def generate_squared_frequency_array(n_pixels: int, pixel_size: float) -> np.ndarray:
