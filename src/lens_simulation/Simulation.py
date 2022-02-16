@@ -111,4 +111,21 @@ def generate_discrete_profile(
     np.ndarray
         discretised n+1 dimensional array
     """
-    return 2 * profile
+
+    # calculate the number of layers to split the lens into
+    n_steps = int(np.ceil(max(profile)/z_resolution))
+
+    # empty array for new profile
+    discrete_profile = np.zeros(shape=(n_steps, len(profile)))
+
+    # interpolate the values of the lens between 0 and n_steps
+    interpolated_profile = (profile / max(profile)) * n_steps
+
+    for i, pixel in enumerate(interpolated_profile):
+        interpolated_profile[i] = round(interpolated_profile[i], rounding) * z_resolution
+
+    for step in range(n_steps):
+        values_above_step = interpolated_profile > z_resolution * step
+        discrete_profile[step] = values_above_step * z_resolution
+
+    return discrete_profile
