@@ -90,17 +90,37 @@ print("Prop Size: ", len(prop))
 from lens_simulation import utils
 
 # static simulation image
-fig = utils.plot_simulation(
-        sim, 
-        width=200, height=100, 
-        pixel_size_x=pixel_size, 
-        start_distance=start_distance, 
-        finish_distance=finish_distance)
+# fig = utils.plot_simulation(
+#         sim, 
+#         width=200, height=100, 
+#         pixel_size_x=pixel_size, 
+#         start_distance=start_distance, 
+#         finish_distance=finish_distance)
 
-utils.save_figure(fig, "sim.png")
+# utils.save_figure(fig, "sim.png")
 
+# plt.show()
+
+# # interactive simulation
+# fig = utils.plot_interactive_simulation(sim)
+# fig.show()
+
+
+# save simulation data
+
+import numpy as np
+
+# np.savez_compressed("sim.npz", sim.astype(np.float32)) # 
+np.save("sim.npy", sim)
+
+del sim
+
+sim = np.load("sim.npy")
+
+import matplotlib.pyplot as plt
+
+plt.imshow(sim)
 plt.show()
 
-# interactive simulation
-fig = utils.plot_interactive_simulation(sim)
-fig.show()
+# fig = utils.plot_interactive_simulation(sim)
+# fig.show()

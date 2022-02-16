@@ -8,3 +8,5 @@ dist/*
 pip-wheel-metadata/*
 *.profile
 src/**/sim.png
+*.npy
+*.npz
