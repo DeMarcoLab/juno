@@ -18,7 +18,7 @@ def test_axicon_lens():
 
     lens = Lens(diameter=1.0, height=1.0, exponent=1.0)
 
-    profile = lens.generate_profile()
+    profile = lens.generate_profile(pixel_size=10e-9)
 
     assert np.isclose(np.round(np.min(profile), 7), 0)  # TODO: broken
     assert np.isclose(np.max(profile), lens.height)
@@ -29,7 +29,7 @@ def test_focusing_lens():
 
     lens = Lens(diameter=1.0, height=1.0, exponent=2.0)
 
-    profile = lens.generate_profile()
+    profile = lens.generate_profile(pixel_size=10e-9)
 
     print(np.min(profile))
     print(np.max(profile))
