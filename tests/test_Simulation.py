@@ -81,3 +81,48 @@ def test_generate_discrete_profile():
     for layer in discrete_profile:
         for pixel in layer:
             assert pixel % z_step == 0
+
+
+@pytest.mark.parametrize(
+    "z_step, exponent", [(0.1, 1), (1.0, 1), (0.1, 0.5), (1.0, 2.0)]
+)
+def test_generate_differential_refractive_index_profile(z_step, exponent):
+    pixel_size = 1e-3
+    z_step = z_step
+
+    lens = Lens.Lens(diameter=5, height=3, exponent=exponent, medium=Lens.Medium(2.348))
+    lens.generate_profile(pixel_size=pixel_size)
+
+    # simple array of water for the lead in medium
+    entrance_medium = Lens.Medium(1.33)
+    previous_slice = len(lens.profile) * [entrance_medium.refractive_index]
+
+    # outputting into glass
+    output_medium = Lens.Medium(1.5)
+
+    lens.generate_profile(pixel_size=pixel_size)
+
+    dri_profile = Simulation.generate_differential_refractive_index_profile(
+        lens=lens,
+        z_resolution=z_step,
+        previous_slice=previous_slice,
+        output_medium=output_medium,
+        pixel_size=pixel_size,
+    )
+
+    # test the entrance to the lens has the correct shift in refractive index
+    assert (
+        dri_profile[0, 0]
+        == lens.medium.refractive_index - entrance_medium.refractive_index
+    )
+
+    # test that the central peak (assumed symmetric lens in this case)
+    # has the correct shift in refractive index to the output medium
+    assert (
+        dri_profile[-1, int(dri_profile.shape[1] / 2)]
+        == output_medium.refractive_index - lens.medium.refractive_index
+    )
+
+    # test the final corner pixel has 0 refractive index shift
+    assert dri_profile[-1, 0] == 0
+
