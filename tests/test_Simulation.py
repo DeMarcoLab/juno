@@ -113,14 +113,14 @@ def test_generate_differential_refractive_index_profile(z_step, exponent):
     # test the entrance to the lens has the correct shift in refractive index
     assert (
         dri_profile[0, 0]
-        == lens.medium.refractive_index - entrance_medium.refractive_index
+        == entrance_medium.refractive_index - lens.medium.refractive_index
     )
 
     # test that the central peak (assumed symmetric lens in this case)
     # has the correct shift in refractive index to the output medium
     assert (
         dri_profile[-1, int(dri_profile.shape[1] / 2)]
-        == output_medium.refractive_index - lens.medium.refractive_index
+        == lens.medium.refractive_index - output_medium.refractive_index
     )
 
     # test the final corner pixel has 0 refractive index shift

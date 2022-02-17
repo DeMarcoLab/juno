@@ -144,8 +144,8 @@ def generate_differential_refractive_index_profile(
     refractive_index_differential_profile = np.zeros(shape=discrete_profile.shape)
 
     # calculate refractive differential profile
-    refractive_index_differential_profile[1:] = discrete_profile[1:] - discrete_profile[:-1]
-    refractive_index_differential_profile[0] = discrete_profile[0] - previous_slice
+    refractive_index_differential_profile[1:] = discrete_profile[:-1] - discrete_profile[1:]
+    refractive_index_differential_profile[0] = previous_slice - discrete_profile[0]
 
     return refractive_index_differential_profile
 
