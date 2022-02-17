@@ -32,6 +32,7 @@ class Lens:
         self.exponent = exponent
         self.medium = medium
         self.escape_path = None
+        self.profile = None
 
     def __repr__(self):
 
