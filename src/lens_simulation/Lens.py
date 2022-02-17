@@ -38,7 +38,7 @@ class Lens:
 
         return f""" Lens (diameter: {self.diameter}, height: {self.height}, medium: {self.exponent}"""
 
-    def generate_profile(self, pixel_size=10e-9) -> np.ndarray:
+    def generate_profile(self, pixel_size) -> np.ndarray:
         """[summary]
 
         Returns:
@@ -68,5 +68,7 @@ class Lens:
 
         # always smooth
         profile = ndimage.gaussian_filter(profile, sigma=3)
+
+        self.profile = profile
 
         return profile
