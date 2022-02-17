@@ -61,24 +61,23 @@ def test_calculate_equivalent_focal_distance_fail_due_to_height(lens_exponent):
     assert not np.isclose(focal_distance, 0.0268514, rtol=1e-6)
 
 
-def test_discretise_profile_0_rounding():
-    """with 0 rounding the lens is binarised to integer values"""
+def test_discretise_profile_default():
+    """with default rounding the lens is binarised to integer values"""
     pixel_size = 1e-3
-    z_step = 0.1
+    z_step = 1
 
     lens = Lens.Lens(diameter=5, height=3, exponent=0.5, medium=Lens.Medium(2.348))
+    lens.generate_profile(pixel_size=pixel_size)
 
-    profile = lens.generate_profile(pixel_size=pixel_size)
     discrete_profile = Simulation.generate_discrete_profile(
-        profile=profile, z_resolution=z_step, rounding=0
+        lens=lens, z_resolution=z_step, output_medium=Lens.Medium(1.5),
     )
 
-    assert np.ndim(discrete_profile) == np.ndim(profile) + 1
-    assert discrete_profile.shape[0] == int(np.ceil(max(profile)/z_step))
+    assert np.ndim(discrete_profile) == np.ndim(lens.profile) + 1
+
+    assert discrete_profile.shape[0] == 4
 
     # assert that all values are multiples of step size
     for layer in discrete_profile:
         for pixel in layer:
             assert pixel % z_step == 0
-
-    # TODO: add test for phase differential
