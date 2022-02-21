@@ -54,7 +54,7 @@ wavefront = A * np.exp(1j * phase)
 wavefront = fftpack.fft(wavefront)
 
 equivalent_focal_distance = Simulation.calculate_equivalent_focal_distance(lens, output_medium)
-print(equivalent_focal_distance)
+print(f'\nFocal Distance: {round(equivalent_focal_distance*1e3, 2)}mm\n')
 start_distance = 0. * equivalent_focal_distance  # 25e-3
 finish_distance = 1. * equivalent_focal_distance  # 28e-3
 
