@@ -134,7 +134,7 @@ def generate_differential_refractive_index_profile(
     )
 
     # set lens values to the refractive index
-    discrete_profile[discrete_profile != 0] = lens.medium.refractive_index
+    discrete_profile[discrete_profile != 0] = lens.medium.refractive_index * discrete_profile[discrete_profile != 0] / z_resolution
 
     # set the non-lens pixel values to the output medium
     discrete_profile[discrete_profile == 0] = output_medium.refractive_index
@@ -175,21 +175,29 @@ def generate_discrete_profile(
 
     # calculate the number of layers to split the lens into
     n_steps = int(np.ceil(max(lens.profile) / z_resolution))
+    print(n_steps)
     # set up empty arrays for new profile
     discrete_profile = np.zeros(shape=(n_steps + 1, len(lens.profile)))
 
-    # interpolate the values of the lens between 0 and n_steps
-    interpolated_profile = (lens.profile / max(lens.profile)) * n_steps
+    for step in range(n_steps):
+        above = lens.profile >= z_resolution * step
+        new_profile = lens.profile * above - z_resolution * step
+        new_profile[new_profile < 0] = 0
+        new_profile[new_profile >= z_resolution] = z_resolution
+        discrete_profile[step] = new_profile
 
-    # round each pixel of the profile to the nearest decimal 'rounding' value
-    for i, pixel in enumerate(interpolated_profile):
-        interpolated_profile[i] = (
-            round(interpolated_profile[i], rounding) * z_resolution
-        )
+    # # interpolate the values of the lens between 0 and n_steps
+    # interpolated_profile = (lens.profile / max(lens.profile)) * n_steps
+
+    # # round each pixel of the profile to the nearest decimal 'rounding' value
+    # for i, pixel in enumerate(interpolated_profile):
+    #     interpolated_profile[i] = (
+    #         round(interpolated_profile[i], rounding) * z_resolution
+    #     )
 
     # discretise into n+1 dimensional array
-    for step in range(n_steps):
-        # create mask where values above current step exist
-        discrete_profile[step] = interpolated_profile >= z_resolution * step
+    # for step in range(n_steps):
+    #     # create mask where values above current step exist
+    #     discrete_profile[step] = lens.profile >= z_resolution * step
 
     return discrete_profile
