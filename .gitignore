@@ -7,3 +7,6 @@ dist/*
 .pytest_cache/*
 pip-wheel-metadata/*
 *.profile
+src/**/sim.png
+*.npy
+*.npz
