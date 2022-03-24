@@ -5,3 +5,4 @@ plotly
 petname
 flake8
 pytest
+matplotlib
