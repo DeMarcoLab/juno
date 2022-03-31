@@ -12,6 +12,8 @@ from lens_simulation import Lens, Simulation
 from scipy import fftpack
 from lens_simulation import utils
 
+from tqdm import tqdm
+
 
 class Simulation:
     def __init__(self, config: dict) -> None:
@@ -38,72 +40,65 @@ class Simulation:
         print(f"Running Simulation {self.petname} ({str(self.sim_id)[-10:]})")
         print(f"Parameters:  {self.parameters}")
 
-        # TODO: actually run the simulation
-        # generate_lens_profile
-        # generate_medium_mesh
-        # generate_frequency_array
-        # generate_differential_refractive_profile
-        # internal_lens_propagation
-        # free_space_propagation
+        # common sim parameters
+        self.A = 10000
+        self.pixel_size = 1e-6
+        self.sim_width = 4500e-6
+        self.sim_wavelength = 488e-9
 
-        print("HELLO")
 
-        # lens creation
-        amplitude = 10000
-        sim_width = 4500e-6
-        pixel_size = 1e-6
-        n_slices = 1000
-
+        # lens1 creation
         lens_1 = Lens.Lens(
-            diameter=sim_width, height=70e-6, exponent=0.0, medium=Lens.Medium(2.348)
+            diameter=self.sim_width, height=70e-6, exponent=0.0, medium=Lens.Medium(2.348)
         )
-        lens_1.generate_profile(pixel_size=pixel_size)
-
-        centre_px = (len(lens_1.profile) - 1) // 2
+        lens_1.generate_profile(pixel_size=self.pixel_size)
 
         plt.title("Lens 1 Profile")
         plt.plot(lens_1.profile)
         plt.show()
 
         # lens 2 creation
-        amplitude = 10000
-        sim_width = 4500e-6
-        pixel_size = 1e-6
-        self.pixel_size = pixel_size
         lens_2 = Lens.Lens(
-            diameter=sim_width, height=70e-6, exponent=2.0, medium=Lens.Medium(2.348)
+            diameter=self.sim_width, height=70e-6, exponent=2.0, medium=Lens.Medium(2.348)
         )
-        lens_2.generate_profile(pixel_size=pixel_size)
-
-        centre_px = (len(lens_2.profile) - 1) // 2
+        lens_2.generate_profile(pixel_size=self.pixel_size)
 
         plt.title("Lens 2 Profile")
         plt.plot(lens_2.profile)
         plt.show()
 
         # simulation Parameters
-        A = 10000
         output_medium_1 = Lens.Medium(2.348)
         output_medium_2 = Lens.Medium(1.5)
-        sim_wavelength = 488e-9
-        step_size = 0.1e-6
 
-        self.A = A
-        self.pixel_size = pixel_size
-        self.sim_wavelength = sim_wavelength
-        
-        
-        # Simulation Calculations
-        # lens 1
-        propagation = self.propagate_wavefront(
-            lens=lens_1,
-            output_medium=output_medium_1,
-            n_slices=100,
-            start_distance=0.0,
-            finish_distance=10.0e-3,
-        )
 
-        passed_wavefront = propagation
+        # simulation setup
+        # (lens_1, output_1) -> (lens_2, output_2) -> (lens_2, output_2)
+        # lens -> freespace -> lens -> freespace -> lens -> freespace
+
+        
+        # each sim block needs:
+        # lens
+        # output_medium
+        # n_slices(default 1000)
+        # start_distance
+        # finish_distance
+        
+        sim_blocks = []
+        
+        block = {
+            "lens": lens_1,
+            "output": output_medium_1,
+            "n_slices": 100, 
+            "start_distance": 0,
+            "finish_distance": 10.0e-3,
+            "options": {
+                "save": False,
+                "use_equivalent_focal_distance": False
+            } 
+        }
+
+        sim_blocks.append(block)
 
         # lens 2
         print("Lens 2")
@@ -113,43 +108,48 @@ class Simulation:
         start_distance = 0 * equivalent_focal_distance_2
         finish_distance = 2 * equivalent_focal_distance_2
 
-        propagation = self.propagate_wavefront(
-            lens=lens_2,
-            output_medium=output_medium_2,
-            n_slices=1000,
-            start_distance=start_distance,
-            finish_distance=finish_distance,
-            passed_wavefront=passed_wavefront,
-        )
+        block = {
+            "lens": lens_2,
+            "output": output_medium_2,
+            "n_slices": 1000, 
+            "start_distance": start_distance,
+            "finish_distance": finish_distance,
+            "options": {
+                "save": True,
+                "use_equivalent_focal_distance": True,
+                "focal_distance_multiple": 2.0
 
-        passed_wavefront = propagation
+            } 
+        }
+        sim_blocks.append(block)
+        sim_blocks.append(block)
+        sim_blocks.append(block)
 
-        # output 2
-        print("Output 2")
+        print(f"Starting Simulation with {len(sim_blocks)} stages.")
 
-        propagation = self.propagate_wavefront(
-            lens=lens_2,
-            output_medium=output_medium_2,
-            n_slices=1000,
-            start_distance=start_distance,
-            finish_distance=finish_distance,
-            passed_wavefront=passed_wavefront,
-        )
+        # Simulation Calculations
+        passed_wavefront = None
+        for block in sim_blocks:
+            print(f"Simulating: {block}")
 
-        passed_wavefront = propagation
+            propagation = self.propagate_wavefront(
+                lens=block["lens"],
+                output_medium=block["output"],
+                n_slices=block["n_slices"],
+                start_distance=block["start_distance"],
+                finish_distance=block["finish_distance"],
+                passed_wavefront=passed_wavefront
+            )
 
-        # # lens 3
-        print("Lens 3")
-        propagation = self.propagate_wavefront(
-            lens=lens_2,
-            output_medium=output_medium_2,
-            n_slices=1000,
-            start_distance=start_distance,
-            finish_distance=finish_distance,
-            passed_wavefront=passed_wavefront,
-        )
+            passed_wavefront = propagation
 
-        passed_wavefront = propagation
+            if block["options"]["save"]:
+                # save data
+                pass
+
+
+
+        
 
         print("-" * 50)
 

@@ -6,3 +6,5 @@ petname
 flake8
 pytest
 matplotlib
+tqdm
+black
