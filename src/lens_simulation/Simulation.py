@@ -4,11 +4,12 @@ import os
 from lens_simulation.Lens import Lens, Medium
 import uuid
 from typing import Optional
+from pprint import pprint 
 
 import petname
 
 import matplotlib.pyplot as plt
-from lens_simulation import Lens, Simulation
+from lens_simulation import Lens
 from scipy import fftpack
 from lens_simulation import utils
 
@@ -28,55 +29,39 @@ class Simulation:
         # TODO: add a check to the config
         self.config = config
         self.run_id = config["run_id"]
+        self.sim_parameters = config["sim_parameters"]
         self.parameters = config["parameters"]
+        self.mediums = config["mediums"]
+        self.lenses = config["lenses"]
+        self.stages = config["stages"]
 
     def setup_simulation(self):
 
         self.log_dir = os.path.join(self.config["log_dir"], str(self.sim_id))
         os.makedirs(self.log_dir, exist_ok=True)
 
+        # common sim parameters
+        self.A = self.sim_parameters["A"]
+        self.pixel_size = self.sim_parameters["pixel_size"]
+        self.sim_width = self.sim_parameters["sim_width"]
+        self.sim_wavelength = self.sim_parameters["sim_wavelength"]
+
+        # generate all mediums for simulation
+        self.medium_dict = self.generate_mediums()
+
+        # generate all lenses for the simulations
+        self.lens_dict = self.generate_lenses()
+
+
     def run_simulation(self):
         print("-" * 50)
         print(f"Running Simulation {self.petname} ({str(self.sim_id)[-10:]})")
         print(f"Parameters:  {self.parameters}")
 
-        # common sim parameters
-        self.A = 10000
-        self.pixel_size = 1e-6
-        self.sim_width = 4500e-6
-        self.sim_wavelength = 488e-9
-
-
-        # lens1 creation
-        lens_1 = Lens.Lens(
-            diameter=self.sim_width, height=70e-6, exponent=0.0, medium=Lens.Medium(2.348)
-        )
-        lens_1.generate_profile(pixel_size=self.pixel_size)
-
-        plt.title("Lens 1 Profile")
-        plt.plot(lens_1.profile)
-        plt.show()
-
-        # lens 2 creation
-        lens_2 = Lens.Lens(
-            diameter=self.sim_width, height=70e-6, exponent=2.0, medium=Lens.Medium(2.348)
-        )
-        lens_2.generate_profile(pixel_size=self.pixel_size)
-
-        plt.title("Lens 2 Profile")
-        plt.plot(lens_2.profile)
-        plt.show()
-
-        # simulation Parameters
-        output_medium_1 = Lens.Medium(2.348)
-        output_medium_2 = Lens.Medium(1.5)
-
-
         # simulation setup
         # (lens_1, output_1) -> (lens_2, output_2) -> (lens_2, output_2)
         # lens -> freespace -> lens -> freespace -> lens -> freespace
 
-        
         # each sim block needs:
         # lens
         # output_medium
@@ -84,52 +69,36 @@ class Simulation:
         # start_distance
         # finish_distance
         
-        sim_blocks = []
-        
-        block = {
-            "lens": lens_1,
-            "output": output_medium_1,
-            "n_slices": 100, 
-            "start_distance": 0,
-            "finish_distance": 10.0e-3,
-            "options": {
-                "save": False,
-                "use_equivalent_focal_distance": False
-            } 
-        }
+        sim_stages = []
 
-        sim_blocks.append(block)
+        for i, stage in enumerate(self.stages):
+            print(f"Setting up simulation stage {i}")
+            block = {
+                "lens": self.lens_dict[stage["lens"]],
+                "output": self.medium_dict[stage["output"]],
+                "n_slices": stage["n_slices"], 
+                "start_distance": stage["start_distance"],
+                "finish_distance": stage["finish_distance"],
+                "options": stage["options"]
+            }
 
-        # lens 2
-        print("Lens 2")
-        equivalent_focal_distance_2 = calculate_equivalent_focal_distance(
-            lens_2, output_medium_2
-        )
-        start_distance = 0 * equivalent_focal_distance_2
-        finish_distance = 2 * equivalent_focal_distance_2
 
-        block = {
-            "lens": lens_2,
-            "output": output_medium_2,
-            "n_slices": 1000, 
-            "start_distance": start_distance,
-            "finish_distance": finish_distance,
-            "options": {
-                "save": True,
-                "use_equivalent_focal_distance": True,
-                "focal_distance_multiple": 2.0
+            if block["options"]["use_equivalent_focal_distance"]:
+                eq_fd = calculate_equivalent_focal_distance(block["lens"], 
+                                                            block["output"])
+                start_distance = 0.0 * eq_fd
+                finish_distance = block["options"]["focal_distance_multiple"] * eq_fd
 
-            } 
-        }
-        sim_blocks.append(block)
-        sim_blocks.append(block)
-        sim_blocks.append(block)
+                block["start_distance"] = start_distance
+                block["finish_distance"] = finish_distance
 
-        print(f"Starting Simulation with {len(sim_blocks)} stages.")
+            sim_stages.append(block)
+
+        print(f"Starting Simulation with {len(sim_stages)} stages.")
 
         # Simulation Calculations
         passed_wavefront = None
-        for block in sim_blocks:
+        for block in sim_stages:
             print(f"Simulating: {block}")
 
             propagation = self.propagate_wavefront(
@@ -144,14 +113,65 @@ class Simulation:
             passed_wavefront = propagation
 
             if block["options"]["save"]:
-                # save data
+                # TODO: save data
                 pass
 
-
+            # TODO: checks
+            # check if lens and output medium are the same
+            # check if equivalent focal distance calc is set
 
         
+        print("-"*20)
+        print("---------- Summary ----------")
+        
+        print("---------- Medium ----------")
+        pprint(self.medium_dict)
+
+        print("---------- Lenses ----------")
+        pprint(self.lens_dict)
+
+        print("---------- Parameters ----------")
+        pprint(self.sim_parameters)
+
+        print("---------- Simulation ----------")
+        pprint(sim_stages)
 
         print("-" * 50)
+
+    def generate_mediums(self):
+        """Generate simulation mediums"""
+
+        medium_dict = {}
+        for med in self.mediums:
+            
+            medium_dict[med["name"]] = Lens.Medium(med["refractive_index"])
+
+        return medium_dict
+
+    def generate_lenses(self):
+        
+        lens_dict = {}
+        for lens in self.lenses:
+            
+            assert lens["medium"] in self.medium_dict, "Lens Medium not found in simulation mediums"
+
+            lens_dict[lens["name"]] = Lens.Lens(
+                diameter=self.sim_width, height=lens["height"],
+                exponent=lens["exponent"], medium=self.medium_dict[lens["medium"]]
+            ) 
+
+            lens_dict[lens["name"]].generate_profile(pixel_size=self.pixel_size)
+
+
+        # plot lens profiles
+        for name, lens in lens_dict.items():
+            # fig, ax = plt.Figure()
+            plt.title("Lens Profiles")
+            plt.plot(lens.profile, label=name)
+            plt.legend(loc="best")
+            plt.plot()
+                
+        return lens_dict
 
     def propagate_wavefront(
         self,
