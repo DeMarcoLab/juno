@@ -75,6 +75,7 @@ class Simulation:
 
         for i, stage in enumerate(self.stages):
             print(f"Setting up simulation stage {i}")
+            
             block = {
                 "lens": self.lens_dict[stage["lens"]],
                 "output": self.medium_dict[stage["output"]],
@@ -92,6 +93,10 @@ class Simulation:
 
                 block["start_distance"] = start_distance
                 block["finish_distance"] = finish_distance
+
+            # TODO: check if lens and output medium are the same
+            # assert block["lens"].medium != block["output"], "Lens and Output cannot have the same Medium."
+
 
             sim_stages.append(block)
 
@@ -134,10 +139,7 @@ class Simulation:
 
             passed_wavefront = propagation
 
-            # TODO: checks
-            # check if lens and output medium are the same
-            
-        # TODO: save metadata
+
 
         if self.verbose:
             print("-"*20)
