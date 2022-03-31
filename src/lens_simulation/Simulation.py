@@ -19,7 +19,7 @@ from tqdm import tqdm
 class Simulation:
     def __init__(self, config: dict) -> None:
 
-        self.sim_id = uuid.uuid4()
+        self.sim_id = str(uuid.uuid4())
         self.petname = petname.Generate(2)  # TODO: maybe
         self.read_configuration(config=config)
         self.setup_simulation()
@@ -28,12 +28,15 @@ class Simulation:
 
         # TODO: add a check to the config
         self.config = config
-        self.run_id = config["run_id"]
-        self.sim_parameters = config["sim_parameters"]
-        self.parameters = config["parameters"]
+        self.config["sim_id"] = self.sim_id
+        self.config["petname"] = self.petname
         self.mediums = config["mediums"]
         self.lenses = config["lenses"]
         self.stages = config["stages"]
+        self.options = config["options"]
+
+        # options
+        self.verbose = bool(self.config["options"]["verbose"])
 
     def setup_simulation(self):
 
@@ -41,10 +44,10 @@ class Simulation:
         os.makedirs(self.log_dir, exist_ok=True)
 
         # common sim parameters
-        self.A = self.sim_parameters["A"]
-        self.pixel_size = self.sim_parameters["pixel_size"]
-        self.sim_width = self.sim_parameters["sim_width"]
-        self.sim_wavelength = self.sim_parameters["sim_wavelength"]
+        self.A = self.config["sim_parameters"]["A"]
+        self.pixel_size = self.config["sim_parameters"]["pixel_size"]
+        self.sim_width = self.config["sim_parameters"]["sim_width"]
+        self.sim_wavelength = self.config["sim_parameters"]["sim_wavelength"]
 
         # generate all mediums for simulation
         self.medium_dict = self.generate_mediums()
@@ -56,7 +59,6 @@ class Simulation:
     def run_simulation(self):
         print("-" * 50)
         print(f"Running Simulation {self.petname} ({str(self.sim_id)[-10:]})")
-        print(f"Parameters:  {self.parameters}")
 
         # simulation setup
         # (lens_1, output_1) -> (lens_2, output_2) -> (lens_2, output_2)
@@ -82,7 +84,6 @@ class Simulation:
                 "options": stage["options"]
             }
 
-
             if block["options"]["use_equivalent_focal_distance"]:
                 eq_fd = calculate_equivalent_focal_distance(block["lens"], 
                                                             block["output"])
@@ -98,10 +99,11 @@ class Simulation:
 
         # Simulation Calculations
         passed_wavefront = None
-        for block in sim_stages:
-            print(f"Simulating: {block}")
-
-            propagation = self.propagate_wavefront(
+        progress_bar = tqdm(sim_stages)
+        for block_id, block in enumerate(progress_bar):
+            
+            progress_bar.set_description(f"Propagating wavefront...")
+            sim, propagation = self.propagate_wavefront(
                 lens=block["lens"],
                 output_medium=block["output"],
                 n_slices=block["n_slices"],
@@ -110,33 +112,63 @@ class Simulation:
                 passed_wavefront=passed_wavefront
             )
 
-            passed_wavefront = propagation
+            if self.options["save"]:
+                progress_bar.set_description(f"Saving simulation...")
+                self.save_simulation(sim, block_id)
 
-            if block["options"]["save"]:
-                # TODO: save data
-                pass
+            if self.options["save_plot"]:
+                # plot sim result
+                fig = utils.plot_simulation(
+                    sim,
+                    sim.shape[1],
+                    sim.shape[0],
+                    self.pixel_size,
+                    block["start_distance"],
+                    block["finish_distance"],
+                )
+
+                utils.save_figure(fig, os.path.join(self.log_dir, str(block_id), "img.png"))
+
+                if self.options["plot_sim"]:
+                    plt.show()
+
+            passed_wavefront = propagation
 
             # TODO: checks
             # check if lens and output medium are the same
-            # check if equivalent focal distance calc is set
+            
+        # TODO: save metadata
 
-        
-        print("-"*20)
-        print("---------- Summary ----------")
-        
-        print("---------- Medium ----------")
-        pprint(self.medium_dict)
+        if self.verbose:
+            print("-"*20)
+            print("---------- Summary ----------")
+            
+            print("---------- Medium ----------")
+            pprint(self.medium_dict)
 
-        print("---------- Lenses ----------")
-        pprint(self.lens_dict)
+            print("---------- Lenses ----------")
+            pprint(self.lens_dict)
 
-        print("---------- Parameters ----------")
-        pprint(self.sim_parameters)
+            print("---------- Parameters ----------")
+            pprint(self.config["sim_parameters"])
 
-        print("---------- Simulation ----------")
-        pprint(sim_stages)
+            print("---------- Simulation ----------")
+            pprint(sim_stages)
+
+            print("---------- Configuration ----------")
+            pprint(self.config)
+
+        utils.save_metadata(self.config, self.log_dir)
 
         print("-" * 50)
+
+    def save_simulation(self, sim, block_id):
+        """Save the simulation data"""
+        # TODO: save compressed version?
+        save_path = os.path.join(self.log_dir, str(block_id), "sim.npy")
+        # save_file = os.path.join(save_path, "sim.npy")
+        os.makedirs(os.path.dirname(save_path), exist_ok=True)
+        np.save(save_path, sim)
 
     def generate_mediums(self):
         """Generate simulation mediums"""
@@ -161,16 +193,10 @@ class Simulation:
             ) 
 
             lens_dict[lens["name"]].generate_profile(pixel_size=self.pixel_size)
+        
+        if self.options["plot_lens"]:
+            utils.plot_lenses(lens_dict)
 
-
-        # plot lens profiles
-        for name, lens in lens_dict.items():
-            # fig, ax = plt.Figure()
-            plt.title("Lens Profiles")
-            plt.plot(lens.profile, label=name)
-            plt.legend(loc="best")
-            plt.plot()
-                
         return lens_dict
 
     def propagate_wavefront(
@@ -185,15 +211,16 @@ class Simulation:
 
         # TODO: docstring
         # TODO: input validation
-        print("-" * 20)
-        print(f"Propagating Wavefront with Parameters")
-        print(f"Lens: {lens}")
-        print(f"Medium: {output_medium}")
-        print(
-            f"Slices: {n_slices}, Start: {start_distance:.2e}m, Finish: {finish_distance:.2e}m"
-        )
-        print(f"Passed Wavefront: {passed_wavefront is not None}")
-        print(f"-" * 20)
+        if self.verbose:
+            print("-" * 20)
+            print(f"Propagating Wavefront with Parameters")
+            print(f"Lens: {lens}")
+            print(f"Medium: {output_medium}")
+            print(
+                f"Slices: {n_slices}, Start: {start_distance:.2e}m, Finish: {finish_distance:.2e}m"
+            )
+            print(f"Passed Wavefront: {passed_wavefront is not None}")
+            print(f"-" * 20)
 
         freq_arr = generate_squared_frequency_array(
             n_pixels=len(lens.profile), pixel_size=self.pixel_size
@@ -224,19 +251,7 @@ class Simulation:
 
         from lens_simulation import utils
 
-        # plot sim result
-        utils.plot_simulation(
-            sim,
-            sim.shape[1],
-            sim.shape[0],
-            self.pixel_size,
-            start_distance,
-            finish_distance,
-        )
-        # plt.imshow(sim)
-        plt.show()
-
-        return propagation
+        return sim, propagation
 
 
 def generate_squared_frequency_array(n_pixels: int, pixel_size: float) -> np.ndarray:

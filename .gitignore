@@ -10,3 +10,5 @@ pip-wheel-metadata/*
 src/**/sim.png
 *.npy
 *.npz
+**/log/*
+*.prof

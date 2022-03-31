@@ -1,0 +1,58 @@
+sim_parameters:
+  A: 10000
+  pixel_size: 1.e-6 
+  sim_width: 4500.e-6
+  sim_wavelength: 488.e-9
+options:
+  plot_lens: false
+  plot_sim: false
+  verbose: false
+  save: true
+  save_plot: true
+lenses:
+  - name: lens_1
+    height: 70.e-6
+    exponent: 0.0
+    medium: medium_1
+  - name: lens_2
+    height: 70.e-6
+    exponent: 2.0
+    medium: medium_1
+mediums:
+  - name: medium_1
+    refractive_index: 2.348
+  - name: medium_2
+    refractive_index: 1.5
+stages:
+  - lens: lens_1
+    output: medium_1 
+    n_slices: 100 
+    start_distance: 0
+    finish_distance: 10.0e-3 
+    options: 
+      use_equivalent_focal_distance: False
+      focal_distance_multiple: 2.0
+  - lens: lens_2
+    output: medium_2 
+    n_slices: 1000 
+    start_distance: 0
+    finish_distance: 10.0e-3 
+    options: 
+      use_equivalent_focal_distance: True
+      focal_distance_multiple: 2.0 
+  - lens: lens_2
+    output: medium_2 
+    n_slices: 1000 
+    start_distance: 0
+    finish_distance: 10.0e-3 
+    options: 
+      use_equivalent_focal_distance: True
+      focal_distance_multiple: 2.0
+  - lens: lens_2
+    output: medium_2 
+    n_slices: 1000 
+    start_distance: 0
+    finish_distance: 10.0e-3 
+    options:  
+      use_equivalent_focal_distance: True
+      focal_distance_multiple: 2.0 
