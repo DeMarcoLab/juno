@@ -1,12 +1,21 @@
-from lens_simulation import Simulation, utils
+from lens_simulation import Simulation, SimulationRunner, utils
 import uuid
 import os
 import yaml
 import sys
 
 
+
+
 def main(args):
 
+    sim_runner = SimulationRunner.SimulationRunner(args)
+    sim_runner.initialise_simulation()
+    sim_runner.setup_simulation()
+    sim_runner.run_simulations()
+
+
+def run_single_simulation(config_filename):
     # load config
     conf = utils.load_config(args)
 
@@ -25,7 +34,6 @@ def main(args):
 
     sim = Simulation.Simulation(config)
     sim.run_simulation()
-
 
 if __name__ == "__main__":
 

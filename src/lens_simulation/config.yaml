@@ -11,16 +11,12 @@ options:
   save_plot: true
 lenses:
   - name: lens_1
-    height: 70.e-6
-    height_finish: 80.e-6
-    height_step: 5.e-6
+    height: [70.e-6, 80.e-6, 5.e-6]
     exponent: 0.0
     medium: medium_1
   - name: lens_2
-    height: 70.e-6
-    height_finish: 75e-6
-    height_step: 1e-6
-    exponent: 2.1
+    height: [75.e-6, 85.e-6, 2.5e-6]
+    exponent: [2.0, 2.1, 0.1]
     medium: medium_1
 mediums:
   - name: medium_1

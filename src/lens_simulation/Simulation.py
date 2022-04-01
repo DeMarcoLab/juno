@@ -75,12 +75,10 @@ class Simulation:
 
         # TODO: explicitly record the previous stage as well?
 
-        print("-"*50)
         self.sim_stages = []
-        progress_bar = tqdm(self.stages)
-        for i, stage in enumerate(progress_bar):
-            progress_bar.set_description(f"Generating simulation")
-            
+
+        for i, stage in enumerate(self.stages):
+           
             block = {
                 "lens": self.lens_dict[stage["lens"]],
                 "output": self.medium_dict[stage["output"]],
@@ -107,15 +105,14 @@ class Simulation:
             self.sim_stages.append(block)
 
     def run_simulation(self):
-        print("-" * 50)
-        print(f"Starting Simulation {self.petname} ({str(self.sim_id)[-10:]}) with {len(self.sim_stages)} stages.")
+        # print(f"Starting  ({str(self.sim_id)[-10:]}) with {len(self.sim_stages)} stages.")
 
         # Simulation Calculations
         passed_wavefront = None
-        progress_bar = tqdm(self.sim_stages)
+        progress_bar = tqdm(self.sim_stages, leave=False)
         for block_id, block in enumerate(progress_bar):
             
-            progress_bar.set_description(f"Propagating wavefront")
+            progress_bar.set_description(f"Sim: {self.petname} ({str(self.sim_id)[-10:]}) - Propagating Wavefront")
             sim, propagation = self.propagate_wavefront(
                 lens=block["lens"],
                 output_medium=block["output"],
@@ -126,7 +123,7 @@ class Simulation:
             )
 
             if self.options["save"]:
-                progress_bar.set_description(f"Saving simulation")
+                progress_bar.set_description(f"Sim: {self.petname} ({str(self.sim_id)[-10:]}) - Saving Simulation")
                 self.save_simulation(sim, block_id)
 
             if self.options["save_plot"]:
@@ -141,9 +138,12 @@ class Simulation:
                 )
 
                 utils.save_figure(fig, os.path.join(self.log_dir, str(block_id), "img.png"))
-
+                
                 if self.options["plot_sim"]:
                     plt.show()
+                
+                plt.close(fig)
+
 
             passed_wavefront = propagation
 
@@ -169,8 +169,6 @@ class Simulation:
             pprint(self.config)
 
         utils.save_metadata(self.config, self.log_dir)
-
-        print("-" * 50)
 
     def save_simulation(self, sim, block_id):
         """Save the simulation data"""

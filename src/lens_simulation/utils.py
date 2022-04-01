@@ -112,4 +112,15 @@ def load_metadata(path: str):
 def load_config(config_filename):
     with open(config_filename, "r") as f:
         conf = yaml.full_load(f)
+
+
+    # validation
+    # TODO: medium, stages
+    # convert all height and exponent values to float
+    for i, lens in enumerate(conf["lenses"]):
+        for param in ["height", "exponent"]:
+            if isinstance(lens[param], list):
+                for j, h in enumerate(lens[param]):
+                    conf["lenses"][i][param][j] = float(h)
+
     return conf
