@@ -10,9 +10,13 @@ import glob
 import os
 import json
 
+import pandas as pd
+
+pd.set_option("display.precision", 8)
+
 def load_simulation_run(sim_id):
 
-    st.write("---")
+    # st.write("---")
 
     # delete sim
     # if st.button("DELETE THIS SIM"):
@@ -20,28 +24,61 @@ def load_simulation_run(sim_id):
 
     metadata = utils.load_metadata(sim_id)
 
-    st.header(f"{metadata['petname']}: {metadata['sim_id']}")
+    # st.write(f"{metadata['petname']}: {metadata['sim_id']}")
 
 
-    # show lenses and mediums
-    lens_cols = st.columns(2)
-    lens_cols[0].subheader("Lenses")
+    df_stages = pd.DataFrame.from_dict(metadata["stages"])
+    df_stages["stage"] = df_stages.index
+    # st.write(df_stages)
 
-    for lens in metadata["lenses"]:
-        lens_cols[0].write(lens)
+    df_lens = pd.DataFrame.from_dict(metadata["lenses"])
+    df_lens = df_lens.rename(columns={"name": "lens"})
+    # st.write(df_lens)
+
+    df_medium = pd.DataFrame.from_dict(metadata["mediums"])
+    # df_medium = df_medium.rename(columns={"name": "medium"})
+    # st.write(df_medium)
 
 
-    lens_cols[1].subheader("Mediums")
+    df_join = pd.merge(df_stages, df_lens, on="lens")
+    # df_join = pd.merge(df_join, df_medium, on="medium")
+        
+    df_join["petname"] = metadata["petname"]
+    df_join["sim_id"] = metadata["sim_id"]
+    df_join["run_id"] = metadata["run_id"]
+    df_join["data_path"] = os.path.join(metadata["log_dir"], metadata["sim_id"])
+    df_join["height"] = df_join["height"] *10e3 # convert to mm
+    # st.write(df_join)
 
-    for lens in metadata["mediums"]:
-        lens_cols[1].write(lens)
+    return df_join
+
+
+def show_simulation_data(sim_id):
+    
+    metadata = utils.load_metadata(sim_id)
+    
+    st.subheader(f"{metadata['petname']}: {metadata['sim_id']}")
+
+    # # show lenses and mediums
+    # lens_cols = st.columns(2)
+    # lens_cols[0].subheader("Lenses")
+
+    # for lens in metadata["lenses"]:
+    #     lens_cols[0].write(lens)
+
+
+    # lens_cols[1].subheader("Mediums")
+
+    # for lens in metadata["mediums"]:
+    #     lens_cols[1].write(lens)
 
     sim_filenames = glob.glob(os.path.join(sim_id, "*/*.npy"))
+
+    # st.write(sim_filenames)
 
     # show simulation stages
     st.write("---")
     st.subheader("All Simulation Stages")
-
 
     cols = st.columns(len(sim_filenames))
 
@@ -67,13 +104,44 @@ def load_simulation_run(sim_id):
 st.set_page_config(page_title="Lens Simulation", layout="wide")
 st.title("Lens Simulation")
 
-filenames = glob.glob("log/**/*")
+run_id = st.sidebar.selectbox("Select a Run", glob.glob("log/*"))
 
-sim_ids = st.sidebar.multiselect("Select a simulation", filenames)
+filenames = glob.glob(os.path.join(run_id, "*"))
+
+# selected_sim_ids = st.sidebar.multiselect("Select a simulation", filenames)
+
+df_metadata = pd.DataFrame()
+
+# st.write(selected_sim_ids)
+
+# TODO: cache
+for sim_id in filenames:
+    df_join = load_simulation_run(sim_id)   
+    df_metadata = pd.concat([df_metadata, df_join])
+
+st.subheader("DF METADATA")
+st.write(df_metadata)
 
 
-for sim_id in sim_ids:
-    load_simulation_run(sim_id)
+filter_col = st.selectbox("Filter Column", df_metadata.columns)
+filter_val = st.slider("Select values", 
+    float(df_metadata[filter_col].min()), 
+    float(df_metadata[filter_col].max()), 
+    float(df_metadata[filter_col].min()))
+
+# TODO: double slider?
+df_filter = df_metadata[df_metadata[filter_col] > filter_val]
+st.write(df_filter)
+
+
+# TODO: this could be better
+filter_sim_id = df_filter["data_path"].unique()
+
+for sim_id in filter_sim_id:
+    
+    show_simulation_data(sim_id)
+
+
 
 
 

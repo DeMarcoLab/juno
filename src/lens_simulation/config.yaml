@@ -15,7 +15,7 @@ lenses:
     exponent: 0.0
     medium: medium_1
   - name: lens_2
-    height: [75.e-6, 85.e-6, 2.5e-6]
+    height: [75.e-6, 85.e-6, 5.0e-6]
     exponent: [2.0, 2.1, 0.1]
     medium: medium_1
 mediums:
