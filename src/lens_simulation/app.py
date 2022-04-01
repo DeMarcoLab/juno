@@ -12,6 +12,9 @@ import json
 
 import pandas as pd
 
+import matplotlib.pyplot as plt
+import matplotlib.image as mpimg
+
 pd.set_option("display.precision", 8)
 
 def load_simulation_run(sim_id):
@@ -53,52 +56,39 @@ def load_simulation_run(sim_id):
     return df_join
 
 
-def show_simulation_data(sim_id):
+def show_simulation_data(sim_id, df):
     
     metadata = utils.load_metadata(sim_id)
     
-    st.subheader(f"{metadata['petname']}: {metadata['sim_id']}")
+    st.write("---")
+    st.write(f"{metadata['petname']}: {metadata['sim_id']}")
 
     # # show lenses and mediums
-    # lens_cols = st.columns(2)
-    # lens_cols[0].subheader("Lenses")
-
-    # for lens in metadata["lenses"]:
-    #     lens_cols[0].write(lens)
-
-
-    # lens_cols[1].subheader("Mediums")
-
-    # for lens in metadata["mediums"]:
-    #     lens_cols[1].write(lens)
+    # TODO: show df_join data
 
     sim_filenames = glob.glob(os.path.join(sim_id, "*/*.npy"))
 
-    # st.write(sim_filenames)
-
     # show simulation stages
-    st.write("---")
-    st.subheader("All Simulation Stages")
 
     cols = st.columns(len(sim_filenames))
 
     for i, sim_stage_id in enumerate(sim_filenames):
-        cols[i].write(sim_stage_id)
+        cols[i].write(f"Stage {i}")
 
         sim = utils.load_simulation(sim_stage_id)
 
-        cols[i].write(sim.shape)
-
-        fig = utils.plot_simulation(sim, sim.shape[1], sim.shape[0], pixel_size_x=metadata["sim_parameters"]["pixel_size"], start_distance=0.0, finish_distance=10.0e-3)
-        cols[i].pyplot(fig)
-
-        stage_metadata = metadata["stages"][i]
-        cols[i].write(stage_metadata)
-
-
-
-
-
+        # faster to load the image than the sim
+        img_fname = os.path.join(os.path.dirname(sim_stage_id), "img.png")
+        if os.path.exists(img_fname):
+            import PIL
+            img = PIL.Image.open(img_fname)
+            cols[i].image(img)
+        else:
+            fig = utils.plot_simulation(sim, sim.shape[1], sim.shape[0], pixel_size_x=metadata["sim_parameters"]["pixel_size"], start_distance=0.0, finish_distance=10.0e-3)
+            cols[i].pyplot(fig)
+    
+    # stage metadata
+    st.write(df_sim)
 
 
 st.set_page_config(page_title="Lens Simulation", layout="wide")
@@ -119,18 +109,25 @@ for sim_id in filenames:
     df_join = load_simulation_run(sim_id)   
     df_metadata = pd.concat([df_metadata, df_join])
 
-st.subheader("DF METADATA")
-st.write(df_metadata)
+# st.subheader("DF METADATA")
+# st.write(df_metadata)
 
-
-filter_col = st.selectbox("Filter Column", df_metadata.columns)
-filter_val = st.slider("Select values", 
+st.sidebar.write("---")
+filter_col = st.sidebar.selectbox("Filter Column", df_metadata.columns)
+min_val, max_val = st.sidebar.slider("Select values", 
     float(df_metadata[filter_col].min()), 
     float(df_metadata[filter_col].max()), 
-    float(df_metadata[filter_col].min()))
+    (float(df_metadata[filter_col].min()), float(df_metadata[filter_col].max()))
+    )
+
+
+st.write(min_val, max_val)
 
 # TODO: double slider?
-df_filter = df_metadata[df_metadata[filter_col] > filter_val]
+df_filter = df_metadata[df_metadata[filter_col] >= min_val]
+df_filter = df_filter[df_filter[filter_col] <= max_val]
+st.sidebar.write(f"Filtered to {len(df_filter)} simulations")
+st.subheader("Filtered Simulation Data")
 st.write(df_filter)
 
 
@@ -138,8 +135,8 @@ st.write(df_filter)
 filter_sim_id = df_filter["data_path"].unique()
 
 for sim_id in filter_sim_id:
-    
-    show_simulation_data(sim_id)
+    df_sim = df_metadata[df_metadata["data_path"] == sim_id] # TODO: check if we should include the filtered out data from the same sim?
+    show_simulation_data(sim_id, df_sim)
 
 
 
