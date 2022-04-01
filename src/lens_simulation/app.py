@@ -19,28 +19,17 @@ pd.set_option("display.precision", 8)
 
 def load_simulation_run(sim_id):
 
-    # st.write("---")
-
-    # delete sim
-    # if st.button("DELETE THIS SIM"):
-    #     st.error("SIM DELETED")
-
     metadata = utils.load_metadata(sim_id)
-
-    # st.write(f"{metadata['petname']}: {metadata['sim_id']}")
-
 
     df_stages = pd.DataFrame.from_dict(metadata["stages"])
     df_stages["stage"] = df_stages.index
-    # st.write(df_stages)
+
 
     df_lens = pd.DataFrame.from_dict(metadata["lenses"])
     df_lens = df_lens.rename(columns={"name": "lens"})
-    # st.write(df_lens)
 
     df_medium = pd.DataFrame.from_dict(metadata["mediums"])
     # df_medium = df_medium.rename(columns={"name": "medium"})
-    # st.write(df_medium)
 
 
     df_join = pd.merge(df_stages, df_lens, on="lens")
@@ -51,7 +40,6 @@ def load_simulation_run(sim_id):
     df_join["run_id"] = metadata["run_id"]
     df_join["data_path"] = os.path.join(metadata["log_dir"], metadata["sim_id"])
     df_join["height"] = df_join["height"] *10e3 # convert to mm
-    # st.write(df_join)
 
     return df_join
 
@@ -64,7 +52,6 @@ def show_simulation_data(sim_id, df):
     st.write(f"{metadata['petname']}: {metadata['sim_id']}")
 
     # # show lenses and mediums
-    # TODO: show df_join data
 
     sim_filenames = glob.glob(os.path.join(sim_id, "*/*.npy"))
 
@@ -98,19 +85,12 @@ run_id = st.sidebar.selectbox("Select a Run", glob.glob("log/*"))
 
 filenames = glob.glob(os.path.join(run_id, "*"))
 
-# selected_sim_ids = st.sidebar.multiselect("Select a simulation", filenames)
-
 df_metadata = pd.DataFrame()
-
-# st.write(selected_sim_ids)
 
 # TODO: cache
 for sim_id in filenames:
     df_join = load_simulation_run(sim_id)   
     df_metadata = pd.concat([df_metadata, df_join])
-
-# st.subheader("DF METADATA")
-# st.write(df_metadata)
 
 st.sidebar.write("---")
 filter_col = st.sidebar.selectbox("Filter Column", df_metadata.columns)
