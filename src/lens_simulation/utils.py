@@ -4,6 +4,7 @@ import numpy as np
 import plotly.express as px
 import os 
 import json
+import yaml
 
 def plot_simulation(
     arr: np.ndarray,
@@ -99,3 +100,16 @@ def save_metadata(config: dict, log_dir: str) -> None:
     # save as json
     with open(os.path.join(log_dir, "metadata.json"), "w") as f:
         json.dump(config, f, indent=4)
+
+def load_metadata(path: str):
+    metadata_fname = os.path.join(path, "metadata.json")
+
+    with open(metadata_fname, "r") as f:
+        metadata = json.load(f) 
+    
+    return metadata
+
+def load_config(config_filename):
+    with open(config_filename, "r") as f:
+        conf = yaml.full_load(f)
+    return conf

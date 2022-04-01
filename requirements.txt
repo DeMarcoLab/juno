@@ -8,3 +8,4 @@ pytest
 matplotlib
 tqdm
 black
+streamlit

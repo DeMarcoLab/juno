@@ -16,6 +16,18 @@ from lens_simulation import utils
 from tqdm import tqdm
 
 
+# TODO: sweepable parameters
+# TODO: database management
+# TODO: visualisation, analytics, comparison
+# TODO: initial beam
+# TODO: tools:
+    # - measuring sheet parameters (full width, half maximum)
+    # - cleaning
+    # - lens creation (load profile)
+    # - total internal reflection check (exponential profile)
+# TODO: performance (cached results, gpu)
+
+
 class Simulation:
     def __init__(self, config: dict) -> None:
 
@@ -55,26 +67,19 @@ class Simulation:
         # generate all lenses for the simulations
         self.lens_dict = self.generate_lenses()
 
+        # generate all simulation stages
+        self.generate_simulation_stages()
 
-    def run_simulation(self):
-        print("-" * 50)
-        print(f"Running Simulation {self.petname} ({str(self.sim_id)[-10:]})")
 
-        # simulation setup
-        # (lens_1, output_1) -> (lens_2, output_2) -> (lens_2, output_2)
-        # lens -> freespace -> lens -> freespace -> lens -> freespace
+    def generate_simulation_stages(self):
 
-        # each sim block needs:
-        # lens
-        # output_medium
-        # n_slices(default 1000)
-        # start_distance
-        # finish_distance
-        
-        sim_stages = []
+        # TODO: explicitly record the previous stage as well?
 
-        for i, stage in enumerate(self.stages):
-            print(f"Setting up simulation stage {i}")
+        print("-"*50)
+        self.sim_stages = []
+        progress_bar = tqdm(self.stages)
+        for i, stage in enumerate(progress_bar):
+            progress_bar.set_description(f"Generating simulation")
             
             block = {
                 "lens": self.lens_dict[stage["lens"]],
@@ -94,20 +99,23 @@ class Simulation:
                 block["start_distance"] = start_distance
                 block["finish_distance"] = finish_distance
 
+                # TODO: update the metadata if this option is used...
+
             # TODO: check if lens and output medium are the same
             # assert block["lens"].medium != block["output"], "Lens and Output cannot have the same Medium."
 
+            self.sim_stages.append(block)
 
-            sim_stages.append(block)
-
-        print(f"Starting Simulation with {len(sim_stages)} stages.")
+    def run_simulation(self):
+        print("-" * 50)
+        print(f"Starting Simulation {self.petname} ({str(self.sim_id)[-10:]}) with {len(self.sim_stages)} stages.")
 
         # Simulation Calculations
         passed_wavefront = None
-        progress_bar = tqdm(sim_stages)
+        progress_bar = tqdm(self.sim_stages)
         for block_id, block in enumerate(progress_bar):
             
-            progress_bar.set_description(f"Propagating wavefront...")
+            progress_bar.set_description(f"Propagating wavefront")
             sim, propagation = self.propagate_wavefront(
                 lens=block["lens"],
                 output_medium=block["output"],
@@ -118,7 +126,7 @@ class Simulation:
             )
 
             if self.options["save"]:
-                progress_bar.set_description(f"Saving simulation...")
+                progress_bar.set_description(f"Saving simulation")
                 self.save_simulation(sim, block_id)
 
             if self.options["save_plot"]:
@@ -155,7 +163,7 @@ class Simulation:
             pprint(self.config["sim_parameters"])
 
             print("---------- Simulation ----------")
-            pprint(sim_stages)
+            pprint(self.sim_stages)
 
             print("---------- Configuration ----------")
             pprint(self.config)
@@ -213,6 +221,12 @@ class Simulation:
 
         # TODO: docstring
         # TODO: input validation
+
+        if passed_wavefront is not None:
+            A = 1.0
+        else:
+            A = self.A
+
         if self.verbose:
             print("-" * 20)
             print(f"Propagating Wavefront with Parameters")
@@ -233,9 +247,9 @@ class Simulation:
         ) * lens.profile
         phase = (2 * np.pi * delta / self.sim_wavelength) % (2 * np.pi)
         if passed_wavefront is not None:
-            wavefront = self.A * np.exp(1j * phase) * passed_wavefront
+            wavefront = A * np.exp(1j * phase) * passed_wavefront
         else:
-            wavefront = self.A * np.exp(1j * phase)
+            wavefront = A * np.exp(1j * phase)
 
         fft_wavefront = fftpack.fft(wavefront)
 
@@ -250,8 +264,6 @@ class Simulation:
             output = np.sqrt(propagation.real ** 2 + propagation.imag ** 2)
 
             sim[i] = np.round(output, 10)
-
-        from lens_simulation import utils
 
         return sim, propagation
 
