@@ -7,7 +7,7 @@ options:
   plot_lens: false
   plot_sim: false
   verbose: false
-  save: true # TODO: fix without these
+  save: false # TODO: fix without these
   save_plot: true
 lenses:
   - name: lens_1
@@ -16,7 +16,7 @@ lenses:
     medium: medium_1
   - name: lens_2
     height: 75.e-6
-    exponent: 2.0
+    exponent: [2.0, 3.0, 1.]
     medium: medium_1
 mediums:
   - name: medium_1

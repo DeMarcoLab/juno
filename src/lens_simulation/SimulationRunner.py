@@ -25,7 +25,7 @@ class SimulationRunner:
 
         # create logging directory
         log_dir = os.getcwd() # TODO: make user selectable
-        self.data_path = os.path.join(log_dir , "log",  str(self.run_id))
+        self.data_path = os.path.join(log_dir , "log",  str(self.petname))
         os.makedirs(self.data_path, exist_ok=True)
 
 
@@ -81,7 +81,9 @@ class SimulationRunner:
                 lens_combination.append(lens_dict)
             
             sim_config = {
-                "run_id": self.run_id, "log_dir": self.data_path, 
+                "run_id": self.run_id, 
+                "run_petname": self.petname, 
+                "log_dir": self.data_path, 
                 "sim_parameters": self.config["sim_parameters"],
                 "options": self.config["options"],
                 "mediums": self.config["mediums"], 

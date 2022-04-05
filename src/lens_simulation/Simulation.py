@@ -78,6 +78,11 @@ class Simulation:
 
         # TODO: explicitly record the previous stage as well?
 
+        # validate all lens, mediums exist?
+        for stage in self.stages:
+            assert stage["output"] in self.medium_dict, f"{stage['output']} has not been defined in the configuration"
+            assert stage["lens"] in self.lens_dict, f"{stage['lens']} has not been defined in the configuration"
+
         self.sim_stages = []
 
         for i, stage in enumerate(self.stages):
@@ -127,17 +132,15 @@ class Simulation:
                 block["start_distance"] = start_distance
                 block["finish_distance"] = finish_distance
 
-                # TODO: update the metadata if this option is used...
+                # update the metadata if this option is used...
+                self.config["stages"][i]["start_distance"] = start_distance
+                self.config["stages"][i]["finish_distance"] = finish_distance
 
             # TODO: need to save the updated metadata if we are changing the lens, start/finish distance etc
-
-
-
 
             self.sim_stages.append(block)
 
     def run_simulation(self):
-        # print(f"Starting  ({str(self.sim_id)[-10:]}) with {len(self.sim_stages)} stages.")
 
         # Simulation Calculations
         passed_wavefront = None
@@ -159,6 +162,8 @@ class Simulation:
                 self.save_simulation(sim, block_id)
 
             if self.options["save_plot"]:
+                progress_bar.set_description(f"Sim: {self.petname} ({str(self.sim_id)[-10:]}) - Plotting Simulation")
+
                 # plot sim result
                 fig = utils.plot_simulation(
                     sim,

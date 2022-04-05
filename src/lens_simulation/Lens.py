@@ -42,7 +42,7 @@ class Lens:
 
     def __repr__(self):
 
-        return f""" Lens (diameter: {self.diameter}, height: {self.height}, exponent: {self.exponent})"""
+        return f""" Lens (diameter: {self.diameter:.2e}, height: {self.height:.2f}, \nexponent: {self.exponent:.3f}, refractive_index: {self.medium.refractive_index:.3f}),"""
 
     def generate_profile(self, pixel_size) -> np.ndarray:
         """[summary]
