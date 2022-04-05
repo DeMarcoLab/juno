@@ -17,7 +17,7 @@ def main(args):
 
 def run_single_simulation(config_filename):
     # load config
-    conf = utils.load_config(args)
+    conf = utils.load_config(config_filename)
 
     # run_id is for when running a batch of sims, each sim has unique id
     run_id = (uuid.uuid4())

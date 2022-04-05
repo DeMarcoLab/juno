@@ -26,6 +26,8 @@ from tqdm import tqdm
     # - total internal reflection check (exponential profile)
 # TODO: performance (cached results, gpu)
 
+
+# TODO:padding
 # TODO: metadata for sim_runner (all parameters)
 
 
@@ -89,6 +91,33 @@ class Simulation:
                 "options": stage["options"]
             }
 
+
+            # TODO: check if lens and output medium are the same
+            # print("Stage", i)
+            # pprint(block)
+            # print(block["lens"].medium.refractive_index)
+            # print(block["output"].refractive_index)
+            if i!=0:
+                if block["lens"].medium.refractive_index == block["output"].refractive_index:
+                    print("Lens and Output have same medium, inverting lens")
+
+                    if block["lens"].medium.refractive_index == self.sim_stages[i-1]["output"].refractive_index:
+
+                        raise ValueError("Lens and Medium on either side, Lens has no effect.") # TODO: might be useful for someone...
+
+                    block["lens"] = Lens.Lens(
+                        diameter=self.sim_width, 
+                        height=block["lens"].height,
+                        exponent=block["lens"].exponent, 
+                        medium= self.sim_stages[i-1]["output"]
+                    ) # replace the lens with lens of previous output medium
+                    block["lens"].generate_profile(self.pixel_size)
+
+                    # print("PROFILE", len(block["lens"].profile))
+                    # print(block["lens"])
+                    # assert block["lens"].medium != block["output"], "Lens and Output cannot have the same Medium."
+
+
             if block["options"]["use_equivalent_focal_distance"]:
                 eq_fd = calculate_equivalent_focal_distance(block["lens"], 
                                                             block["output"])
@@ -100,8 +129,10 @@ class Simulation:
 
                 # TODO: update the metadata if this option is used...
 
-            # TODO: check if lens and output medium are the same
-            # assert block["lens"].medium != block["output"], "Lens and Output cannot have the same Medium."
+            # TODO: need to save the updated metadata if we are changing the lens, start/finish distance etc
+
+
+
 
             self.sim_stages.append(block)
 
@@ -220,6 +251,9 @@ class Simulation:
 
         # TODO: docstring
         # TODO: input validation
+        
+        # padding
+        sim_profile = np.pad(lens.profile, len(lens.profile), "constant")
 
         if passed_wavefront is not None:
             A = 1.0
@@ -238,21 +272,29 @@ class Simulation:
             print(f"-" * 20)
 
         freq_arr = generate_squared_frequency_array(
-            n_pixels=len(lens.profile), pixel_size=self.pixel_size
+            n_pixels=len(sim_profile), pixel_size=self.pixel_size
         )
 
         delta = (
             lens.medium.refractive_index - output_medium.refractive_index
-        ) * lens.profile
+        ) * sim_profile
         phase = (2 * np.pi * delta / self.sim_wavelength) % (2 * np.pi)
+
         if passed_wavefront is not None:
             wavefront = A * np.exp(1j * phase) * passed_wavefront
         else:
             wavefront = A * np.exp(1j * phase)
 
+        # padded area should be 0+0j
+        if passed_wavefront is not None:
+            wavefront[phase == 0] = 0+0j
+        else:
+            wavefront[:len(lens.profile)] = 0+0j
+            wavefront[-len(lens.profile):] = 0+0j
+
         fft_wavefront = fftpack.fft(wavefront)
 
-        sim = np.ones(shape=((n_slices), len(lens.profile)))
+        sim = np.ones(shape=((n_slices), len(sim_profile)))
         distances_2 = np.linspace(start_distance, finish_distance, n_slices)
         for i, z in enumerate(distances_2):
             prop = np.exp(1j * output_medium.wave_number * z) * np.exp(

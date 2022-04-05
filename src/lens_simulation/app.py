@@ -87,7 +87,7 @@ for sim_id in filenames:
     df_metadata = pd.concat([df_metadata, df_join])
 
 st.sidebar.write("---")
-filter_col = st.sidebar.selectbox("Filter Column", df_metadata.columns)
+filter_col = st.sidebar.selectbox("Filter Column", df_metadata.columns, 7)
 min_val, max_val = st.sidebar.slider("Select values", 
     float(df_metadata[filter_col].min()), 
     float(df_metadata[filter_col].max()), 

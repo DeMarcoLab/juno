@@ -68,6 +68,8 @@ def crop_image(arr, width, height):
 
 def save_figure(fig, fname: str = "img.png") -> None:
 
+    os.makedirs(os.path.dirname(fname), exist_ok=True)
+
     plt.savefig(fname)
 
 

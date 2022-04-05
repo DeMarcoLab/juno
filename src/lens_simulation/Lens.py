@@ -23,6 +23,11 @@ class Water(Medium):
     refractive_index: float = 1.33
 
 
+
+# TODO:
+# - double sided
+# - grating
+
 class Lens:
     def __init__(
         self, diameter: float, height: float, exponent: float, medium: Medium = Medium()
@@ -37,7 +42,7 @@ class Lens:
 
     def __repr__(self):
 
-        return f""" Lens (diameter: {self.diameter}, height: {self.height}, medium: {self.exponent})"""
+        return f""" Lens (diameter: {self.diameter}, height: {self.height}, exponent: {self.exponent})"""
 
     def generate_profile(self, pixel_size) -> np.ndarray:
         """[summary]

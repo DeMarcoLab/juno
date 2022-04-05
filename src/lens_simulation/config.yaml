@@ -7,16 +7,16 @@ options:
   plot_lens: false
   plot_sim: false
   verbose: false
-  save: true
+  save: true # TODO: fix without these
   save_plot: true
 lenses:
   - name: lens_1
-    height: [70.e-6, 80.e-6, 5.e-6]
+    height: 70.e-6
     exponent: 0.0
     medium: medium_1
   - name: lens_2
-    height: [75.e-6, 85.e-6, 5.0e-6]
-    exponent: [2.0, 2.1, 0.1]
+    height: 75.e-6
+    exponent: 2.0
     medium: medium_1
 mediums:
   - name: medium_1
@@ -39,7 +39,7 @@ stages:
     finish_distance: 10.0e-3 
     options: 
       use_equivalent_focal_distance: True
-      focal_distance_multiple: 2.0 
+      focal_distance_multiple: 2.0
   - lens: lens_2
     output: medium_2 
     n_slices: 1000 
