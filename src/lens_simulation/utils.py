@@ -2,7 +2,9 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 import plotly.express as px
-
+import os 
+import json
+import yaml
 
 def plot_simulation(
     arr: np.ndarray,
@@ -74,3 +76,51 @@ def plot_interactive_simulation(arr: np.ndarray):
     
     fig = px.imshow(arr)
     return fig
+
+from lens_simulation.Lens import Lens
+def plot_lenses(lens_dict: dict) -> None:
+    # plot lens profiles
+    for name, lens in lens_dict.items():
+        # fig, ax = plt.Figure()
+        plt.title("Lens Profiles")
+        plt.plot(lens.profile, label=name)
+        plt.legend(loc="best")
+        plt.plot()
+
+
+def load_simulation(filename):
+    sim = np.load(filename)
+    return sim
+
+def save_metadata(config: dict, log_dir: str) -> None:
+    # serialisable
+    config["sim_id"] = str(config["sim_id"])
+    config["run_id"] = str(config["run_id"])
+    
+    # save as json
+    with open(os.path.join(log_dir, "metadata.json"), "w") as f:
+        json.dump(config, f, indent=4)
+
+def load_metadata(path: str):
+    metadata_fname = os.path.join(path, "metadata.json")
+
+    with open(metadata_fname, "r") as f:
+        metadata = json.load(f) 
+    
+    return metadata
+
+def load_config(config_filename):
+    with open(config_filename, "r") as f:
+        conf = yaml.full_load(f)
+
+
+    # validation
+    # TODO: medium, stages
+    # convert all height and exponent values to float
+    for i, lens in enumerate(conf["lenses"]):
+        for param in ["height", "exponent"]:
+            if isinstance(lens[param], list):
+                for j, h in enumerate(lens[param]):
+                    conf["lenses"][i][param][j] = float(h)
+
+    return conf

@@ -9,6 +9,7 @@ class Mask:
 
 
 # TODO: 488 comes from sim
+# TODO: fix the __repr__ for Medium
 @dataclass
 class Medium:
     def __init__(self, refractive_index: float = 1.0) -> None:
@@ -36,7 +37,7 @@ class Lens:
 
     def __repr__(self):
 
-        return f""" Lens (diameter: {self.diameter}, height: {self.height}, medium: {self.exponent}"""
+        return f""" Lens (diameter: {self.diameter}, height: {self.height}, medium: {self.exponent})"""
 
     def generate_profile(self, pixel_size) -> np.ndarray:
         """[summary]
