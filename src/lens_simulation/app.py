@@ -1,7 +1,3 @@
-
-
-
-from re import S
 import streamlit as st
 
 from lens_simulation import utils
@@ -12,11 +8,9 @@ import json
 
 import pandas as pd
 
-import matplotlib.pyplot as plt
-import matplotlib.image as mpimg
-
 pd.set_option("display.precision", 8)
 
+@st.cache
 def load_simulation_run(sim_id):
 
     metadata = utils.load_metadata(sim_id)
@@ -101,15 +95,14 @@ min_val, max_val = st.sidebar.slider("Select values",
     )
 
 
-st.write(min_val, max_val)
-
-# TODO: double slider?
 df_filter = df_metadata[df_metadata[filter_col] >= min_val]
 df_filter = df_filter[df_filter[filter_col] <= max_val]
 st.sidebar.write(f"Filtered to {len(df_filter)} simulations")
 st.subheader("Filtered Simulation Data")
 st.write(df_filter)
 
+
+# TODO: filter should be multi-select instead of range? when to use which?
 
 # TODO: this could be better
 filter_sim_id = df_filter["data_path"].unique()

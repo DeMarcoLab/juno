@@ -3,7 +3,6 @@ from scipy import fftpack
 import os
 from lens_simulation.Lens import Lens, Medium
 import uuid
-from typing import Optional
 from pprint import pprint 
 
 import petname
@@ -16,7 +15,7 @@ from lens_simulation import utils
 from tqdm import tqdm
 
 
-# TODO: sweepable parameters
+# TODO: sweepable parameters - DONE
 # TODO: database management
 # TODO: visualisation, analytics, comparison
 # TODO: initial beam
@@ -27,12 +26,14 @@ from tqdm import tqdm
     # - total internal reflection check (exponential profile)
 # TODO: performance (cached results, gpu)
 
+# TODO: metadata for sim_runner (all parameters)
+
 
 class Simulation:
     def __init__(self, config: dict) -> None:
 
         self.sim_id = str(uuid.uuid4())
-        self.petname = petname.Generate(2)  # TODO: maybe
+        self.petname = petname.Generate(2)  
         self.read_configuration(config=config)
         self.setup_simulation()
 

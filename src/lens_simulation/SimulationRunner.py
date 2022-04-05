@@ -44,26 +44,6 @@ class SimulationRunner:
             # sweepable parameters
             for key in ["height", "exponent"]:
 
-                def generate_parameter_sweep(param: list) -> np.ndarray:
-                    # TODO: tests
-                    if isinstance(param, float):
-                        # single value parameter
-                        return [param]
-
-                    if len(param) != 3:
-                        # restrict parameter format
-                        raise RuntimeError("Parameters must be in the format [start, finish, step_size]")
-
-                    start, finish, step_size = param
-
-                    if step_size == 0.0:
-                        raise ValueError("Step Size cannot be zero.")
-
-                    n_steps = int((finish - start) / (step_size)) + 1 # TODO: validate this when brain is working
-
-                    return np.linspace(start, finish, n_steps)
-
-
                 param_sweep = generate_parameter_sweep(lens[key])
                 # print(lens["name"], key, param_sweep) 
                 lens_params.append(param_sweep)
@@ -121,4 +101,23 @@ class SimulationRunner:
 
             sim = Simulation.Simulation(sim_config)
             sim.run_simulation()
-        
+
+
+def generate_parameter_sweep(param: list) -> np.ndarray:
+    # TODO: tests
+    if isinstance(param, float):
+        # single value parameter
+        return [param]
+
+    if len(param) != 3:
+        # restrict parameter format
+        raise RuntimeError("Parameters must be in the format [start, finish, step_size]")
+
+    start, finish, step_size = param
+
+    if step_size == 0.0:
+        raise ValueError("Step Size cannot be zero.")
+
+    n_steps = int((finish - start) / (step_size)) + 1 # TODO: validate this
+
+    return np.linspace(start, finish, n_steps)
