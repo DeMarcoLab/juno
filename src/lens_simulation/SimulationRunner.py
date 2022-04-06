@@ -1,12 +1,9 @@
-from decimal import DivisionByZero
 import itertools
 from pathlib import Path
 import uuid
 import os
 import petname
 
-import datetime
-import time
 from pprint import pprint
 import numpy as np
 from tqdm import tqdm
@@ -15,20 +12,21 @@ from lens_simulation import Simulation, utils
 
 # TODO: convert print to logging, and save log file
 # TODO: allow parameter sweep for stage values? (lens, medium, distances...)
+# TODO: add datetime to sim metadata?
+# TODO: add time taken to logging
 
 class SimulationRunner:
 
     def __init__(self, config_filename: str) -> None:
-        self.data_path: Path
+        
         self.run_id = uuid.uuid4()
-        self.parameters = None
         self.petname = petname.generate(3)
 
         self.config = utils.load_config(config_filename)
 
         # create logging directory
         log_dir = os.getcwd() # TODO: make user selectable
-        self.data_path = os.path.join(log_dir , "log",  str(self.petname))
+        self.data_path: Path = os.path.join(log_dir , "log",  str(self.petname))
         os.makedirs(self.data_path, exist_ok=True)
 
         # update metadata
@@ -79,7 +77,6 @@ class SimulationRunner:
                     "exponent": v[i][1], # TODO: hardcoded
                     "medium": lens["medium"]
                 }
-                # print(lens_dict)
                 lens_combination.append(lens_dict)
             
             sim_config = {
@@ -93,10 +90,7 @@ class SimulationRunner:
                 "stages": self.config["stages"]
             }
             
-            # pprint(sim_config["lenses"])
             self.simulation_configurations.append(sim_config)
-
-            # print("-"*20)
 
         # save sim configurations
         utils.save_metadata(self.config, self.data_path)

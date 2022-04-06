@@ -13,8 +13,8 @@ lenses:
     exponent: 0.0
     medium: medium_1
   - name: lens_2
-    height: [75.e-6]
-    exponent: [2.0, 3.0, 0.25]
+    height: [75.e-6, 80.e-6, 5.0e-6]
+    exponent: [2.0, 3.0, 1]
     medium: medium_1
 mediums:
   - name: medium_1
@@ -39,7 +39,7 @@ stages:
       use_equivalent_focal_distance: True
       focal_distance_multiple: 2.0
   - lens: lens_2
-    output: medium_2 
+    output: medium_1 
     n_slices: 1000 
     start_distance: 0
     finish_distance: 10.0e-3 

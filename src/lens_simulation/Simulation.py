@@ -76,7 +76,11 @@ class Simulation:
         for stage in self.stages:
             assert stage["output"] in self.medium_dict, f"{stage['output']} has not been defined in the configuration"
             assert stage["lens"] in self.lens_dict, f"{stage['lens']} has not been defined in the configuration"
-
+            
+            assert "n_slices" in stage, f"Stage requires n_slices"
+            assert "start_distance" in stage, f"Stage requires start_distance"
+            assert "finish_distance" in stage, f"Stage requires finish_distance"
+            
         self.sim_stages = []
 
         for i, stage in enumerate(self.stages):

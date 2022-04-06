@@ -151,8 +151,8 @@ def show_simulation_data(sim_path, df_sim):
                     sim.shape[1],
                     sim.shape[0],
                     pixel_size_x=metadata["sim_parameters"]["pixel_size"],
-                    start_distance=metadata["start_distance"],
-                    finish_distance=metadata["finish_distance"],
+                    start_distance=metadata["stages"][i]["start_distance"],
+                    finish_distance=metadata["stages"][i]["finish_distance"],
                 )
                 cols[i].pyplot(fig)
                 plt.close(fig)
