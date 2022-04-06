@@ -51,7 +51,7 @@ class Simulation:
 
     def setup_simulation(self):
 
-        self.log_dir = os.path.join(self.config["log_dir"], str(self.sim_id))
+        self.log_dir = os.path.join(self.config["log_dir"], str(self.sim_id)) # TODO: change to petname? careful of collisions
         os.makedirs(self.log_dir, exist_ok=True)
 
         # common sim parameters

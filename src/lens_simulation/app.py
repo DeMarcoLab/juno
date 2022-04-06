@@ -57,9 +57,9 @@ def load_simulation_run(sim_path):
     df_join["pixel_size"] = metadata["sim_parameters"]["pixel_size"]
     df_join["sim_wavelength"] = metadata["sim_parameters"]["sim_wavelength"]
     df_join["data_path"] = os.path.join(metadata["log_dir"], metadata["sim_id"])
-    df_join["lens_height"] = round(df_join["lens_height"] * 10e3, 2)  # convert to mm
-    df_join["start_distance"] = round(df_join["start_distance"], 2)
-    df_join["finish_distance"] = round(df_join["finish_distance"], 2)
+    df_join["lens_height"] = round(df_join["lens_height"] * 10e3, 3)  # convert to mm
+    df_join["start_distance"] = round(df_join["start_distance"], 3)
+    df_join["finish_distance"] = round(df_join["finish_distance"], 3)
 
     # df_join["lens_inverted"] = True if df_join["lens_inverted"] == "true" else False
 
@@ -78,7 +78,7 @@ def plot_lens_profile(df, stage_no):
     lens.generate_profile(pixel_size=df_lens["pixel_size"])
 
     # invert the profile
-    if df_lens["lens_inverted"].values[0] is True:
+    if bool(df_lens["lens_inverted"].values[0]) is True:
         lens.invert_profile()
 
     fig = plt.figure()

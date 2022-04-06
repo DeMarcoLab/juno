@@ -1,4 +1,5 @@
 import itertools
+from math import ceil
 from pathlib import Path
 import uuid
 import os
@@ -11,9 +12,9 @@ from tqdm import tqdm
 from lens_simulation import Simulation, utils
 
 # TODO: convert print to logging, and save log file
-# TODO: allow parameter sweep for stage values? (lens, medium, distances...)
 # TODO: add datetime to sim metadata?
 # TODO: add time taken to logging
+# TODO: change n_slices to a common sim parameter
 
 class SimulationRunner:
 
@@ -39,7 +40,7 @@ class SimulationRunner:
         print(f"Data: {self.data_path}")
         print("-"*50)
 
-        all_params = []
+        all_lens_params = []
         for lens in self.config["lenses"]:
             # pprint(lens)
 
@@ -54,43 +55,116 @@ class SimulationRunner:
             # get all combinations of paramters
             # ref: https://stackoverflow.com/questions/798854/all-combinations-of-a-list-of-lists
             parameters_combinations = list(itertools.product(*lens_params))
-            all_params.append(parameters_combinations)
+            all_lens_params.append(parameters_combinations)
             
-        # all combinations of all lens parameters
-        self.all_parameters_combinations = list(itertools.product(*all_params))
-    
+
+        # TODO: support sweeping through lens, and output for stages e.g. lens: [lens_2, lens_3, ...]
+        all_stage_params = []
+        for stage in self.config["stages"]:
+            
+            stage_params = [] 
+            for key in ["start_distance", "finish_distance"]:
+                
+                # numeric sweep
+                param_sweep = generate_parameter_sweep(stage[key])
+                stage_params.append(param_sweep)
+                # TODO: need to account for the use_focal_distance param, otherwise the distance sweeps are a waste...
+
+            parameters_combinations = list(itertools.product(*stage_params))
+            all_stage_params.append(parameters_combinations)
+
+        # generate all combinations of all lens/stage parameters
+        self.all_parameters_combinations_lens = list(itertools.product(*all_lens_params))
+        self.all_parameters_combinations_stages = list(itertools.product(*all_stage_params))
+
 
     def setup_simulation(self):
         # TODO: this is currently hardcoded so only height and exponent can be swept
 
         # generate configuration for simulations
-        print(f"\nGenerating {len(self.all_parameters_combinations)} Simulation Configurations")
+        n_lens_configs = len(self.all_parameters_combinations_lens)
+        n_stage_configs = len(self.all_parameters_combinations_stages)
+        # print(f"\n{n_lens_configs}} Lens Configurations. {n_stage_configs} Stage Configurations")
+        print(f"Generating {n_lens_configs * n_stage_configs} Simulation Configurations. ")
+        
         self.simulation_configurations = []
 
-        for v in tqdm(self.all_parameters_combinations):
-       
-            lens_combination = []
-            for i, lens in enumerate(self.config["lenses"]):
-                lens_dict = {
-                    "name": lens["name"],
-                    "height": v[i][0],   # TODO: hardcoded
-                    "exponent": v[i][1], # TODO: hardcoded
-                    "medium": lens["medium"]
+        # loop through all lens, then all stage combinations?
+        for lens_combo in tqdm(self.all_parameters_combinations_lens):
+
+            for stage_combo in tqdm(self.all_parameters_combinations_stages, leave=False):
+                
+                # create lens combinations
+                lens_combination = []
+                for i, lens in enumerate(self.config["lenses"]):
+                    lens_dict = {
+                        "name": lens["name"],
+                        "height": lens_combo[i][0],   
+                        "exponent": lens_combo[i][1],
+                        "medium": lens["medium"]
+                    }
+                    lens_combination.append(lens_dict)
+                
+                # create stage combination
+                stage_combination = []
+                for j, stage in enumerate(self.config["stages"]):
+                    stage_dict = {
+                        "lens": stage["lens"], # TODO: replace with combo
+                        "output": stage["output"], # TODO: replace with combo
+                        "start_distance": stage_combo[j][0],  
+                        "finish_distance": stage_combo[j][1],
+                        "n_slices": stage["n_slices"],
+                        "options": stage["options"],
+                    }
+                    stage_combination.append(stage_dict)
+
+                # generate simulation config
+                sim_config = {
+                    "run_id": self.run_id, 
+                    "run_petname": self.petname, 
+                    "log_dir": self.data_path, 
+                    "sim_parameters": self.config["sim_parameters"],
+                    "options": self.config["options"],
+                    "mediums": self.config["mediums"], 
+                    "lenses": lens_combination,
+                    "stages": stage_combination
                 }
-                lens_combination.append(lens_dict)
+
+                self.simulation_configurations.append(sim_config)
+                # pprint(sim_config)
+                # break
+            # break
+       
+        print(f"Generated {len(self.simulation_configurations)} simulation configurations.")
+
+
+        #############
+        # self.simulation_configurations = []
+
+        # for v in tqdm(self.all_parameters_combinations_lens):
+       
+        #     lens_combination = []
+        #     for i, lens in enumerate(self.config["lenses"]):
+        #         lens_dict = {
+        #             "name": lens["name"],
+        #             "height": v[i][0],   # TODO: hardcoded
+        #             "exponent": v[i][1], # TODO: hardcoded
+        #             "medium": lens["medium"]
+        #         }
+        #         lens_combination.append(lens_dict)
             
-            sim_config = {
-                "run_id": self.run_id, 
-                "run_petname": self.petname, 
-                "log_dir": self.data_path, 
-                "sim_parameters": self.config["sim_parameters"],
-                "options": self.config["options"],
-                "mediums": self.config["mediums"], 
-                "lenses": lens_combination,
-                "stages": self.config["stages"]
-            }
+        #     sim_config = {
+        #         "run_id": self.run_id, 
+        #         "run_petname": self.petname, 
+        #         "log_dir": self.data_path, 
+        #         "sim_parameters": self.config["sim_parameters"],
+        #         "options": self.config["options"],
+        #         "mediums": self.config["mediums"], 
+        #         "lenses": lens_combination,
+        #         "stages": self.config["stages"]
+        #     }
             
-            self.simulation_configurations.append(sim_config)
+        #     self.simulation_configurations.append(sim_config)
 
         # save sim configurations
         utils.save_metadata(self.config, self.data_path)
@@ -106,7 +180,7 @@ class SimulationRunner:
 
 def generate_parameter_sweep(param: list) -> np.ndarray:
     # TODO: tests
-    if isinstance(param, float):
+    if isinstance(param, (float, int)):
         # single value parameter
         return [param]
 
@@ -127,9 +201,9 @@ def generate_parameter_sweep(param: list) -> np.ndarray:
     if start >= finish:
         raise ValueError(f"Start parameter cannot be greater than finish parameter {param}")
 
-    if (finish - start) < step_size:
+    if (finish - start) + 0.0001e-6 < step_size:
         raise ValueError(f"Step size is larger than parameter range. {param}")
 
-    n_steps = int((finish - start) / (step_size)) + 1 # TODO: validate this
+    n_steps = ceil((finish - start) / (step_size)) + 1 # TODO: validate this
 
     return np.linspace(start, finish, n_steps)
