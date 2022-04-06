@@ -64,7 +64,7 @@ class Lens:
         # H = h - C*r ^ e
         heights = self.height - coefficient * radius_px**self.exponent
 
-        # generate symmetric height profile (TODO: assumed symmetric lens).
+        # generate symmetric height profile (NOTE: assumed symmetric lens).
         profile = np.append(np.flip(heights[1:]), heights)
 
         # always smooth
@@ -80,5 +80,16 @@ class Lens:
             raise RuntimeError("This lens has no profile. Please generate the lens profile before inverting")
      
         self.profile = abs(self.profile - np.max(self.profile))
+
+        return self.profile
+
+
+    def load_profile(self, arr: np.ndarray, pixel_size: int):
+        """Load the lens profile from np array"""
+
+        self.profile = arr
+
+        # TODO: check the profile is the required size/shape
+        # assert len(self.profile) == 
 
         return self.profile
