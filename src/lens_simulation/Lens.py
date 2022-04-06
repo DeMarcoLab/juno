@@ -3,13 +3,9 @@ import numpy as np
 
 from scipy import ndimage
 
-
-class Mask:
-    pass
-
-
 # TODO: 488 comes from sim
 # TODO: fix the __repr__ for Medium
+# TODO: comparison not working for dataclass?
 @dataclass
 class Medium:
     def __init__(self, refractive_index: float = 1.0) -> None:
@@ -25,7 +21,6 @@ class Water(Medium):
 
 
 # TODO:
-# - double sided
 # - grating
 
 class Lens:
@@ -78,3 +73,12 @@ class Lens:
         self.profile = profile
 
         return profile
+    
+    def invert_profile(self):
+        """Invert the lens profile"""
+        if self.profile is None:
+            raise RuntimeError("This lens has no profile. Please generate the lens profile before inverting")
+     
+        self.profile = abs(self.profile - np.max(self.profile))
+
+        return self.profile

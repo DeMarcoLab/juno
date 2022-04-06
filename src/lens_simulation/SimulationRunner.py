@@ -11,7 +11,10 @@ from pprint import pprint
 import numpy as np
 from tqdm import tqdm
 
-from lens_simulation import Simulation, Lens, utils
+from lens_simulation import Simulation, utils
+
+# TODO: convert print to logging, and save log file
+# TODO: allow parameter sweep for stage values?
 
 class SimulationRunner:
 
@@ -28,6 +31,8 @@ class SimulationRunner:
         self.data_path = os.path.join(log_dir , "log",  str(self.petname))
         os.makedirs(self.data_path, exist_ok=True)
 
+        # update metadata
+        self.config["run_id"] = self.run_id
 
     def initialise_simulation(self) -> None :
 
@@ -57,7 +62,7 @@ class SimulationRunner:
         # all combinations of all lens parameters
         self.all_parameters_combinations = list(itertools.product(*all_params))
 
-            # TODO: things
+        # TODO: things
     
 
     def setup_simulation(self):
@@ -96,6 +101,9 @@ class SimulationRunner:
 
             # print("-"*20)
 
+        # save sim configurations
+        utils.save_metadata(self.config, self.data_path)
+
     def run_simulations(self):
         print(f"\nRunning {len(self.simulation_configurations)} Simulations")
 
@@ -111,6 +119,11 @@ def generate_parameter_sweep(param: list) -> np.ndarray:
         # single value parameter
         return [param]
 
+    if isinstance(param, list):
+        # single value list param
+        if len(param) == 1:
+            return param
+
     if len(param) != 3:
         # restrict parameter format
         raise RuntimeError("Parameters must be in the format [start, finish, step_size]")
@@ -119,6 +132,12 @@ def generate_parameter_sweep(param: list) -> np.ndarray:
 
     if step_size == 0.0:
         raise ValueError("Step Size cannot be zero.")
+
+    if start >= finish:
+        raise ValueError(f"Start parameter cannot be greater than finish parameter {param}")
+
+    if (finish - start) < step_size:
+        raise ValueError(f"Step size is larger than parameter range. {param}")
 
     n_steps = int((finish - start) / (step_size)) + 1 # TODO: validate this
 

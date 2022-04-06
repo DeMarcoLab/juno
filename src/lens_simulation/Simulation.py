@@ -16,8 +16,8 @@ from tqdm import tqdm
 
 
 # TODO: sweepable parameters - DONE
-# TODO: database management
-# TODO: visualisation, analytics, comparison
+# TODO: database management - DONE
+# TODO: visualisation, analytics, comparison - DONE
 # TODO: initial beam
 # TODO: tools:
     # - measuring sheet parameters (full width, half maximum)
@@ -26,8 +26,6 @@ from tqdm import tqdm
     # - total internal reflection check (exponential profile)
 # TODO: performance (cached results, gpu)
 
-
-# TODO:padding
 # TODO: metadata for sim_runner (all parameters)
 
 
@@ -93,17 +91,20 @@ class Simulation:
                 "n_slices": stage["n_slices"], 
                 "start_distance": stage["start_distance"],
                 "finish_distance": stage["finish_distance"],
-                "options": stage["options"]
+                "options": stage["options"],
+                "lens_inverted": False
             }
 
 
-            # TODO: check if lens and output medium are the same
-            # print("Stage", i)
-            # pprint(block)
-            # print(block["lens"].medium.refractive_index)
-            # print(block["output"].refractive_index)
+
+            # TODO: determine the best way to do double sided lenses (and define them in the config?)
+
             if i!=0:
-                if block["lens"].medium.refractive_index == block["output"].refractive_index:
+
+                # NOTE: if the lens and the output have the same medium, the lens is assumed to be 'double-sided'
+                # therefore, we invert the lens profile to create an 'air lens' to properly simulate the double sided lens
+
+                if block["lens"].medium.refractive_index == block["output"].refractive_index: # TODO: figure out why dataclass comparison isnt working
                     print("Lens and Output have same medium, inverting lens")
 
                     if block["lens"].medium.refractive_index == self.sim_stages[i-1]["output"].refractive_index:
@@ -117,11 +118,16 @@ class Simulation:
                         medium= self.sim_stages[i-1]["output"]
                     ) # replace the lens with lens of previous output medium
                     block["lens"].generate_profile(self.pixel_size)
+                    # TODO: invert lens profile here...
+                    block["lens"].invert_profile()
+                    block["lens_inverted"] = True
+                    
+                    
+                    
+                    # TODO: need to update lens?
 
-                    # print("PROFILE", len(block["lens"].profile))
-                    # print(block["lens"])
                     # assert block["lens"].medium != block["output"], "Lens and Output cannot have the same Medium."
-
+                self.config["stages"][i]["lens_inverted"] = block["lens_inverted"] # update config
 
             if block["options"]["use_equivalent_focal_distance"]:
                 eq_fd = calculate_equivalent_focal_distance(block["lens"], 
@@ -257,7 +263,7 @@ class Simulation:
         # TODO: docstring
         # TODO: input validation
         
-        # padding
+        # padding (width of lens on each side)
         sim_profile = np.pad(lens.profile, len(lens.profile), "constant")
 
         if passed_wavefront is not None:
