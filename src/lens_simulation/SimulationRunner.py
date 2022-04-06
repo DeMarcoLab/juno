@@ -14,7 +14,7 @@ from tqdm import tqdm
 from lens_simulation import Simulation, utils
 
 # TODO: convert print to logging, and save log file
-# TODO: allow parameter sweep for stage values?
+# TODO: allow parameter sweep for stage values? (lens, medium, distances...)
 
 class SimulationRunner:
 
@@ -50,7 +50,6 @@ class SimulationRunner:
             for key in ["height", "exponent"]:
 
                 param_sweep = generate_parameter_sweep(lens[key])
-                # print(lens["name"], key, param_sweep) 
                 lens_params.append(param_sweep)
             
             # combinations for each lens
@@ -61,8 +60,6 @@ class SimulationRunner:
             
         # all combinations of all lens parameters
         self.all_parameters_combinations = list(itertools.product(*all_params))
-
-        # TODO: things
     
 
     def setup_simulation(self):

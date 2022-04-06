@@ -8,16 +8,17 @@ from pprint import pprint
 import petname
 
 import matplotlib.pyplot as plt
-from lens_simulation import Lens
 from scipy import fftpack
 from lens_simulation import utils
 
 from tqdm import tqdm
 
+# DONE:
+# sweepable parameters
+# database management
+# visualisation, analytics, comparison
 
-# TODO: sweepable parameters - DONE
-# TODO: database management - DONE
-# TODO: visualisation, analytics, comparison - DONE
+# TODO:
 # TODO: initial beam
 # TODO: tools:
     # - measuring sheet parameters (full width, half maximum)
@@ -25,9 +26,6 @@ from tqdm import tqdm
     # - lens creation (load profile)
     # - total internal reflection check (exponential profile)
 # TODO: performance (cached results, gpu)
-
-# TODO: metadata for sim_runner (all parameters)
-
 
 class Simulation:
     def __init__(self, config: dict) -> None:
@@ -74,8 +72,6 @@ class Simulation:
 
     def generate_simulation_stages(self):
 
-        # TODO: explicitly record the previous stage as well?
-
         # validate all lens, mediums exist?
         for stage in self.stages:
             assert stage["output"] in self.medium_dict, f"{stage['output']} has not been defined in the configuration"
@@ -95,39 +91,32 @@ class Simulation:
                 "lens_inverted": False
             }
 
-
-
             # TODO: determine the best way to do double sided lenses (and define them in the config?)
-
+            # TODO: should we separate double sided lens from inverting?
             if i!=0:
 
                 # NOTE: if the lens and the output have the same medium, the lens is assumed to be 'double-sided'
                 # therefore, we invert the lens profile to create an 'air lens' to properly simulate the double sided lens
 
                 if block["lens"].medium.refractive_index == block["output"].refractive_index: # TODO: figure out why dataclass comparison isnt working
-                    print("Lens and Output have same medium, inverting lens")
 
                     if block["lens"].medium.refractive_index == self.sim_stages[i-1]["output"].refractive_index:
+                        raise ValueError("Lens and Medium on either side are the same Medium, Lens has no effect.") # TODO: might be useful for someone...
 
-                        raise ValueError("Lens and Medium on either side, Lens has no effect.") # TODO: might be useful for someone...
-
-                    block["lens"] = Lens.Lens(
+                    # change to 'air' lens, and invert the profile
+                    block["lens"] = Lens(
                         diameter=self.sim_width, 
                         height=block["lens"].height,
                         exponent=block["lens"].exponent, 
                         medium= self.sim_stages[i-1]["output"]
                     ) # replace the lens with lens of previous output medium
                     block["lens"].generate_profile(self.pixel_size)
-                    # TODO: invert lens profile here...
                     block["lens"].invert_profile()
                     block["lens_inverted"] = True
-                    
-                    
-                    
-                    # TODO: need to update lens?
+                                        
+                    # TODO: need to update lens config?
 
                     # assert block["lens"].medium != block["output"], "Lens and Output cannot have the same Medium."
-                self.config["stages"][i]["lens_inverted"] = block["lens_inverted"] # update config
 
             if block["options"]["use_equivalent_focal_distance"]:
                 eq_fd = calculate_equivalent_focal_distance(block["lens"], 
@@ -142,7 +131,8 @@ class Simulation:
                 self.config["stages"][i]["start_distance"] = start_distance
                 self.config["stages"][i]["finish_distance"] = finish_distance
 
-            # TODO: need to save the updated metadata if we are changing the lens, start/finish distance etc
+            # update config
+            self.config["stages"][i]["lens_inverted"] = block["lens_inverted"]
 
             self.sim_stages.append(block)
 
@@ -181,16 +171,11 @@ class Simulation:
                 )
 
                 utils.save_figure(fig, os.path.join(self.log_dir, str(block_id), "img.png"))
-                
-                if self.options["plot_sim"]:
-                    plt.show()
-                
+                                
                 plt.close(fig)
-
-
+            
+            # pass the wavefront to the next stage
             passed_wavefront = propagation
-
-
 
         if self.verbose:
             print("-"*20)
@@ -222,31 +207,28 @@ class Simulation:
         np.save(save_path, sim)
 
     def generate_mediums(self):
-        """Generate simulation mediums"""
+        """Generate all the mediums for the simulation"""
 
         medium_dict = {}
         for med in self.mediums:
             
-            medium_dict[med["name"]] = Lens.Medium(med["refractive_index"])
+            medium_dict[med["name"]] = Medium(med["refractive_index"])
 
         return medium_dict
 
     def generate_lenses(self):
-        
+        """Generate all the lenses for the simulation"""
         lens_dict = {}
         for lens in self.lenses:
             
             assert lens["medium"] in self.medium_dict, "Lens Medium not found in simulation mediums"
 
-            lens_dict[lens["name"]] = Lens.Lens(
+            lens_dict[lens["name"]] = Lens(
                 diameter=self.sim_width, height=lens["height"],
                 exponent=lens["exponent"], medium=self.medium_dict[lens["medium"]]
             ) 
 
             lens_dict[lens["name"]].generate_profile(pixel_size=self.pixel_size)
-        
-        if self.options["plot_lens"]:
-            utils.plot_lenses(lens_dict)
 
         return lens_dict
 

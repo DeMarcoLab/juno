@@ -4,10 +4,8 @@ sim_parameters:
   sim_width: 4500.e-6
   sim_wavelength: 488.e-9
 options:
-  plot_lens: false
-  plot_sim: false
   verbose: false
-  save: false # TODO: fix without these
+  save: false
   save_plot: true
 lenses:
   - name: lens_1
