@@ -6,6 +6,15 @@ import os
 import json
 import yaml
 
+
+# TODO: visualisation
+# visualisation between lens and sim data is inconsistent, 
+# light comes from bottom for lens profile, and top for sim result.
+# need to make it more consistent, and file a way to tile the results into the sim setup for visualisation
+
+# initial beam -> lens -> sim -> lens -> sim
+
+
 def plot_simulation(
     arr: np.ndarray,
     width: int,
@@ -68,6 +77,8 @@ def crop_image(arr, width, height):
 
 def save_figure(fig, fname: str = "img.png") -> None:
 
+    os.makedirs(os.path.dirname(fname), exist_ok=True)
+
     plt.savefig(fname)
 
 
@@ -77,7 +88,6 @@ def plot_interactive_simulation(arr: np.ndarray):
     fig = px.imshow(arr)
     return fig
 
-from lens_simulation.Lens import Lens
 def plot_lenses(lens_dict: dict) -> None:
     # plot lens profiles
     for name, lens in lens_dict.items():
@@ -94,7 +104,8 @@ def load_simulation(filename):
 
 def save_metadata(config: dict, log_dir: str) -> None:
     # serialisable
-    config["sim_id"] = str(config["sim_id"])
+    if "sim_id" in config:
+        config["sim_id"] = str(config["sim_id"])
     config["run_id"] = str(config["run_id"])
     
     # save as json
