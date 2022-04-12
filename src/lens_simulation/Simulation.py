@@ -19,13 +19,12 @@ from tqdm import tqdm
 # visualisation, analytics, comparison
 
 # TODO:
-# TODO: initial beam
-# TODO: tools:
-    # - measuring sheet parameters (full width, half maximum)
-    # - cleaning
-    # - lens creation (load profile)
-    # - total internal reflection check (exponential profile)
-# TODO: performance (cached results, gpu)
+# TODO: initial beam definition (tilt, convergence, divergence)
+# TODO: user interface
+# TODO: tools (cleaning, sheet measurement, validation, lens creation)
+        # total internal reflection check (exponential profile)
+# TODO: performance (cached results, gpu, parallelism)
+
 
 class Simulation:
     def __init__(self, config: dict) -> None:
@@ -245,6 +244,7 @@ class Simulation:
         finish_distance,
         passed_wavefront=None,
     ):
+        
 
         # TODO: docstring
         # TODO: input validation
