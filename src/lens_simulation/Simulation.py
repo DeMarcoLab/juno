@@ -1,17 +1,16 @@
-import numpy as np
-from scipy import fftpack
 import os
-from lens_simulation.Lens import Lens, Medium
 import uuid
-from pprint import pprint 
 
 import petname
-
+import numpy as np
 import matplotlib.pyplot as plt
-from scipy import fftpack
-from lens_simulation import utils
 
+from pprint import pprint 
+from scipy import fftpack
 from tqdm import tqdm
+
+from lens_simulation import utils
+from lens_simulation.Lens import Lens, Medium
 
 # DONE:
 # sweepable parameters
@@ -25,6 +24,10 @@ from tqdm import tqdm
         # total internal reflection check (exponential profile)
 # TODO: performance (cached results, gpu, parallelism)
 
+
+# TODO:
+# convert sim to 2d (1, n)
+# update visualisation for 3d volumes (slice through, default to centre)
 
 class Simulation:
     def __init__(self, config: dict) -> None:
@@ -164,10 +167,20 @@ class Simulation:
                 progress_bar.set_description(f"Sim: {self.petname} ({str(self.sim_id)[-10:]}) - Plotting Simulation")
 
                 # plot sim result
+                if sim.ndim == 3:
+                    width = sim.shape[2]
+                    height = sim.shape[0]
+                    # TODO: support multi-dimensional slicing...
+                elif sim.ndim == 2:
+                    width = sim.shape[1]
+                    height = sim.shape[0]
+                else:
+                    raise ValueError(f"Simulation of {sim.ndim} is not supported")
+
                 fig = utils.plot_simulation(
                     sim,
-                    sim.shape[1],
-                    sim.shape[0],
+                    width,
+                    height,
                     self.pixel_size,
                     block["start_distance"],
                     block["finish_distance"],
@@ -245,13 +258,21 @@ class Simulation:
         passed_wavefront=None,
     ):
         
-
         # TODO: docstring
         # TODO: input validation
         
+        DEBUG = True
+        TWO_DIM = False
         # padding (width of lens on each side)
-        sim_profile = np.pad(lens.profile, len(lens.profile), "constant")
+        # sim_profile = np.pad(lens.profile, len(lens.profile), "constant")
+        sim_profile = lens.profile
 
+        # 2d
+        if TWO_DIM:
+            sim_profile = np.expand_dims(sim_profile, axis=0)
+        print(f"{sim_profile.shape=}")
+
+        # only amplifiy the first stage propagation
         if passed_wavefront is not None:
             A = 1.0
         else:
@@ -270,7 +291,7 @@ class Simulation:
 
         freq_arr = generate_squared_frequency_array(
             n_pixels=len(sim_profile), pixel_size=self.pixel_size
-        )
+        ) # TODO: wrong for 2D
 
         delta = (
             lens.medium.refractive_index - output_medium.refractive_index
@@ -281,25 +302,48 @@ class Simulation:
             wavefront = A * np.exp(1j * phase) * passed_wavefront
         else:
             wavefront = A * np.exp(1j * phase)
+        print("PASSED WAVEFRONT VALUES: ", np.unique(passed_wavefront))
+
+        print("WAVEFRONT VALUES 1 : ", np.unique(wavefront))
 
         # padded area should be 0+0j
         if passed_wavefront is not None:
             wavefront[phase == 0] = 0+0j
+            pass
         else:
             wavefront[:len(lens.profile)] = 0+0j
-            wavefront[-len(lens.profile):] = 0+0j
+            wavefront[-len(lens.profile):] = 0+0j # TODO: this is wrong for 2d
+        
+        print("DELTA VALUES: ", np.unique(delta))
+        print("PHASE VALUES: ", np.unique(phase))
+        print("WAVEFRONT VALUES: ", np.unique(wavefront))
 
-        fft_wavefront = fftpack.fft(wavefront)
+        fft_wavefront = fftpack.fft(wavefront) # TODO: change to np
 
-        sim = np.ones(shape=((n_slices), len(sim_profile)))
-        distances_2 = np.linspace(start_distance, finish_distance, n_slices)
-        for i, z in enumerate(distances_2):
+        sim = np.ones(shape=(n_slices, *sim_profile.shape))
+        
+        if DEBUG:
+            print(f"{freq_arr.shape=}")
+            print(f"{delta.shape=}")
+            print(f"{phase.shape=}")
+            print(f"{wavefront.shape=}")
+            print(f"{fft_wavefront.shape=}")
+            print(f"{sim.shape=}")
+
+        distances = np.linspace(start_distance, finish_distance, n_slices)
+        for i, z in enumerate(distances):
             prop = np.exp(1j * output_medium.wave_number * z) * np.exp(
                 (-1j * 2 * np.pi ** 2 * z * freq_arr) / output_medium.wave_number
             )
             propagation = fftpack.ifft(prop * fft_wavefront)
 
             output = np.sqrt(propagation.real ** 2 + propagation.imag ** 2)
+
+            # if DEBUG:
+            #     print(f"{prop.shape=}")
+            #     print(f"{propagation.shape=}")
+            #     print(f"{output.shape=}")
+            #     print(f"{sim[i].shape=}")
 
             sim[i] = np.round(output, 10)
 

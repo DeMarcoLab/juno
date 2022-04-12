@@ -37,6 +37,8 @@ def plot_simulation(
         [type]: [description]
     """
 
+    print(f"Plot Sim Shape: {arr.shape=}")
+
     arr_resized, min_h, max_h = crop_image(arr, width, height)
 
     # calculate extents (xlabel, ylabel)
@@ -52,6 +54,7 @@ def plot_simulation(
     min_y = (start_distance + max_h_frac * dist) / 1e-3
     max_y = (start_distance + min_h_frac * dist) / 1e-3
 
+    print(f"Plot Sim Resized Shape: {arr_resized.shape=}")
     fig = plt.figure()
     plt.imshow(
         arr_resized,
@@ -68,6 +71,12 @@ def plot_simulation(
     return fig
 
 def crop_image(arr, width, height):
+    """Crop the simulation image to the required dimensions."""
+
+    if arr.ndim == 3:
+        vertical_index = 0
+        arr = arr[:, vertical_index, :] # horizontal plane slice
+
     min_h, max_h = arr.shape[0] // 2 - height // 2, arr.shape[0] // 2 + height // 2
     min_w, max_w = arr.shape[1] // 2 - width // 2, arr.shape[1] // 2 + width // 2
 
