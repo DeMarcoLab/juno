@@ -262,14 +262,13 @@ class Simulation:
         # TODO: input validation
         
         DEBUG = True
-        TWO_DIM = False
-        # padding (width of lens on each side)
-        # sim_profile = np.pad(lens.profile, len(lens.profile), "constant")
-        sim_profile = lens.profile
+        DEBUG_VALUES = False
 
-        # 2d
-        if TWO_DIM:
-            sim_profile = np.expand_dims(sim_profile, axis=0)
+        # padding (width of lens on each side)
+        sim_profile = np.pad(lens.profile, len(lens.profile), "constant")
+
+        # 2d # TODO: move this to profile creation?
+        sim_profile = np.expand_dims(sim_profile, axis=0)
         print(f"{sim_profile.shape=}")
 
         # only amplifiy the first stage propagation
@@ -290,7 +289,7 @@ class Simulation:
             print(f"-" * 20)
 
         freq_arr = generate_squared_frequency_array(
-            n_pixels=len(sim_profile), pixel_size=self.pixel_size
+            n_pixels=sim_profile.shape[-1], pixel_size=self.pixel_size
         ) # TODO: wrong for 2D
 
         delta = (
@@ -302,23 +301,25 @@ class Simulation:
             wavefront = A * np.exp(1j * phase) * passed_wavefront
         else:
             wavefront = A * np.exp(1j * phase)
-        print("PASSED WAVEFRONT VALUES: ", np.unique(passed_wavefront))
-
-        print("WAVEFRONT VALUES 1 : ", np.unique(wavefront))
+        
+        if DEBUG_VALUES:
+            print("WAVEFRONT VALUES 1 : ", np.unique(wavefront))
 
         # padded area should be 0+0j
-        if passed_wavefront is not None:
+        if passed_wavefront is not None: #TODO: convert to apeture mask
             wavefront[phase == 0] = 0+0j
-            pass
         else:
-            wavefront[:len(lens.profile)] = 0+0j
-            wavefront[-len(lens.profile):] = 0+0j # TODO: this is wrong for 2d
+            wavefront[:, :lens.profile.shape[-1]] = 0+0j
+            wavefront[:, -lens.profile.shape[-1]:] = 0+0j # TODO: confirm this is correct for 2d?
         
-        print("DELTA VALUES: ", np.unique(delta))
-        print("PHASE VALUES: ", np.unique(phase))
-        print("WAVEFRONT VALUES: ", np.unique(wavefront))
+        if DEBUG_VALUES:
+            print("DELTA VALUES: ", np.unique(delta))
+            print("PHASE VALUES: ", np.unique(phase))
+            print("PASSED VALUES: ", np.unique(passed_wavefront))
+            print("WAVEFRONT VALUES: ", np.unique(wavefront))
+        
 
-        fft_wavefront = fftpack.fft(wavefront) # TODO: change to np
+        fft_wavefront = fftpack.fft2(wavefront) # TODO: change to np
 
         sim = np.ones(shape=(n_slices, *sim_profile.shape))
         
@@ -330,12 +331,17 @@ class Simulation:
             print(f"{fft_wavefront.shape=}")
             print(f"{sim.shape=}")
 
+            # check the freq arr was created correctly
+            assert freq_arr.shape[-1] == wavefront.shape[-1]
+            assert not np.array_equal(np.unique(wavefront), [0+0j]) # non empty sim
+
+
         distances = np.linspace(start_distance, finish_distance, n_slices)
         for i, z in enumerate(distances):
             prop = np.exp(1j * output_medium.wave_number * z) * np.exp(
                 (-1j * 2 * np.pi ** 2 * z * freq_arr) / output_medium.wave_number
             )
-            propagation = fftpack.ifft(prop * fft_wavefront)
+            propagation = fftpack.ifft2(prop * fft_wavefront)
 
             output = np.sqrt(propagation.real ** 2 + propagation.imag ** 2)
 
