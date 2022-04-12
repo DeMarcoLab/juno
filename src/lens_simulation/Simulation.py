@@ -5,7 +5,7 @@ import petname
 import numpy as np
 import matplotlib.pyplot as plt
 
-from pprint import pprint 
+from pprint import pprint
 from scipy import fftpack
 from tqdm import tqdm
 
@@ -21,18 +21,16 @@ from lens_simulation.Lens import Lens, Medium
 # TODO: initial beam definition (tilt, convergence, divergence)
 # TODO: user interface
 # TODO: tools (cleaning, sheet measurement, validation, lens creation)
-        # total internal reflection check (exponential profile)
+# total internal reflection check (exponential profile)
 # TODO: performance (cached results, gpu, parallelism)
 
 
-
-
 #### 2D Simulations ####
-# Add support for 2D lens simulations. 
+# Add support for 2D lens simulations.
 # 2D refers to the lens profile, which creates a 3D simulation (volume).
 #
 # DONE
-# convert sim to 2d (1, n) 
+# convert sim to 2d (1, n)
 # update visualisation for 3d volumes (slice through, default to midpoint horizontally)
 
 # TODO:
@@ -40,12 +38,14 @@ from lens_simulation.Lens import Lens, Medium
 # update viz for vertical slicing, and user defined slice plane
 # refactor lens profile to support 2D
 # refactor names for 3-d axes
+# update and add tests
+
 
 class Simulation:
     def __init__(self, config: dict) -> None:
 
         self.sim_id = str(uuid.uuid4())
-        self.petname = petname.Generate(2)  
+        self.petname = petname.Generate(2)
         self.read_configuration(config=config)
         self.setup_simulation()
 
@@ -66,7 +66,9 @@ class Simulation:
 
     def setup_simulation(self):
 
-        self.log_dir = os.path.join(self.config["log_dir"], str(self.sim_id)) # TODO: change to petname? careful of collisions
+        self.log_dir = os.path.join(
+            self.config["log_dir"], str(self.sim_id)
+        )  # TODO: change to petname? careful of collisions
         os.makedirs(self.log_dir, exist_ok=True)
 
         # common sim parameters
@@ -84,62 +86,74 @@ class Simulation:
         # generate all simulation stages
         self.generate_simulation_stages()
 
-
     def generate_simulation_stages(self):
 
         # validate all lens, mediums exist?
         for stage in self.stages:
-            assert stage["output"] in self.medium_dict, f"{stage['output']} has not been defined in the configuration"
-            assert stage["lens"] in self.lens_dict, f"{stage['lens']} has not been defined in the configuration"
-            
+            assert (
+                stage["output"] in self.medium_dict
+            ), f"{stage['output']} has not been defined in the configuration"
+            assert (
+                stage["lens"] in self.lens_dict
+            ), f"{stage['lens']} has not been defined in the configuration"
+
             assert "n_slices" in stage, f"Stage requires n_slices"
             assert "start_distance" in stage, f"Stage requires start_distance"
             assert "finish_distance" in stage, f"Stage requires finish_distance"
-            
+
         self.sim_stages = []
 
         for i, stage in enumerate(self.stages):
-           
+
             block = {
                 "lens": self.lens_dict[stage["lens"]],
                 "output": self.medium_dict[stage["output"]],
-                "n_slices": stage["n_slices"], 
+                "n_slices": stage["n_slices"],
                 "start_distance": stage["start_distance"],
                 "finish_distance": stage["finish_distance"],
                 "options": stage["options"],
-                "lens_inverted": False
+                "lens_inverted": False,
             }
 
             # TODO: determine the best way to do double sided lenses (and define them in the config?)
             # TODO: should we separate double sided lens from inverting?
-            if i!=0:
+            if i != 0:
 
                 # NOTE: if the lens and the output have the same medium, the lens is assumed to be 'double-sided'
                 # therefore, we invert the lens profile to create an 'air lens' to properly simulate the double sided lens
 
-                if block["lens"].medium.refractive_index == block["output"].refractive_index: # TODO: figure out why dataclass comparison isnt working
+                if (
+                    block["lens"].medium.refractive_index
+                    == block["output"].refractive_index
+                ):  # TODO: figure out why dataclass comparison isnt working
 
-                    if block["lens"].medium.refractive_index == self.sim_stages[i-1]["output"].refractive_index:
-                        raise ValueError("Lens and Medium on either side are the same Medium, Lens has no effect.") # TODO: might be useful for someone...
+                    if (
+                        block["lens"].medium.refractive_index
+                        == self.sim_stages[i - 1]["output"].refractive_index
+                    ):
+                        raise ValueError(
+                            "Lens and Medium on either side are the same Medium, Lens has no effect."
+                        )  # TODO: might be useful for someone...
 
                     # change to 'air' lens, and invert the profile
                     block["lens"] = Lens(
-                        diameter=self.sim_width, 
+                        diameter=self.sim_width,
                         height=block["lens"].height,
-                        exponent=block["lens"].exponent, 
-                        medium= self.sim_stages[i-1]["output"]
-                    ) # replace the lens with lens of previous output medium
+                        exponent=block["lens"].exponent,
+                        medium=self.sim_stages[i - 1]["output"],
+                    )  # replace the lens with lens of previous output medium
                     block["lens"].generate_profile(self.pixel_size)
                     block["lens"].invert_profile()
                     block["lens_inverted"] = True
-                                        
+
                     # TODO: need to update lens config?
 
                     # assert block["lens"].medium != block["output"], "Lens and Output cannot have the same Medium."
 
             if block["options"]["use_equivalent_focal_distance"]:
-                eq_fd = calculate_equivalent_focal_distance(block["lens"], 
-                                                            block["output"])
+                eq_fd = calculate_equivalent_focal_distance(
+                    block["lens"], block["output"]
+                )
                 start_distance = 0.0 * eq_fd
                 finish_distance = block["options"]["focal_distance_multiple"] * eq_fd
 
@@ -161,23 +175,29 @@ class Simulation:
         passed_wavefront = None
         progress_bar = tqdm(self.sim_stages, leave=False)
         for block_id, block in enumerate(progress_bar):
-            
-            progress_bar.set_description(f"Sim: {self.petname} ({str(self.sim_id)[-10:]}) - Propagating Wavefront")
+
+            progress_bar.set_description(
+                f"Sim: {self.petname} ({str(self.sim_id)[-10:]}) - Propagating Wavefront"
+            )
             sim, propagation = self.propagate_wavefront(
                 lens=block["lens"],
                 output_medium=block["output"],
                 n_slices=block["n_slices"],
                 start_distance=block["start_distance"],
                 finish_distance=block["finish_distance"],
-                passed_wavefront=passed_wavefront
+                passed_wavefront=passed_wavefront,
             )
 
             if self.options["save"]:
-                progress_bar.set_description(f"Sim: {self.petname} ({str(self.sim_id)[-10:]}) - Saving Simulation")
+                progress_bar.set_description(
+                    f"Sim: {self.petname} ({str(self.sim_id)[-10:]}) - Saving Simulation"
+                )
                 self.save_simulation(sim, block_id)
 
             if self.options["save_plot"]:
-                progress_bar.set_description(f"Sim: {self.petname} ({str(self.sim_id)[-10:]}) - Plotting Simulation")
+                progress_bar.set_description(
+                    f"Sim: {self.petname} ({str(self.sim_id)[-10:]}) - Plotting Simulation"
+                )
 
                 # plot sim result
                 if sim.ndim == 3:
@@ -198,17 +218,19 @@ class Simulation:
                     block["finish_distance"],
                 )
 
-                utils.save_figure(fig, os.path.join(self.log_dir, str(block_id), "img.png"))
-                                
+                utils.save_figure(
+                    fig, os.path.join(self.log_dir, str(block_id), "img.png")
+                )
+
                 plt.close(fig)
-            
+
             # pass the wavefront to the next stage
             passed_wavefront = propagation
 
         if self.verbose:
-            print("-"*20)
+            print("-" * 20)
             print("---------- Summary ----------")
-            
+
             print("---------- Medium ----------")
             pprint(self.medium_dict)
 
@@ -239,7 +261,7 @@ class Simulation:
 
         medium_dict = {}
         for med in self.mediums:
-            
+
             medium_dict[med["name"]] = Medium(med["refractive_index"])
 
         return medium_dict
@@ -248,13 +270,17 @@ class Simulation:
         """Generate all the lenses for the simulation"""
         lens_dict = {}
         for lens in self.lenses:
-            
-            assert lens["medium"] in self.medium_dict, "Lens Medium not found in simulation mediums"
+
+            assert (
+                lens["medium"] in self.medium_dict
+            ), "Lens Medium not found in simulation mediums"
 
             lens_dict[lens["name"]] = Lens(
-                diameter=self.sim_width, height=lens["height"],
-                exponent=lens["exponent"], medium=self.medium_dict[lens["medium"]]
-            ) 
+                diameter=self.sim_width,
+                height=lens["height"],
+                exponent=lens["exponent"],
+                medium=self.medium_dict[lens["medium"]],
+            )
 
             lens_dict[lens["name"]].generate_profile(pixel_size=self.pixel_size)
 
@@ -269,10 +295,10 @@ class Simulation:
         finish_distance,
         passed_wavefront=None,
     ):
-        
+
         # TODO: docstring
         # TODO: input validation
-        
+
         DEBUG = self.debug
 
         # padding (width of lens on each side)
@@ -280,7 +306,6 @@ class Simulation:
 
         # 2d # TODO: move this to profile creation?
         sim_profile = np.expand_dims(sim_profile, axis=0)
-        print(f"{sim_profile.shape=}")
 
         # only amplifiy the first stage propagation
         if passed_wavefront is not None:
@@ -301,7 +326,7 @@ class Simulation:
 
         freq_arr = generate_squared_frequency_array(
             n_pixels=sim_profile.shape[-1], pixel_size=self.pixel_size
-        ) # TODO: confirm correct for 2D
+        )  # TODO: confirm correct for 2D
 
         delta = (
             lens.medium.refractive_index - output_medium.refractive_index
@@ -313,20 +338,22 @@ class Simulation:
         else:
             wavefront = A * np.exp(1j * phase)
 
-
         # padded area should be 0+0j
-        if passed_wavefront is not None: #TODO: convert to apeture mask
-            wavefront[phase == 0] = 0+0j
+        if passed_wavefront is not None:  # TODO: convert to apeture mask
+            wavefront[phase == 0] = 0 + 0j
         else:
-            wavefront[:, :lens.profile.shape[-1]] = 0+0j
-            wavefront[:, -lens.profile.shape[-1]:] = 0+0j # TODO: confirm this is correct for 2d?
-            
+            wavefront[:, : lens.profile.shape[-1]] = 0 + 0j
+            wavefront[:, -lens.profile.shape[-1] :] = (
+                0 + 0j
+            )  # TODO: confirm this is correct for 2d?
+
         # fourier transform of wavefront
-        fft_wavefront = fftpack.fft2(wavefront) # TODO: change to np
+        fft_wavefront = fftpack.fft2(wavefront)  # TODO: change to np
 
         sim = np.ones(shape=(n_slices, *sim_profile.shape))
-        
+
         if DEBUG:
+            print(f"{sim_profile.shape=}")
             print(f"{freq_arr.shape=}")
             print(f"{delta.shape=}")
             print(f"{phase.shape=}")
@@ -336,8 +363,7 @@ class Simulation:
 
             # check the freq arr was created correctly
             assert freq_arr.shape[-1] == wavefront.shape[-1]
-            assert not np.array_equal(np.unique(wavefront), [0+0j]) # non empty sim
-
+            assert not np.array_equal(np.unique(wavefront), [0 + 0j])  # non empty sim
 
         distances = np.linspace(start_distance, finish_distance, n_slices)
         for i, z in enumerate(distances):
