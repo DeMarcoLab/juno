@@ -23,21 +23,19 @@ def plot_simulation(
     start_distance: float,
     finish_distance: float,
 ) -> plt.Figure:
-    """Plot the output simulation array.
+    """Plot the output simulation array from the top down perspective.
 
     Args:
-        arr (np.ndarray): the simulation output arrays
-        width (int): [description]
-        height (int): [description]
-        pixel_size_x (float): [description]
-        start_distance (float): [description]
-        finish_distance (float): [description]
+        arr (np.ndarray): the simulation output arrays [n_slices, height, width]
+        width (int): [the horizontal distance to plot]
+        height (int): [the depth of the simulation to plot]
+        pixel_size_x (float): [simulation pixel size]
+        start_distance (float): [the start distance for the simulation propagation]
+        finish_distance (float): [the finish distance for the simulation propagation]
 
     Returns:
-        [type]: [description]
+        [Figure]: [matplotlib Figure of the simulation plot]
     """
-
-    print(f"Plot Sim Shape: {arr.shape=}")
 
     arr_resized, min_h, max_h = crop_image(arr, width, height)
 
@@ -54,7 +52,6 @@ def plot_simulation(
     min_y = (start_distance + max_h_frac * dist) / 1e-3
     max_y = (start_distance + min_h_frac * dist) / 1e-3
 
-    print(f"Plot Sim Resized Shape: {arr_resized.shape=}")
     fig = plt.figure()
     plt.imshow(
         arr_resized,
@@ -74,7 +71,7 @@ def crop_image(arr, width, height):
     """Crop the simulation image to the required dimensions."""
 
     if arr.ndim == 3:
-        vertical_index = 0
+        vertical_index = arr.shape[1] // 2 # midpoint (default)
         arr = arr[:, vertical_index, :] # horizontal plane slice
 
     min_h, max_h = arr.shape[0] // 2 - height // 2, arr.shape[0] // 2 + height // 2
@@ -85,10 +82,11 @@ def crop_image(arr, width, height):
 
 
 def save_figure(fig, fname: str = "img.png") -> None:
-
+    # TODO: clean up the implementation (no reference to fig...)
     os.makedirs(os.path.dirname(fname), exist_ok=True)
 
-    plt.savefig(fname)
+    # plt.savefig(fname)
+    fig.savefig(fname)
 
 
 def plot_interactive_simulation(arr: np.ndarray):
@@ -135,7 +133,7 @@ def load_config(config_filename):
 
 
     # validation
-    # TODO: medium, stages
+    # TODO: medium, stages, see _format_dictionary
     # convert all height and exponent values to float
     for i, lens in enumerate(conf["lenses"]):
         for param in ["height", "exponent"]:

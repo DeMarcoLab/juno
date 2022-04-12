@@ -25,9 +25,21 @@ from lens_simulation.Lens import Lens, Medium
 # TODO: performance (cached results, gpu, parallelism)
 
 
+
+
+#### 2D Simulations ####
+# Add support for 2D lens simulations. 
+# 2D refers to the lens profile, which creates a 3D simulation (volume).
+#
+# DONE
+# convert sim to 2d (1, n) 
+# update visualisation for 3d volumes (slice through, default to midpoint horizontally)
+
 # TODO:
-# convert sim to 2d (1, n)
-# update visualisation for 3d volumes (slice through, default to centre)
+# convert sim to work for 2d (n, n)
+# update viz for vertical slicing, and user defined slice plane
+# refactor lens profile to support 2D
+# refactor names for 3-d axes
 
 class Simulation:
     def __init__(self, config: dict) -> None:
@@ -50,6 +62,7 @@ class Simulation:
 
         # options
         self.verbose = bool(self.config["options"]["verbose"])
+        self.debug = bool(self.config["options"]["debug"])
 
     def setup_simulation(self):
 
@@ -170,7 +183,6 @@ class Simulation:
                 if sim.ndim == 3:
                     width = sim.shape[2]
                     height = sim.shape[0]
-                    # TODO: support multi-dimensional slicing...
                 elif sim.ndim == 2:
                     width = sim.shape[1]
                     height = sim.shape[0]
@@ -261,8 +273,7 @@ class Simulation:
         # TODO: docstring
         # TODO: input validation
         
-        DEBUG = True
-        DEBUG_VALUES = False
+        DEBUG = self.debug
 
         # padding (width of lens on each side)
         sim_profile = np.pad(lens.profile, len(lens.profile), "constant")
@@ -290,7 +301,7 @@ class Simulation:
 
         freq_arr = generate_squared_frequency_array(
             n_pixels=sim_profile.shape[-1], pixel_size=self.pixel_size
-        ) # TODO: wrong for 2D
+        ) # TODO: confirm correct for 2D
 
         delta = (
             lens.medium.refractive_index - output_medium.refractive_index
@@ -301,9 +312,7 @@ class Simulation:
             wavefront = A * np.exp(1j * phase) * passed_wavefront
         else:
             wavefront = A * np.exp(1j * phase)
-        
-        if DEBUG_VALUES:
-            print("WAVEFRONT VALUES 1 : ", np.unique(wavefront))
+
 
         # padded area should be 0+0j
         if passed_wavefront is not None: #TODO: convert to apeture mask
@@ -311,14 +320,8 @@ class Simulation:
         else:
             wavefront[:, :lens.profile.shape[-1]] = 0+0j
             wavefront[:, -lens.profile.shape[-1]:] = 0+0j # TODO: confirm this is correct for 2d?
-        
-        if DEBUG_VALUES:
-            print("DELTA VALUES: ", np.unique(delta))
-            print("PHASE VALUES: ", np.unique(phase))
-            print("PASSED VALUES: ", np.unique(passed_wavefront))
-            print("WAVEFRONT VALUES: ", np.unique(wavefront))
-        
-
+            
+        # fourier transform of wavefront
         fft_wavefront = fftpack.fft2(wavefront) # TODO: change to np
 
         sim = np.ones(shape=(n_slices, *sim_profile.shape))
@@ -344,12 +347,6 @@ class Simulation:
             propagation = fftpack.ifft2(prop * fft_wavefront)
 
             output = np.sqrt(propagation.real ** 2 + propagation.imag ** 2)
-
-            # if DEBUG:
-            #     print(f"{prop.shape=}")
-            #     print(f"{propagation.shape=}")
-            #     print(f"{output.shape=}")
-            #     print(f"{sim[i].shape=}")
 
             sim[i] = np.round(output, 10)
 
