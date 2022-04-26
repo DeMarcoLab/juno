@@ -32,11 +32,11 @@ from lens_simulation.Lens import Lens, Medium
 # DONE
 # convert sim to 2d (1, n)
 # update visualisation for 3d volumes (slice through, default to midpoint horizontally)
+# convert sim to work for 2d (n, n)
+# refactor lens profile to support 2D
 
 # TODO:
-# convert sim to work for 2d (n, n)
 # update viz for vertical slicing, and user defined slice plane
-# refactor lens profile to support 2D
 # refactor names for 3-d axes
 # update and add tests
 
@@ -173,10 +173,10 @@ class Simulation:
 
         # Simulation Calculations
         passed_wavefront = None
-        progress_bar = tqdm(self.sim_stages, leave=False)
-        for block_id, block in enumerate(progress_bar):
+        self.progress_bar = tqdm(self.sim_stages, leave=False)
+        for block_id, block in enumerate(self.progress_bar):
 
-            progress_bar.set_description(
+            self.progress_bar.set_description(
                 f"Sim: {self.petname} ({str(self.sim_id)[-10:]}) - Propagating Wavefront"
             )
             sim, propagation = self.propagate_wavefront(
@@ -189,13 +189,13 @@ class Simulation:
             )
 
             if self.options["save"]:
-                progress_bar.set_description(
+                self.progress_bar.set_description(
                     f"Sim: {self.petname} ({str(self.sim_id)[-10:]}) - Saving Simulation"
                 )
                 self.save_simulation(sim, block_id)
 
             if self.options["save_plot"]:
-                progress_bar.set_description(
+                self.progress_bar.set_description(
                     f"Sim: {self.petname} ({str(self.sim_id)[-10:]}) - Plotting Simulation"
                 )
 
@@ -301,18 +301,16 @@ class Simulation:
 
         DEBUG = self.debug
 
+        # TODO: move this somewhere better
+        # lens.extrude_profile(100e-6)
+        lens.revolve_profile()
+
         # padding (width of lens on each side)
         if lens.profile.ndim == 1:
             sim_profile = np.pad(lens.profile, len(lens.profile), "constant")
             sim_profile = np.expand_dims(sim_profile, axis=0) # TODO: remove this once 2D profiles are implemented...
         else:
             sim_profile = pad_simulation(lens) # 2D only
-
-        # only amplifiy the first stage propagation
-        if passed_wavefront is not None:
-            A = 1.0
-        else:
-            A = self.A
 
         if self.verbose:
             print("-" * 20)
@@ -329,12 +327,13 @@ class Simulation:
             n_pixels=sim_profile.shape[-1], pixel_size=self.pixel_size
         )  # TODO: confirm correct for 2D
 
-        delta = (
-            lens.medium.refractive_index - output_medium.refractive_index
-        ) * sim_profile
+        delta = (lens.medium.refractive_index - output_medium.refractive_index) * sim_profile
         phase = (2 * np.pi * delta / self.sim_wavelength) % (2 * np.pi)
 
+        # only amplifiy the first stage propagation
+        A = self.A if passed_wavefront is None else 1.0
         if passed_wavefront is not None:
+            assert A == 1, "Amplitude is wrong"
             wavefront = A * np.exp(1j * phase) * passed_wavefront
         else:
             wavefront = A * np.exp(1j * phase)
@@ -367,7 +366,9 @@ class Simulation:
             assert not np.array_equal(np.unique(wavefront), [0 + 0j])  # non empty sim
 
         distances = np.linspace(start_distance, finish_distance, n_slices)
-        for i, z in enumerate(distances):
+        prop_progress_bar = tqdm(distances, leave=False)
+        for i, z in enumerate(prop_progress_bar):
+            prop_progress_bar.set_description(f"Propagating Wavefront at Distance {z:.4f} / {distances[-1]:.4f}m")
             prop = np.exp(1j * output_medium.wave_number * z) * np.exp(
                 (-1j * 2 * np.pi ** 2 * z * freq_arr) / output_medium.wave_number
             )

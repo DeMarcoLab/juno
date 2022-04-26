@@ -147,7 +147,7 @@ def load_config(config_filename):
 
 def plot_lens_profile_2D(lens: Lens):
     # TODO: add proper distances to plot
-    
+
     if isinstance(lens, np.ndarray):
         lens_profile = lens
     if isinstance(lens, Lens):
@@ -163,22 +163,22 @@ def plot_lens_profile_2D(lens: Lens):
 
 def plot_lens_profile_slices(lens: Lens) -> plt.Figure:
     # TODO: add proper distances to plot
-    """Plot slices of a two-dimensional lens at one-sixth, one-quarter and one-half distances"""
+    """Plot slices of a two-dimensional lens at one-eighth, one-quarter and one-half distances"""
     
     if isinstance(lens, np.ndarray):
         lens_profile = lens
     if isinstance(lens, Lens):
         lens_profile = lens.profile
     
-    sixth_px = lens_profile.shape[0] // 6
+    sixth_px = lens_profile.shape[0] // 8
     quarter_px = lens_profile.shape[0] // 4
     mid_px = lens_profile.shape[0] // 2
 
     fig = plt.figure()
     plt.title("Lens Profile Slices")
-    plt.plot(lens_profile[sixth_px, :], "r--", label="Sixth") 
-    plt.plot(lens_profile[quarter_px, :], "g--", label="Quarter")
-    plt.plot(lens_profile[mid_px, :], "b--", label="MidPoint")
+    plt.plot(lens_profile[mid_px, :], "b--", label="0.5")
+    plt.plot(lens_profile[quarter_px, :], "g--", label="0.25")
+    plt.plot(lens_profile[sixth_px, :], "r--", label="0.125") 
     plt.legend(loc="best")
     
     return fig
