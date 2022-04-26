@@ -154,6 +154,8 @@ class Lens:
         self.angle = np.arctan2(self.sim_width/2-X, self.sim_height/2-Y + 1e-12)
        
 
+        # QUERY: do we need special axicon case?
+
         # general profile formula...
         coefficient = self.height / max(self.radius_px ** self.exponent)
         profile = self.height - coefficient * distance ** self.exponent
