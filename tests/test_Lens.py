@@ -55,3 +55,27 @@ def test_extrude_lens():
     for profile_1D in profile_2D:
 
         assert np.array_equal(profile_1D, lens.profile), "Extruded profile is different than base profile."
+
+def test_revolve_lens():
+
+    lens = Lens(diameter=4500e-6, 
+                height=20e-6, 
+                exponent=2.0, 
+                medium=Medium(1))
+    lens.generate_profile(1e-6)
+
+    profile_2D = lens.revolve_profile()
+
+    # corners should be zero
+    assert profile_2D[0, 0] == 0, "Corner point should be zero"
+    assert profile_2D[0, profile_2D.shape[1]-1] == 0, "Corner point should be zero"
+    assert profile_2D[profile_2D.shape[0]-1, 0] == 0, "Corner point should be zero"
+    assert profile_2D[profile_2D.shape[0]-1, profile_2D.shape[1]-1] == 0, "Corner point should be zero"
+
+    # edges should be equal
+    assert np.array_equal(profile_2D[0, :], profile_2D[profile_2D.shape[0]-1, :]), "Edges should be equal (symmetric)"
+    assert np.array_equal(profile_2D[:, 0], profile_2D[:, profile_2D.shape[1]-1]), "Edges should be equal (symmetric)"
+
+    # maximum at midpoint
+    midx, midy = profile_2D.shape[0] // 2, profile_2D.shape[1] // 2
+    assert profile_2D[midx, midy] == np.max(profile_2D), "Maximum should be at the midpoint"
