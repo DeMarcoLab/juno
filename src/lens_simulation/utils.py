@@ -6,6 +6,7 @@ import os
 import json
 import yaml
 
+from lens_simulation.Lens import Lens
 
 # TODO: visualisation
 # visualisation between lens and sim data is inconsistent, 
@@ -144,17 +145,20 @@ def load_config(config_filename):
     return conf
 
 
-def plot_lens_profile_2D(lens_profile):
+def plot_lens_profile_2D(lens: Lens):
+    # TODO: add proper distances to plot
     fig = plt.figure()
     plt.title("Lens Profile (Two-Dimensional)")
-    plt.imshow(lens_profile, cmap="plasma")
+    plt.imshow(lens.profile, cmap="plasma")
     plt.colorbar()
     
     return fig
 
 
-def plot_lens_profile_slices(lens_profile) -> plt.Figure:
+def plot_lens_profile_slices(lens: Lens) -> plt.Figure:
+    # TODO: add proper distances to plot
     """Plot slices of a two-dimensional lens at one-sixth, one-quarter and one-half distances"""
+    lens_profile = lens.profile
     sixth_px = lens_profile.shape[0] // 6
     quarter_px = lens_profile.shape[0] // 4
     mid_px = lens_profile.shape[0] // 2

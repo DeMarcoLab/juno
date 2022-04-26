@@ -124,13 +124,16 @@ class Lens:
                 "This lens has no profile. Please generate the lens profile before extruding"
             )
 
+        # TODO: should probably regenerate the profile here to be certain
+        self.generate_profile(self.pixel_size)
+
         # length in pixels
         length_px = int(length // self.pixel_size)
 
         # extrude profile       
-        self.profile_2D = np.ones((length_px, *self.profile.shape)) * self.profile
+        self.profile = np.ones((length_px, *self.profile.shape)) * self.profile
                 
-        return self.profile_2D
+        return self.profile
 
 
     def revolve_profile(self):
@@ -167,10 +170,10 @@ class Lens:
         profile = np.clip(profile, 0, np.max(profile))
 
 
-        self.profile_2D = profile
-        # profile_2D = np.zeros(shape=(*self.profile.shape, *self.profile.shape))
+        # override 1D profile
+        self.profile = profile
 
-        return self.profile_2D
+        return 
 
     """
     x: zero, equal

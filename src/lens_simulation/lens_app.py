@@ -2,6 +2,7 @@ from cmath import exp
 from operator import le
 import os
 import glob
+from turtle import shape
 import PIL
 
 import streamlit as st
@@ -12,8 +13,7 @@ from lens_simulation import utils
 from lens_simulation.Lens import Medium, Lens
 
 
-
-
+# TODO: move back to utils / rename
 def plot_lens_profile(lens: Lens):
 
     fig = plt.figure()
@@ -40,7 +40,6 @@ with st.form("lens_form"):
     form_cols[1].subheader("Two-Dimensional Parameters")
     form_cols[2].subheader("Medium Parameters")
 
-
     diameter = form_cols[0].number_input("Diameter (um)", min_value=100, max_value=10000, value=5000, step=50) * MICRON_TO_METRE
     height = form_cols[0].number_input("Height (um)", min_value=5, max_value=100, value=20, step=1) * MICRON_TO_METRE
     exponent = form_cols[0].number_input("Exponent", min_value=0.0, max_value=10.0, value=2.0, step=0.1)
@@ -58,11 +57,6 @@ if submitted:
                 exponent=exponent, 
                 medium=Medium(medium_refractive_index))
     lens.generate_profile(1e-6)
-
-    # two-dimensional profiles
-    extruded_profile = lens.extrude_profile(length)
-    revolved_profile = lens.revolve_profile()
-
     
     # plot lens profiles
     lens_fig = plot_lens_profile(lens)
@@ -72,31 +66,18 @@ if submitted:
     cols[0].pyplot(lens_fig)
 
     if shape_method == "cylindrical":
+        lens.extrude_profile(length)
 
-        extrude_fig = utils.plot_lens_profile_2D(extruded_profile)
-        extrude_fig_slice = utils.plot_lens_profile_slices(extruded_profile)
+        extrude_fig = utils.plot_lens_profile_2D(lens)
+        extrude_fig_slice = utils.plot_lens_profile_slices(lens)
         
         cols[1].pyplot(extrude_fig)
         cols[2].pyplot(extrude_fig_slice)
     
     if shape_method == "spherical":
-        revolve_fig = utils.plot_lens_profile_2D(revolved_profile)
-        revolve_fig_slice = utils.plot_lens_profile_slices(revolved_profile)
+        lens.revolve_profile()
+        revolve_fig = utils.plot_lens_profile_2D(lens)
+        revolve_fig_slice = utils.plot_lens_profile_slices(lens)
 
         cols[1].pyplot(revolve_fig)
         cols[2].pyplot(revolve_fig_slice)
-
-
-
-
-
-
-
-
-
-# extrude
-
-
-
-
-# revolve
