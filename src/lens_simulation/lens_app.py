@@ -81,3 +81,12 @@ if submitted:
 
         cols[1].pyplot(revolve_fig)
         cols[2].pyplot(revolve_fig_slice)
+
+
+
+
+save_button = st.button("Save Lens Configuration")
+
+if save_button:
+    # TODO: 
+    st.success("TODO: make this button do something")
