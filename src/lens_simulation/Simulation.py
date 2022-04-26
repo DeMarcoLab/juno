@@ -377,13 +377,13 @@ class Simulation:
         sim = np.ones(shape=(n_slices, *sim_profile.shape))
 
         if DEBUG:
-            print(f"{sim_profile.shape=}")
-            print(f"{freq_arr.shape=}")
-            print(f"{delta.shape=}")
-            print(f"{phase.shape=}")
-            print(f"{wavefront.shape=}")
-            print(f"{fft_wavefront.shape=}")
-            print(f"{sim.shape=}")
+            print(f"sim_profile.shape={sim_profile.shape}")
+            print(f"freq_arr.shape={freq_arr.shape}")
+            print(f"delta.shape={delta.shape}")
+            print(f"phase.shape={phase.shape}")
+            print(f"wavefront.shape={wavefront.shape}")
+            print(f"fft_wavefront.shape={fft_wavefront.shape}")
+            print(f"sim.shape={sim.shape}")
 
             # check the freq arr was created correctly
             assert freq_arr.shape[-1] == wavefront.shape[-1]
