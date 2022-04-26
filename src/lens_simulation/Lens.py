@@ -1,5 +1,4 @@
 from dataclasses import dataclass
-import profile
 import numpy as np
 
 from scipy import ndimage
@@ -72,6 +71,7 @@ class Lens:
 
         # x coordinate of pixels (TODO: better name)
         radius_px = np.linspace(0, radius, n_pixels)
+        self.radius_px = radius_px
 
         # determine coefficent at boundary conditions
         # TODO: will be different for Hershel, Paraxial approximation)
@@ -128,13 +128,65 @@ class Lens:
         length_px = int(length // self.pixel_size)
 
         # extrude profile       
-        profile_2D = np.ones((length_px, *self.profile.shape)) * self.profile
+        self.profile_2D = np.ones((length_px, *self.profile.shape)) * self.profile
                 
-        return profile_2D
+        return self.profile_2D
 
 
     def revolve_profile(self):
         """Revolve the lens profile around the centre of the lens"""
 
+        # TODO: remove / refactor
+        self.sim_width = self.diameter 
+        self.sim_height = self.diameter
+        self.n_pixels_x = self.n_pixels
+        self.n_pixels_y = self.n_pixels
 
-        return NotImplemented
+
+        # TODO: validate what sim_width, sim_height represent
+        # TODO: validate the dimensions of this, doesn't seem correct (seems to be half sized)
+
+
+        x = np.linspace(0, self.sim_width, self.n_pixels_x)
+        y = np.linspace(0, self.sim_height, self.n_pixels_y)
+        X, Y = np.meshgrid(x, y)
+        distance = np.sqrt(((self.sim_width/2)-X)**2 + ((self.sim_height/2)-Y)**2)
+        self.angle = np.arctan2(self.sim_width/2-X, self.sim_height/2-Y + 1e-12)
+       
+
+        # general profile formula...
+        coefficient = self.height / max(self.radius_px ** self.exponent)
+        profile = self.height - coefficient * distance ** self.exponent
+        
+        # QUERY: we dont need padding here?
+        # profile = np.pad(profile, (int((self.n_pixels_x-len(profile))/2), int((self.n_pixels_x-len(profile))/2)), 'constant')
+
+        # clip the profile to zero
+        profile = np.clip(profile, 0, np.max(profile))
+
+
+        self.profile_2D = profile
+        # profile_2D = np.zeros(shape=(*self.profile.shape, *self.profile.shape))
+
+        return self.profile_2D
+
+    """
+    x: zero, equal
+    M: max
+    #####################
+    #         x         #
+    #                   #
+    #                   #
+    #x        M        x#
+    #                   #
+    #                   #
+    #         x         #
+    #####################
+
+
+
+    """
+        
+
+# TODO:
+# top down "heatmap/contour" for 2D lens

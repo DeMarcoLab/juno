@@ -142,3 +142,28 @@ def load_config(config_filename):
                     conf["lenses"][i][param][j] = float(h)
 
     return conf
+
+
+def plot_lens_profile_2D(lens_profile):
+    fig = plt.figure()
+    plt.title("Lens Profile (Two-Dimensional)")
+    plt.imshow(lens_profile, cmap="plasma")
+    plt.colorbar()
+    
+    return fig
+
+
+def plot_lens_profile_slices(lens_profile) -> plt.Figure:
+    """Plot slices of a two-dimensional lens at one-sixth, one-quarter and one-half distances"""
+    sixth_px = lens_profile.shape[0] // 6
+    quarter_px = lens_profile.shape[0] // 4
+    mid_px = lens_profile.shape[0] // 2
+
+    fig = plt.figure()
+    plt.title("Lens Profile Slices")
+    plt.plot(lens_profile[sixth_px, :], "r--", label="Sixth") 
+    plt.plot(lens_profile[quarter_px, :], "g--", label="Quarter")
+    plt.plot(lens_profile[mid_px, :], "b--", label="MidPoint")
+    plt.legend(loc="best")
+    
+    return fig
