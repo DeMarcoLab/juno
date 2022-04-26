@@ -39,3 +39,19 @@ def test_focusing_lens():
     assert np.isclose(0, np.min(profile), atol=100e-9)
     assert np.isclose(np.max(profile), lens.height, rtol=10e-6)
     assert not profile[int(len(profile) * 0.75)] == -lens.height / 2
+
+
+def test_extrude_lens():
+
+    lens = Lens(diameter=4500e-6, 
+                height=20e-6, 
+                exponent=2.0, 
+                medium=Medium(1))
+    lens.generate_profile(1e-6)
+
+    profile_2D = lens.extrude_profile(length=10e-6)
+
+
+    for profile_1D in profile_2D:
+
+        assert np.array_equal(profile_1D, lens.profile), "Extruded profile is different than base profile."

@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+import profile
 import numpy as np
 
 from scipy import ndimage
@@ -19,9 +20,22 @@ class Water(Medium):
     refractive_index: float = 1.33
 
 
+@dataclass
+class Air(Medium):
+    refactive_index: float = 1.00
+
+
+@dataclass
+class LithiumNiabate(Medium):
+    refractive_index: float = 2.348
+
+
+# TODO: add more common mediums.. (and names)
+
 
 # TODO:
 # - grating
+
 
 class Lens:
     def __init__(
@@ -37,7 +51,7 @@ class Lens:
 
     def __repr__(self):
 
-        return f""" Lens (diameter: {self.diameter:.2e}, height: {self.height:.2f}, \nexponent: {self.exponent:.3f}, refractive_index: {self.medium.refractive_index:.3f}),"""
+        return f""" Lens (diameter: {self.diameter:.2e}, height: {self.height:.2e}, \nexponent: {self.exponent:.3f}, refractive_index: {self.medium.refractive_index:.3f}),"""
 
     def generate_profile(self, pixel_size) -> np.ndarray:
         """[summary]
@@ -53,16 +67,19 @@ class Lens:
         if n_pixels % 2 == 0:
             n_pixels += 1
 
+        self.pixel_size = pixel_size
+        self.n_pixels = n_pixels
+
         # x coordinate of pixels (TODO: better name)
         radius_px = np.linspace(0, radius, n_pixels)
 
         # determine coefficent at boundary conditions
         # TODO: will be different for Hershel, Paraxial approximation)
-        coefficient = self.height / (radius**self.exponent)
+        coefficient = self.height / (radius ** self.exponent)
 
         # generic lens formula
         # H = h - C*r ^ e
-        heights = self.height - coefficient * radius_px**self.exponent
+        heights = self.height - coefficient * radius_px ** self.exponent
 
         # generate symmetric height profile (NOTE: assumed symmetric lens).
         profile = np.append(np.flip(heights[1:]), heights)
@@ -73,16 +90,17 @@ class Lens:
         self.profile = profile
 
         return profile
-    
+
     def invert_profile(self):
         """Invert the lens profile"""
         if self.profile is None:
-            raise RuntimeError("This lens has no profile. Please generate the lens profile before inverting")
-     
+            raise RuntimeError(
+                "This lens has no profile. Please generate the lens profile before inverting"
+            )
+
         self.profile = abs(self.profile - np.max(self.profile))
 
         return self.profile
-
 
     def load_profile(self, arr: np.ndarray, pixel_size: int):
         """Load the lens profile from np array"""
@@ -90,6 +108,33 @@ class Lens:
         self.profile = arr
 
         # TODO: check the profile is the required size/shape
-        # assert len(self.profile) == 
+        # assert len(self.profile) ==
 
         return self.profile
+
+    def extrude_profile(self, length: float) -> np.ndarray:
+        """Extrude the lens profile to create a cylindrical lens profile.
+        
+        args:
+            length: (int) the length of the extruded lens (metres)
+        
+        """
+        if self.profile is None:
+            raise RuntimeError(
+                "This lens has no profile. Please generate the lens profile before extruding"
+            )
+
+        # length in pixels
+        length_px = int(length // self.pixel_size)
+
+        # extrude profile       
+        profile_2D = np.ones((length_px, *self.profile.shape)) * self.profile
+                
+        return profile_2D
+
+
+    def revolve_profile(self):
+        """Revolve the lens profile around the centre of the lens"""
+
+
+        return NotImplemented
