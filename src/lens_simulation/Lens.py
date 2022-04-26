@@ -173,7 +173,7 @@ class Lens:
         # override 1D profile
         self.profile = profile
 
-        return 
+        return self.profile
 
     """
     x: zero, equal

@@ -59,3 +59,33 @@ def test_calculate_equivalent_focal_distance_fail_due_to_height(lens_exponent):
 
     focal_distance = Simulation.calculate_equivalent_focal_distance(lens, medium)
     assert not np.isclose(focal_distance, 0.0268514, rtol=1e-6)
+
+def test_pad_simulation():
+
+    # create lens
+    lens = Lens.Lens(diameter=4500e-6, 
+                height=20e-6, 
+                exponent=2.0, 
+                medium=Lens.Medium(1))
+    lens.generate_profile(1e-6)
+
+    # fail for 1D
+    with pytest.raises(TypeError):
+        Simulation.pad_simulation(lens)
+
+    # default horizontal padding for extrude
+    lens.extrude_profile(5000e-6)
+    sim_profile = Simulation.pad_simulation(lens)
+    assert sim_profile.shape ==  (lens.profile.shape[0], lens.profile.shape[1] * 3)
+    assert np.allclose(sim_profile[:, :lens.profile.shape[1]], 0)   # padded areas should be zero
+    assert np.allclose(sim_profile[:, -lens.profile.shape[1]:], 0)  # padded areas should be zero
+
+
+    # symmetric padding for revolve
+    lens.revolve_profile()
+    sim_profile = Simulation.pad_simulation(lens, pad_px=(lens.profile.shape))
+    assert sim_profile.shape == (lens.profile.shape[0] * 3, lens.profile.shape[1] * 3)
+    assert np.allclose(sim_profile[:lens.profile.shape[0], :], 0)   # padded areas should be zero
+    assert np.allclose(sim_profile[:, :lens.profile.shape[1]], 0)   # padded areas should be zero
+    assert np.allclose(sim_profile[-lens.profile.shape[0]:, :], 0)  # padded areas should be zero
+    assert np.allclose(sim_profile[:, -lens.profile.shape[1]:], 0)  # padded areas should be zero

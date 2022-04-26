@@ -302,10 +302,11 @@ class Simulation:
         DEBUG = self.debug
 
         # padding (width of lens on each side)
-        sim_profile = np.pad(lens.profile, len(lens.profile), "constant")
-
-        # 2d # TODO: move this to profile creation?
-        sim_profile = np.expand_dims(sim_profile, axis=0)
+        if lens.profile.ndim == 1:
+            sim_profile = np.pad(lens.profile, len(lens.profile), "constant")
+            sim_profile = np.expand_dims(sim_profile, axis=0) # TODO: remove this once 2D profiles are implemented...
+        else:
+            sim_profile = pad_simulation(lens) # 2D only
 
         # only amplifiy the first stage propagation
         if passed_wavefront is not None:
@@ -421,3 +422,25 @@ def calculate_equivalent_focal_distance(lens: Lens, medium: Medium) -> float:
     ) / (lens.medium.refractive_index - medium.refractive_index)
 
     return equivalent_focal_distance
+
+
+def pad_simulation(lens: Lens, pad_px: tuple = None) -> np.ndarray:
+    """Pad the area around the lens profile to prevent reflection"""    
+
+    if lens.profile.ndim != 2:
+        raise TypeError(f"Pad simulation only supports two-dimensional lens. Lens shape was: {lens.profile.shape}.")
+
+    if pad_px is None:
+        if lens.profile.ndim == 2:
+            pad_px = (0, lens.profile.shape[1]) # TODO: check symmetry
+
+    if not isinstance(pad_px, tuple):
+        raise TypeError(f"Padding pixels should be given as a tuple in the form (vertical_pad_px, horizontal_pad_px). {type(pad_px)} ({pad_px}) was passed.")
+    
+    vpad_px = pad_px[0]
+    hpad_px = pad_px[1]
+    
+    # two different types of padding?
+    sim_profile = np.pad(lens.profile, ((vpad_px, vpad_px), (hpad_px, hpad_px)), mode="constant")
+
+    return sim_profile

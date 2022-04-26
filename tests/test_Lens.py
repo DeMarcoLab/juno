@@ -47,14 +47,13 @@ def test_extrude_lens():
                 height=20e-6, 
                 exponent=2.0, 
                 medium=Medium(1))
-    lens.generate_profile(1e-6)
+    base_profile = lens.generate_profile(1e-6)
 
-    profile_2D = lens.extrude_profile(length=10e-6)
+    lens.extrude_profile(length=10e-6)
 
+    for profile_1D in lens.profile:
 
-    for profile_1D in profile_2D:
-
-        assert np.array_equal(profile_1D, lens.profile), "Extruded profile is different than base profile."
+        assert np.array_equal(profile_1D, base_profile), "Extruded profile is different than base profile."
 
 def test_revolve_lens():
 
