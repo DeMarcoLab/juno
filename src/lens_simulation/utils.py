@@ -169,10 +169,14 @@ def plot_lens_profile_slices(lens: Lens) -> plt.Figure:
         lens_profile = lens
     if isinstance(lens, Lens):
         lens_profile = lens.profile
+    else:
+        raise TypeError("Non-Lens passed")
     
     sixth_px = lens_profile.shape[0] // 8
     quarter_px = lens_profile.shape[0] // 4
     mid_px = lens_profile.shape[0] // 2
+
+    # TODO: slice in the other directions
 
     fig = plt.figure()
     plt.title("Lens Profile Slices")

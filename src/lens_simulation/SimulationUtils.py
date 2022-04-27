@@ -1,6 +1,7 @@
 
 from lens_simulation.Lens import Lens, Medium
 from dataclasses import dataclass
+import numpy as np
 
 
 
@@ -17,6 +18,10 @@ class SimulationOptions:
     save_plot: bool = True
     verbose: bool = False
     debug: bool = False
+
+@dataclass
+class Beam:
+    phase: np.ndarray
 
 @dataclass
 class SimulationStage:

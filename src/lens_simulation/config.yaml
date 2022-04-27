@@ -1,21 +1,22 @@
 sim_parameters:
   A: 10000
-  pixel_size: 1.e-6 
+  pixel_size: 100.e-9 
   sim_width: 1000.e-6
   sim_wavelength: 488.e-9
 options:
   verbose: false
   save: false
   save_plot: true
-  debug: false 
+  debug: true 
 lenses:
   - name: lens_1
-    height: [70.e-6]
+    height: 70.e-6
     exponent: 0.0
     medium: medium_1
+    custom: filepath or dir_path
   - name: lens_2
-    height: [75.e-6]
-    exponent: [2.0]
+    height: 85.e-6
+    exponent: 2.0
     medium: medium_1
 mediums:
   - name: medium_1
@@ -25,33 +26,33 @@ mediums:
 stages:
   - lens: lens_1
     output: medium_1 
-    n_slices: 100 
+    n_slices: 1
     start_distance: 0
-    finish_distance: 10.0e-3 
+    finish_distance: 0.1e-3 
     options: 
       use_equivalent_focal_distance: False
       focal_distance_multiple: 2.0
   - lens: lens_2
     output: medium_2 
-    n_slices: 100 
+    n_slices: 20 
     start_distance: 0
     finish_distance: 10.0e-3 
     options: 
       use_equivalent_focal_distance: true
-      focal_distance_multiple: 2.0
-  - lens: lens_2
-    output: medium_2 
-    n_slices: 100 
-    start_distance: 0
-    finish_distance: [10.0e-3] #, 15.0e-3, 2.5e-3] 
-    options: 
-      use_equivalent_focal_distance: True
-      focal_distance_multiple: 2.0
-  - lens: lens_2
-    output: medium_2 
-    n_slices: 100 
-    start_distance: 0
-    finish_distance: 10.0e-3 
-    options:  
-      use_equivalent_focal_distance: True
-      focal_distance_multiple: 2.0 
+      focal_distance_multiple: 0.5
+  # - lens: lens_2
+  #   output: medium_2 
+  #   n_slices: 100 
+  #   start_distance: 0
+  #   finish_distance: [10.0e-3] #, 15.0e-3, 2.5e-3] 
+  #   options: 
+  #     use_equivalent_focal_distance: True
+  #     focal_distance_multiple: 2.0
+  # - lens: lens_2
+  #   output: medium_2 
+  #   n_slices: 100 
+  #   start_distance: 0
+  #   finish_distance: 10.0e-3 
+  #   options:  
+  #     use_equivalent_focal_distance: True
+  #     focal_distance_multiple: 2.0 

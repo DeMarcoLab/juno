@@ -130,6 +130,9 @@ def show_simulation_data(sim_path, df_sim):
 
         # try to load image
         img_fname = os.path.join(fname, "img.png")
+        freq_fname = os.path.join(fname, "freq.png")
+        delta_fname = os.path.join(fname, "delta.png")
+        phase_fname = os.path.join(fname, "phase.png")
         sim_fname = os.path.join(fname, "sim.npy")
 
         # plot lens profile
@@ -142,6 +145,13 @@ def show_simulation_data(sim_path, df_sim):
             # faster to load the image than the sim
             img = PIL.Image.open(img_fname)
             cols[i].image(img)
+            if os.path.exists(freq_fname):
+                fimg = PIL.Image.open(freq_fname)
+                cols[i].image(fimg)
+                dimg = PIL.Image.open(delta_fname)
+                cols[i].image(dimg)
+                pimg = PIL.Image.open(phase_fname)
+                cols[i].image(pimg)
         else:
             # try to load sim
             if os.path.exists(sim_fname):

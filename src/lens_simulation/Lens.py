@@ -102,14 +102,17 @@ class Lens:
 
         return self.profile
 
-    def load_profile(self, arr: np.ndarray, pixel_size: int):
+    def load_profile(self, arr: np.ndarray):
         """Load the lens profile from np array"""
 
+        # assume lens diameter is sim width
+        if arr.shape[-1] != self.n_pixels:
+            raise ValueError(f"Custom lens profiles must match the simulation width. Custom Profile Shape: {arr.shape}, Simulation Pixels: {self.n_pixels}.")
+
+        # TODO: we need pad the lens if the size is smaller than the sim n_pixels?
+
         self.profile = arr
-
-        # TODO: check the profile is the required size/shape
-        # assert len(self.profile) ==
-
+        
         return self.profile
 
     def extrude_profile(self, length: float) -> np.ndarray:
@@ -169,7 +172,6 @@ class Lens:
         # clip the profile to zero
         profile = np.clip(profile, 0, np.max(profile))
 
-
         # override 1D profile
         self.profile = profile
 
@@ -188,7 +190,7 @@ class Lens:
     #         x         #
     #####################
 
-
+P
 
     """
         

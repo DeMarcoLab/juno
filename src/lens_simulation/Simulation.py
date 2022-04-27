@@ -195,7 +195,9 @@ class Simulation:
         passed_wavefront = None
         self.progress_bar = tqdm(self.sim_stages, leave=False)
         for stage_id, stage in enumerate(self.progress_bar):
-
+            
+            #TODO: remove
+            self.stage_id = stage_id
             self.progress_bar.set_description(
                 f"Sim: {self.petname} ({str(self.sim_id)[-10:]}) - Propagating Wavefront"
             )
@@ -232,7 +234,7 @@ class Simulation:
                     stage.start_distance,
                     stage.finish_distance,
                 )
-
+                
                 utils.save_figure(
                     fig, os.path.join(self.log_dir, str(stage_id), "img.png")
                 )
@@ -320,8 +322,8 @@ class Simulation:
 
         # TODO: move this somewhere better
         # create 2D lens profile
-        lens.extrude_profile(100e-6)
-        # lens.revolve_profile()
+        # lens.extrude_profile(100e-6)
+        lens.revolve_profile()
 
         # padding (width of lens on each side)
         if lens.profile.ndim == 1:
@@ -330,7 +332,10 @@ class Simulation:
                 sim_profile, axis=0
             )  # TODO: remove this once 2D profiles are implemented...
         else:
-            sim_profile = pad_simulation(lens)  # 2D only
+            sim_profile = pad_simulation(lens, pad_px=(0, 0))  # 2D only
+
+        # utils.plot_lens_profile_2D(sim_profile)
+        # plt.show()
 
         if self.options.verbose:
             print("-" * 20)
@@ -343,14 +348,41 @@ class Simulation:
             print(f"Passed Wavefront: {passed_wavefront is not None}")
             print(f"-" * 20)
 
-        freq_arr = generate_squared_frequency_array(
-            n_pixels=sim_profile.shape[-1], pixel_size=self.parameters.pixel_size
-        )  # TODO: confirm correct for 2D
+        if lens.profile.ndim == 1:
+            freq_arr = generate_squared_frequency_array(
+                n_pixels=sim_profile.shape[-1], pixel_size=self.parameters.pixel_size
+            )  # TODO: confirm correct for 2D
+        else:
+            freq_arr = gen_sq_freq_arr_2d(n_pixels=sim_profile.shape[-1], pixel_size=self.parameters.pixel_size)
+        
+        fig = plt.figure()
+        plt.imshow(freq_arr)
+        plt.title("Freq Arr")
+        plt.colorbar()
+        utils.save_figure(
+                    fig, os.path.join(self.log_dir, str(self.stage_id), "freq.png")
+        )
 
         delta = (
             lens.medium.refractive_index - output_medium.refractive_index
         ) * sim_profile
-        phase = (2 * np.pi * delta / self.parameters.sim_wavelength) % (2 * np.pi)
+        phase = (2 * np.pi * delta / self.parameters.sim_wavelength) #% (2 * np.pi)
+
+        fig = plt.figure()
+        plt.imshow(delta)
+        plt.title("Delta")
+        plt.colorbar()
+        utils.save_figure(
+                    fig, os.path.join(self.log_dir, str(self.stage_id), "delta.png")
+        )
+
+        fig = plt.figure()
+        plt.imshow(phase)
+        plt.title("Phase")
+        plt.colorbar()
+        utils.save_figure(
+                    fig, os.path.join(self.log_dir, str(self.stage_id), "phase.png")
+        )
 
         # only amplifiy the first stage propagation
         A = self.parameters.A if passed_wavefront is None else 1.0
@@ -363,18 +395,18 @@ class Simulation:
         # padded area should be 0+0j
         if passed_wavefront is not None:  # TODO: convert to apeture mask
             wavefront[phase == 0] = 0 + 0j
-        else:
-            wavefront[:, : lens.profile.shape[-1]] = 0 + 0j
-            wavefront[:, -lens.profile.shape[-1] :] = (
-                0 + 0j
-            )  # TODO: confirm this is correct for 2d?
+        # else:
+            # wavefront[:, : lens.profile.shape[-1]] = 0 + 0j
+            # wavefront[:, -lens.profile.shape[-1] :] = (
+                # 0 + 0j
+            # )  # TODO: confirm this is correct for 2d?
 
         # QUERY: ^ dont think this is working properly for 2D
 
         # fourier transform of wavefront
         fft_wavefront = fftpack.fft2(wavefront)  # TODO: change to np
 
-        sim = np.ones(shape=(n_slices, *sim_profile.shape))
+        sim = np.ones(shape=(n_slices, *sim_profile.shape)) 
 
         if DEBUG:
             print(f"sim_profile.shape={sim_profile.shape}")
@@ -395,14 +427,18 @@ class Simulation:
             prop_progress_bar.set_description(
                 f"Propagating Wavefront at Distance {z:.4f} / {distances[-1]:.4f}m"
             )
-            prop = np.exp(1j * output_medium.wave_number * z) * np.exp(
+            # prop = np.exp(1j * output_medium.wave_number * z) * np.exp(
+            #     (-1j * 2 * np.pi ** 2 * z * freq_arr) / output_medium.wave_number
+            # )
+            prop = np.exp(
                 (-1j * 2 * np.pi ** 2 * z * freq_arr) / output_medium.wave_number
             )
             propagation = fftpack.ifft2(prop * fft_wavefront)
 
-            output = np.sqrt(propagation.real ** 2 + propagation.imag ** 2)
+            # output = np.sqrt(propagation.real ** 2 + propagation.imag ** 2)
+            output = np.sqrt(propagation.real ** 2 + propagation.imag ** 2) ** 2
 
-            sim[i] = np.round(output, 10)
+            sim[i] = np.round(output, 8)
 
         return sim, propagation
 
@@ -424,6 +460,17 @@ def generate_squared_frequency_array(n_pixels: int, pixel_size: float) -> np.nda
     """
     return np.power(fftpack.fftfreq(n_pixels, pixel_size), 2)
 
+
+
+def gen_sq_freq_arr_2d(n_pixels, pixel_size):
+
+    x = generate_squared_frequency_array(n_pixels, pixel_size)
+    y = generate_squared_frequency_array(n_pixels, pixel_size)
+    X, Y = np.meshgrid(x, y)
+    freq_arr = np.sqrt(X**2 + Y**2)
+    
+    return freq_arr
+       
 
 def calculate_equivalent_focal_distance(lens: Lens, medium: Medium) -> float:
     """Calculates the focal distance of a lens with any exponent as if it had
@@ -461,7 +508,7 @@ def pad_simulation(lens: Lens, pad_px: tuple = None) -> np.ndarray:
 
     if pad_px is None:
         if lens.profile.ndim == 2:
-            pad_px = (0, lens.profile.shape[1])  # TODO: check symmetry
+            pad_px = lens.profile.shape  # TODO: check symmetry
 
     if not isinstance(pad_px, tuple):
         raise TypeError(
@@ -475,5 +522,7 @@ def pad_simulation(lens: Lens, pad_px: tuple = None) -> np.ndarray:
     sim_profile = np.pad(
         lens.profile, ((vpad_px, vpad_px), (hpad_px, hpad_px)), mode="constant"
     )
+
+    # TODO: pad symmetrically
 
     return sim_profile
