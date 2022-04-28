@@ -1,3 +1,4 @@
+from lib2to3.pgen2.literals import simple_escapes
 import os
 import uuid
 
@@ -174,6 +175,7 @@ class Simulation:
                 eq_fd = calculate_equivalent_focal_distance(
                     sim_stage.lens, sim_stage.output
                 )
+                print("EQ_FD: ", eq_fd)
 
                 sim_stage.start_distance = 0.0 * eq_fd
                 sim_stage.finish_distance = (
@@ -195,13 +197,13 @@ class Simulation:
         passed_wavefront = None
         self.progress_bar = tqdm(self.sim_stages, leave=False)
         for stage_id, stage in enumerate(self.progress_bar):
-            
-            #TODO: remove
+
+            # TODO: remove
             self.stage_id = stage_id
             self.progress_bar.set_description(
                 f"Sim: {self.petname} ({str(self.sim_id)[-10:]}) - Propagating Wavefront"
             )
-            sim, propagation = self.propagate_wavefront(
+            propagation = self.propagate_wavefront(
                 stage, passed_wavefront=passed_wavefront
             )
 
@@ -209,37 +211,37 @@ class Simulation:
                 self.progress_bar.set_description(
                     f"Sim: {self.petname} ({str(self.sim_id)[-10:]}) - Saving Simulation"
                 )
-                self.save_simulation(sim, stage_id)
+                # self.save_simulation(sim, stage_id)
 
             if self.options.save_plot:
                 self.progress_bar.set_description(
                     f"Sim: {self.petname} ({str(self.sim_id)[-10:]}) - Plotting Simulation"
                 )
 
-                # plot sim result
-                if sim.ndim == 3:
-                    width = sim.shape[2]
-                    height = sim.shape[0]
-                elif sim.ndim == 2:
-                    width = sim.shape[1]
-                    height = sim.shape[0]
-                else:
-                    raise ValueError(f"Simulation of {sim.ndim} is not supported")
+                # # plot sim result
+                # if sim.ndim == 3:
+                #     width = sim.shape[2]
+                #     height = sim.shape[0]
+                # elif sim.ndim == 2:
+                #     width = sim.shape[1]
+                #     height = sim.shape[0]
+                # else:
+                #     raise ValueError(f"Simulation of {sim.ndim} is not supported")
 
-                fig = utils.plot_simulation(
-                    sim,
-                    width,
-                    height,
-                    self.parameters.pixel_size,
-                    stage.start_distance,
-                    stage.finish_distance,
-                )
-                
-                utils.save_figure(
-                    fig, os.path.join(self.log_dir, str(stage_id), "img.png")
-                )
+                # fig = utils.plot_simulation(
+                #     sim,
+                #     width,
+                #     height,
+                #     self.parameters.pixel_size,
+                #     stage.start_distance,
+                #     stage.finish_distance,
+                # )
 
-                plt.close(fig)
+                # utils.save_figure(
+                #     fig, os.path.join(self.log_dir, str(stage_id), "img.png")
+                # )
+
+                # plt.close(fig)
 
             # pass the wavefront to the next stage
             passed_wavefront = propagation
@@ -309,9 +311,6 @@ class Simulation:
         self, sim_stage: SimulationStage, passed_wavefront=None,
     ):
 
-        # TODO: docstring
-        # TODO: input validation
-
         lens = sim_stage.lens
         output_medium = sim_stage.output
         n_slices = sim_stage.n_slices
@@ -322,91 +321,41 @@ class Simulation:
 
         # TODO: move this somewhere better
         # create 2D lens profile
-        # lens.extrude_profile(100e-6)
+        # lens.extrude_profile(1e-6)
         lens.revolve_profile()
 
         # padding (width of lens on each side)
-        if lens.profile.ndim == 1:
-            sim_profile = np.pad(lens.profile, len(lens.profile), "constant")
-            sim_profile = np.expand_dims(
-                sim_profile, axis=0
-            )  # TODO: remove this once 2D profiles are implemented...
-        else:
-            sim_profile = pad_simulation(lens, pad_px=(0, 0))  # 2D only
+        pad_px = lens.profile.shape[-1]
+        sim_profile = pad_simulation(lens, pad_px=pad_px)
 
-        # utils.plot_lens_profile_2D(sim_profile)
-        # plt.show()
-
-        if self.options.verbose:
-            print("-" * 20)
-            print(f"Propagating Wavefront with Parameters")
-            print(f"Lens: {lens}")
-            print(f"Medium: {output_medium}")
-            print(
-                f"Slices: {n_slices}, Start: {start_distance:.2e}m, Finish: {finish_distance:.2e}m"
-            )
-            print(f"Passed Wavefront: {passed_wavefront is not None}")
-            print(f"-" * 20)
-
-        if lens.profile.ndim == 1:
-            freq_arr = generate_squared_frequency_array(
-                n_pixels=sim_profile.shape[-1], pixel_size=self.parameters.pixel_size
-            )  # TODO: confirm correct for 2D
-        else:
-            freq_arr = gen_sq_freq_arr_2d(n_pixels=sim_profile.shape[-1], pixel_size=self.parameters.pixel_size)
-        
-        fig = plt.figure()
-        plt.imshow(freq_arr)
-        plt.title("Freq Arr")
-        plt.colorbar()
-        utils.save_figure(
-                    fig, os.path.join(self.log_dir, str(self.stage_id), "freq.png")
+        # generate frequency array
+        freq_arr = generate_sq_freq_arr(
+            sim_profile, pixel_size=self.parameters.pixel_size
         )
 
-        delta = (
-            lens.medium.refractive_index - output_medium.refractive_index
-        ) * sim_profile
-        phase = (2 * np.pi * delta / self.parameters.sim_wavelength) #% (2 * np.pi)
-
-        fig = plt.figure()
-        plt.imshow(delta)
-        plt.title("Delta")
-        plt.colorbar()
-        utils.save_figure(
-                    fig, os.path.join(self.log_dir, str(self.stage_id), "delta.png")
+        # calculate delta and phase profiles
+        delta = calculate_delta_profile(
+            sim_profile=sim_profile, lens=lens, output_medium=output_medium
+        )
+        phase = calculate_phase_profile(
+            delta=delta, wavelength=self.parameters.sim_wavelength
         )
 
-        fig = plt.figure()
-        plt.imshow(phase)
-        plt.title("Phase")
-        plt.colorbar()
-        utils.save_figure(
-                    fig, os.path.join(self.log_dir, str(self.stage_id), "phase.png")
-        )
-
-        # only amplifiy the first stage propagation
         A = self.parameters.A if passed_wavefront is None else 1.0
-        if passed_wavefront is not None:
-            assert A == 1, "Amplitude is wrong"
-            wavefront = A * np.exp(1j * phase) * passed_wavefront
-        else:
-            wavefront = A * np.exp(1j * phase)
-
-        # padded area should be 0+0j
-        if passed_wavefront is not None:  # TODO: convert to apeture mask
-            wavefront[phase == 0] = 0 + 0j
-        # else:
-            # wavefront[:, : lens.profile.shape[-1]] = 0 + 0j
-            # wavefront[:, -lens.profile.shape[-1] :] = (
-                # 0 + 0j
-            # )  # TODO: confirm this is correct for 2d?
-
-        # QUERY: ^ dont think this is working properly for 2D
+        wavefront = calculate_wavefront(
+            phase=phase, passed_wavefront=passed_wavefront, A=A, pad_px=pad_px
+        )
 
         # fourier transform of wavefront
-        fft_wavefront = fftpack.fft2(wavefront)  # TODO: change to np
+        fft_wavefront = fftpack.fft2(wavefront)
 
-        sim = np.ones(shape=(n_slices, *sim_profile.shape)) 
+        # pre-allocate view arrays
+        top_down_view = np.zeros(
+            shape=(n_slices, sim_profile.shape[1]), dtype=np.float32
+        )
+        side_on_view = np.zeros(
+            shape=(n_slices, sim_profile.shape[0]), dtype=np.float32
+        )
 
         if DEBUG:
             print(f"sim_profile.shape={sim_profile.shape}")
@@ -415,32 +364,104 @@ class Simulation:
             print(f"phase.shape={phase.shape}")
             print(f"wavefront.shape={wavefront.shape}")
             print(f"fft_wavefront.shape={fft_wavefront.shape}")
-            print(f"sim.shape={sim.shape}")
+            print(f"top_down_view.shape={top_down_view.shape}")
+            print(f"side_on_view.shape={side_on_view.shape}")
 
             # check the freq arr was created correctly
             assert freq_arr.shape[-1] == wavefront.shape[-1]
-            assert not np.array_equal(np.unique(wavefront), [0 + 0j])  # non empty sim
+            if passed_wavefront is not None:
+                assert not np.array_equal(
+                    np.unique(wavefront), [0 + 0j]
+                )  # non empty sim
 
+        # propagate the wavefront over distance
         distances = np.linspace(start_distance, finish_distance, n_slices)
+
+
         prop_progress_bar = tqdm(distances, leave=False)
-        for i, z in enumerate(prop_progress_bar):
+        for i, distance in enumerate(prop_progress_bar):
             prop_progress_bar.set_description(
-                f"Propagating Wavefront at Distance {z:.4f} / {distances[-1]:.4f}m"
+                f"Propagating Wavefront at Distance {distance:.4f} / {distances[-1]:.4f}m"
             )
-            # prop = np.exp(1j * output_medium.wave_number * z) * np.exp(
-            #     (-1j * 2 * np.pi ** 2 * z * freq_arr) / output_medium.wave_number
-            # )
-            prop = np.exp(
-                (-1j * 2 * np.pi ** 2 * z * freq_arr) / output_medium.wave_number
+
+            rounded_output, propagation = propagate_over_distance(
+                fft_wavefront, distance, freq_arr, output_medium.wave_number
             )
-            propagation = fftpack.ifft2(prop * fft_wavefront)
 
-            # output = np.sqrt(propagation.real ** 2 + propagation.imag ** 2)
-            output = np.sqrt(propagation.real ** 2 + propagation.imag ** 2) ** 2
+            # save output
+            utils.save_simulation_slice(rounded_output, self.log_dir, self.stage_id, f"{distance*1000:.8f}mm.npy")
+            
+            if lens.profile.ndim == 2:
+                # calculate views
+                centre_px_h = rounded_output.shape[0] // 2
+                centre_px_v = rounded_output.shape[1] // 2
+                top_down_slice = rounded_output[centre_px_v, :]
+                side_on_slice = rounded_output[:, centre_px_h]
 
-            sim[i] = np.round(output, 8)
+                # append views
+                top_down_view[i, :] = top_down_slice
+                side_on_view[i, :] = side_on_slice
+            else:
+                top_down_view[i, :] = rounded_output
 
-        return sim, propagation
+        ################## SAVE ##################
+
+        if lens.profile.ndim == 2:
+            fig = plt.figure()
+            plt.imshow(freq_arr)
+            plt.title("Freq Arr")
+            plt.colorbar()
+            utils.save_figure(
+                fig, os.path.join(self.log_dir, str(self.stage_id), "freq.png")
+            )
+            plt.close(fig)
+
+            fig = plt.figure()
+            plt.imshow(delta)
+            plt.title("Delta")
+            plt.colorbar()
+            utils.save_figure(
+                fig, os.path.join(self.log_dir, str(self.stage_id), "delta.png")
+            )
+            plt.close(fig)
+            fig = plt.figure()
+            plt.imshow(phase)
+            plt.title("Phase")
+            plt.colorbar()
+            utils.save_figure(
+                fig, os.path.join(self.log_dir, str(self.stage_id), "phase.png")
+            )
+            plt.close(fig)
+
+        # save top-down
+        fig = utils.plot_simulation(
+            top_down_view,
+            top_down_view.shape[1],
+            top_down_view.shape[0],
+            self.parameters.pixel_size,
+            start_distance,
+            finish_distance,
+        )
+
+        utils.save_figure(
+            fig, os.path.join(self.log_dir, str(self.stage_id), "topdown.png")
+        )
+        plt.close(fig)
+
+        fig = utils.plot_simulation(
+            side_on_view,
+            side_on_view.shape[1],
+            side_on_view.shape[0],
+            self.parameters.pixel_size,
+            start_distance,
+            finish_distance,
+        )
+        utils.save_figure(
+            fig, os.path.join(self.log_dir, str(self.stage_id), "sideon.png")
+        )
+        plt.close(fig)
+
+        return propagation
 
 
 def generate_squared_frequency_array(n_pixels: int, pixel_size: float) -> np.ndarray:
@@ -461,16 +482,25 @@ def generate_squared_frequency_array(n_pixels: int, pixel_size: float) -> np.nda
     return np.power(fftpack.fftfreq(n_pixels, pixel_size), 2)
 
 
-
-def gen_sq_freq_arr_2d(n_pixels, pixel_size):
-
-    x = generate_squared_frequency_array(n_pixels, pixel_size)
-    y = generate_squared_frequency_array(n_pixels, pixel_size)
-    X, Y = np.meshgrid(x, y)
-    freq_arr = np.sqrt(X**2 + Y**2)
+def generate_sq_freq_arr(sim_profile: np.ndarray, pixel_size: float) -> np.ndarray:
+    """Generate the squared frequency array for the simulation"""
     
-    return freq_arr
-       
+    if sim_profile.ndim != 2:
+        raise TypeError(f"Only 2D Simulation Profile is supported. Simulation profile of shape {sim_profile.shape} not supported.")
+
+    if sim_profile.shape[0] == 1: # 1D lens
+        freq_arr = generate_squared_frequency_array(
+            n_pixels=sim_profile.shape[1], pixel_size=pixel_size
+        )
+    else: # 2D lens
+        x = generate_squared_frequency_array(sim_profile.shape[1], pixel_size)
+        y = generate_squared_frequency_array(sim_profile.shape[0], pixel_size)
+        X, Y = np.meshgrid(x, y)
+        freq_arr = X + Y
+
+
+    return freq_arr.astype(np.float32)
+
 
 def calculate_equivalent_focal_distance(lens: Lens, medium: Medium) -> float:
     """Calculates the focal distance of a lens with any exponent as if it had
@@ -498,7 +528,7 @@ def calculate_equivalent_focal_distance(lens: Lens, medium: Medium) -> float:
     return equivalent_focal_distance
 
 
-def pad_simulation(lens: Lens, pad_px: tuple = None) -> np.ndarray:
+def pad_simulation_old(lens: Lens, pad_px: tuple = None) -> np.ndarray:
     """Pad the area around the lens profile to prevent reflection"""
 
     if lens.profile.ndim != 2:
@@ -523,6 +553,89 @@ def pad_simulation(lens: Lens, pad_px: tuple = None) -> np.ndarray:
         lens.profile, ((vpad_px, vpad_px), (hpad_px, hpad_px)), mode="constant"
     )
 
+    sim_profile = np.pad(
+        lens.profile, ((vpad_px, vpad_px), (hpad_px, hpad_px)), mode="constant"
+    )
+
     # TODO: pad symmetrically
 
     return sim_profile
+
+
+def pad_simulation(lens: Lens, pad_px: int = None) -> np.ndarray:
+    """Pad the area around the lens profile to prevent reflection"""
+
+    # TODO: make this work for assymmetric shape
+    if lens.profile.ndim not in (1, 2):
+        raise TypeError(
+            f"Padding is only supported for 1D and 2D lens. Lens shape was: {lens.profile.shape}."
+        )
+
+    if pad_px is None:
+        pad_px = lens.profile.shape[-1]
+
+    # two different types of padding?
+    sim_profile = np.pad(lens.profile, pad_px, mode="constant")
+
+    if lens.profile.ndim == 1:
+        sim_profile = np.expand_dims(
+            sim_profile, axis=0
+        )  # expand 1D lens to 2D sim shape
+
+    return sim_profile
+
+
+def calculate_delta_profile(
+    sim_profile, lens: Lens, output_medium: Medium
+) -> np.ndarray:
+    """Calculate the delta profile of the wave"""
+    delta = (
+        lens.medium.refractive_index - output_medium.refractive_index
+    ) * sim_profile
+
+    return delta
+
+
+def calculate_phase_profile(delta: np.ndarray, wavelength: float) -> np.ndarray:
+    """Calculate the phase profile of the wave"""
+    phase = 2 * np.pi * delta / wavelength  # % (2 * np.pi)
+
+    return phase
+
+
+def calculate_wavefront(
+    phase: np.ndarray, passed_wavefront: np.ndarray, A: float, pad_px: int = 0
+) -> np.ndarray:
+    """Calculate the wavefront of light"""
+
+    # only amplifiy the first stage propagation
+    if passed_wavefront is not None:
+        assert A == 1, "Amplitude should be 1.0. Only amplify the first stage."
+        wavefront = A * np.exp(1j * phase) * passed_wavefront
+    else:
+        wavefront = A * np.exp(1j * phase)
+
+    # padded area should be 0+0j
+    if passed_wavefront is not None:
+        wavefront[phase == 0] = 0 + 0j
+
+    # zero out padded area (TODO: replace with apeture mask)
+    if pad_px:
+        wavefront[:, :pad_px] = 0 + 0j
+        wavefront[:, -pad_px:] = 0 + 0j
+
+    return wavefront
+
+def propagate_over_distance(
+    fft_wavefront, distance, freq_arr, wave_number
+) -> np.ndarray:
+    prop = np.exp(1j * wave_number * distance) * np.exp(
+        (-1j * 2 * np.pi ** 2 * distance * freq_arr) / wave_number
+    )
+    propagation = fftpack.ifft2(prop * fft_wavefront)
+
+    output = np.sqrt(propagation.real ** 2 + propagation.imag ** 2) ** 2
+
+    rounded_output = np.round(output.astype(np.float32), 10)
+
+    return rounded_output, propagation

@@ -80,6 +80,10 @@ class Lens:
         # generic lens formula
         # H = h - C*r ^ e
         heights = self.height - coefficient * radius_px ** self.exponent
+        # print("Lens Data:")
+        # print(f"{coefficient=}")
+        # print(f"{radius=}")
+        # print(f"{self.exponent=}")
 
         # generate symmetric height profile (NOTE: assumed symmetric lens).
         profile = np.append(np.flip(heights[1:]), heights)
@@ -156,19 +160,16 @@ class Lens:
         x = np.linspace(0, self.sim_width, self.n_pixels_x)
         y = np.linspace(0, self.sim_height, self.n_pixels_y)
         X, Y = np.meshgrid(x, y)
-        distance = np.sqrt(((self.sim_width/2)-X)**2 + ((self.sim_height/2)-Y)**2)
-        self.angle = np.arctan2(self.sim_width/2-X, self.sim_height/2-Y + 1e-12)
-       
-
-        # QUERY: do we need special axicon case?
+        distance = np.sqrt(((self.sim_width/2)-X)**2 + ((self.sim_height/2)-Y)**2)     
 
         # general profile formula...
-        coefficient = self.height / max(self.radius_px ** self.exponent)
+        coefficient = self.height / max(x ** self.exponent)
         profile = self.height - coefficient * distance ** self.exponent
-        
-        # QUERY: we dont need padding here?
-        # profile = np.pad(profile, (int((self.n_pixels_x-len(profile))/2), int((self.n_pixels_x-len(profile))/2)), 'constant')
 
+        print("---REVOLVE LENS----")
+        print(f"{coefficient=}")
+        print(f"{self.exponent=}")
+        
         # clip the profile to zero
         profile = np.clip(profile, 0, np.max(profile))
 

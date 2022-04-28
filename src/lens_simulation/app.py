@@ -57,7 +57,7 @@ def load_simulation_run(sim_path):
     df_join["pixel_size"] = metadata["sim_parameters"]["pixel_size"]
     df_join["sim_wavelength"] = metadata["sim_parameters"]["sim_wavelength"]
     df_join["data_path"] = os.path.join(metadata["log_dir"], metadata["sim_id"])
-    df_join["lens_height"] = round(df_join["lens_height"] * 10e3, 3)  # convert to mm
+    df_join["lens_height"] = df_join["lens_height"]  # convert to mm
     df_join["start_distance"] = round(df_join["start_distance"], 3)
     df_join["finish_distance"] = round(df_join["finish_distance"], 3)
 
@@ -129,7 +129,8 @@ def show_simulation_data(sim_path, df_sim):
         cols[i].write(f"Stage {i}")
 
         # try to load image
-        img_fname = os.path.join(fname, "img.png")
+        img_fname = os.path.join(fname, "topdown.png")
+        sideon_fname = os.path.join(fname, "sideon.png")
         freq_fname = os.path.join(fname, "freq.png")
         delta_fname = os.path.join(fname, "delta.png")
         phase_fname = os.path.join(fname, "phase.png")
@@ -145,11 +146,16 @@ def show_simulation_data(sim_path, df_sim):
             # faster to load the image than the sim
             img = PIL.Image.open(img_fname)
             cols[i].image(img)
+            if os.path.exists(sideon_fname):
+                simg = PIL.Image.open(sideon_fname)
+                cols[i].image(simg)
             if os.path.exists(freq_fname):
                 fimg = PIL.Image.open(freq_fname)
                 cols[i].image(fimg)
+            if os.path.exists(delta_fname):
                 dimg = PIL.Image.open(delta_fname)
                 cols[i].image(dimg)
+            if os.path.exists(phase_fname):
                 pimg = PIL.Image.open(phase_fname)
                 cols[i].image(pimg)
         else:

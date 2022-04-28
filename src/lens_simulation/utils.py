@@ -61,7 +61,7 @@ def plot_simulation(
         aspect="auto",
         cmap="jet",
     )
-    plt.title(f"Simulation Output ({width}x{height})")
+    plt.title(f"Simulation Output ({height}x{width})")
     plt.ylabel("Distance (mm)")
     plt.xlabel("Distance (um)")
     plt.colorbar()
@@ -186,3 +186,9 @@ def plot_lens_profile_slices(lens: Lens) -> plt.Figure:
     plt.legend(loc="best")
     
     return fig
+
+def save_simulation_slice(sim, log_dir, stage_id, fname):
+    # TODO: use npz (compressed)
+    save_path = os.path.join(log_dir, str(stage_id), fname)
+    os.makedirs(os.path.dirname(save_path), exist_ok=True)
+    np.save(save_path, sim)
