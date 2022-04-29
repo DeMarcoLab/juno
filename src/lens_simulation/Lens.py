@@ -180,10 +180,10 @@ class Lens:
         if self.profile is None:
             raise RuntimeError("A Lens profile must be defined before applying a mask. Please generate a profile first.")
 
-        if radius == 0:
-            # self.truncation_mask = np.zeros_like(self.profile)
-            # self.truncation = np.max(self.profile)
-            return self.profile
+        # if radius == 0:
+        #     self.truncation_mask = np.zeros_like(self.profile).astype(int)
+        #     self.truncation = np.max(self.profile)
+        #     return self.profile
 
         if type == "value":
 
@@ -202,7 +202,8 @@ class Lens:
         
         return self.profile
 
-    def apply_masks(self, grating: bool = False, truncation: bool = False, apeture: bool = False):
+    def apply_masks(self, grating: bool = False, truncation: bool = False, 
+            apeture: bool = False, escape_path: bool = True):
         
         # grating
         if grating:
@@ -216,11 +217,51 @@ class Lens:
         if apeture:
             self.profile = self.profile * self.apeture_mask
 
+
+        # if escape_path:
+        #     self.profile = self.calculate_escape_path(ratio=0.2)
+
         # clip the profile to zero
         self.profile = np.clip(self.profile, 0, np.max(self.profile))
 
         return self.profile
 
+
+    def calculate_escape_path(self, ratio=0.2):
+        
+        inner_px = int(self.profile.shape[1] / self.pixel_size)
+        outer_px = int(self.profile.shape[1] * (1+0.2) /self.pixel_size) 
+
+        mask = np.ones_like(self.profile)
+        
+        if type=="radial":
+
+            inner_rad_px = self.profile.shape[1] // 2 + inner_px
+            outer_rad_px = self.profile.shape[1] // 2 + outer_px
+
+            inner_val = self.profile[self.profile.shape[0] // 2, inner_rad_px]
+            outer_val = self.profile[self.profile.shape[0] // 2, outer_rad_px]
+
+            inner_mask = self.profile <= inner_val
+            outer_mask = self.profile >= outer_val
+            mask[inner_mask * outer_mask] = 0
+
+        h, w = self.profile.shape
+        
+        h1, w1 = int(h*(1+ratio)), int(w*(1+ratio))
+        profile_with_escape_path = np.zeros(shape=(h1, w1))
+
+        profile_with_escape_path[:h, :w] = self.profile
+
+        self.profile = profile_with_escape_path
+
+        return NotImplemented
+
+    # escape path:
+    # inner radius: lens radius
+    # outer radius: (1 + scale) * lens radius
+    # e.g. 1.1 * lens_radius
+    # pad with zero?
 
     def calculate_apeture(self, inner_m: float = 0, outer_m: float = 0, type: str = "square"):
         """Calculate the apeture mask"""
@@ -285,10 +326,15 @@ class Lens:
             return self.profile 
         
         # TODO: gratings in y directions
-
         grating_width_px = int(grating_width_m / self.pixel_size)
         distance_px = int(distance_m / self.pixel_size)
-        grating_centre_coords_x = np.arange(0, self.profile.shape[1], distance_px)
+
+        if centred:
+            start_coord = 0
+        else:
+            start_coord = grating_width_px // 2
+
+        grating_centre_coords_x = np.arange(start_coord, self.profile.shape[1], distance_px)
 
         # this coord +/- width / 2
         grating_coords_x = []

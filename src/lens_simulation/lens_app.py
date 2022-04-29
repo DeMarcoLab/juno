@@ -42,7 +42,7 @@ with st.form("lens_form"):
 
     truncation_type = form_cols[3].selectbox("Truncation Type", ["value", "radial"])
     truncation = form_cols[3].number_input("Truncation Height (um)", min_value=0.0, max_value=height * METRE_TO_MICRON, value=height*METRE_TO_MICRON, step=0.1) * MICRON_TO_METRE
-    truncation_radius = form_cols[3].number_input("Truncation Radius (um)", min_value=0.0, max_value=diameter / 2 * METRE_TO_MICRON, value=diameter/2*METRE_TO_MICRON, step=1.0) * MICRON_TO_METRE
+    truncation_radius = form_cols[3].number_input("Truncation Radius (um)", min_value=0.0, max_value=diameter / 2 * METRE_TO_MICRON, value=0.0, step=1.0) * MICRON_TO_METRE
 
     inner_m = form_cols[4].number_input("Apeture Inner (um)", min_value=0.0, max_value=diameter / 2 * METRE_TO_MICRON, value=0.0, step=1.0) * MICRON_TO_METRE
     outer_m = form_cols[4].number_input("Apeture Outer (um)", min_value=0.0, max_value=diameter / 2 * METRE_TO_MICRON, value=0.0, step=1.0) * MICRON_TO_METRE
@@ -97,11 +97,7 @@ if submitted:
     lens.calculate_apeture(inner_m = inner_m, outer_m=outer_m, type="radial")
     lens.apply_masks(grating=True, truncation=True, apeture=True)
     mask_fig = utils.plot_lens_profile_2D(lens)
-    mask1d_fig = utils.plot_lens_profile_slices(lens, max_height=height)
-
-
-
-  
+    mask1d_fig = utils.plot_lens_profile_slices(lens, max_height=height)  
 
     # show plots
     cols = st.columns(5)
