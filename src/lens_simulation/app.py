@@ -154,22 +154,22 @@ def show_simulation_data(sim_path, df_sim):
         if os.path.exists(img_fname):
             # faster to load the image than the sim
             img = PIL.Image.open(img_fname)
-            cols[i].image(img)
+            cols[i].image(img, caption="Top Down View")
             if os.path.exists(log_fname):
                 limg = PIL.Image.open(log_fname)
-                cols[i].image(limg)
+                cols[i].image(limg, caption="Log Top Down View")
             if os.path.exists(sideon_fname):
                 simg = PIL.Image.open(sideon_fname)
-                cols[i].image(simg)
+                cols[i].image(simg, caption="Side On View")
             if os.path.exists(freq_fname):
                 fimg = PIL.Image.open(freq_fname)
-                cols[i].image(fimg)
+                cols[i].image(fimg, caption="Frequency Array")
             if os.path.exists(delta_fname):
                 dimg = PIL.Image.open(delta_fname)
-                cols[i].image(dimg)
+                cols[i].image(dimg, caption="Delta Profile")
             if os.path.exists(phase_fname):
                 pimg = PIL.Image.open(phase_fname)
-                cols[i].image(pimg)
+                cols[i].image(pimg, caption="Phase Profile")
         else:
             # try to load sim
             if os.path.exists(sim_fname):

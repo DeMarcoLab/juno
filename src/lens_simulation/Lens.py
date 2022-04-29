@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from math import trunc
 import numpy as np
 
 from scipy import ndimage
@@ -172,7 +173,171 @@ class Lens:
     #                   #
     #         x         #
     #####################
-
-P
-
     """
+
+    def calculate_truncation_mask(self, truncation: float = None, radius: float = 0, type: str = "value"):
+        """Calculate the truncation mask """
+        if self.profile is None:
+            raise RuntimeError("A Lens profile must be defined before applying a mask. Please generate a profile first.")
+
+        if type == "value":
+
+           if truncation is None:
+                raise ValueError(f"No truncation value has been supplied for a {type} type truncation. Please provide a maximum truncation height")
+
+        if type == "radial":
+            radius_px = int(radius/self.pixel_size)
+
+            truncation_px = self.profile.shape[0] // 2 + radius_px
+
+            truncation = self.profile[self.profile.shape[0] // 2, truncation_px]
+
+        mask = self.profile >= truncation
+
+        self.profile[mask] = truncation
+
+    def apply_mask(self, mask):
+        # truncation
+        # grating
+
+        return NotImplemented
+
+
+    def calculate_apeture(self, inner_m: float = 0, outer_m: float = 0, type: str = "square"):
+        """Calculate the apeture mask"""
+
+        # Apeture
+        # define mask, apply to profile (wavefront = 0)
+
+        if inner_m > outer_m:
+            raise ValueError("""Inner radius must be smaller than outer radius. 
+                            inner = {inner_m:.1e}m, outer = {outer_m:.1e}m""")
+
+        if inner_m == 0.0 and outer_m == 0.0:
+            return self.profile
+
+        inner_px = int(inner_m/self.pixel_size)
+        outer_px = int(outer_m/self.pixel_size) 
+
+        mask = np.ones_like(self.profile)
+
+        centre_x_px = mask.shape[1] // 2
+        centre_y_px = mask.shape[0] // 2
+
+        if type=="square":
+
+            min_x, max_x = centre_x_px - inner_px, centre_x_px + inner_px
+            min_y, max_y = centre_y_px - inner_px, centre_y_px + inner_px 
+
+            outer_x0, outer_x1 = centre_x_px - outer_px, centre_x_px + outer_px
+            outer_y0, outer_y1 = centre_y_px - outer_px, centre_y_px + outer_px
+
+            mask[outer_y0: outer_y1, outer_x0: outer_x1] = 0
+            mask[min_y:max_y, min_x:max_x  ] = 1
+        
+        if type=="radial":
+
+            inner_rad_px = self.profile.shape[1] // 2 + inner_px
+            outer_rad_px = self.profile.shape[1] // 2 + outer_px
+
+            inner_val = self.profile[self.profile.shape[0] // 2, inner_rad_px]
+            outer_val = self.profile[self.profile.shape[0] // 2, outer_rad_px]
+
+            inner_mask = self.profile <= inner_val
+            outer_mask = self.profile >= outer_val
+            mask[inner_mask * outer_mask] = 0
+
+        self.profile = self.profile * mask
+
+        self.apeture = mask
+
+        return self.profile
+
+
+
+    def calculate_grating_mask(self, grating_width_um: float, distance_um: float,  centred: bool = True):
+        
+        if grating_width_um >= distance_um:
+            raise ValueError(f"""Grating width cannot be equal or larger than the distance between gratings. 
+                                    width={grating_width_um:.2e}, distance = {distance_um:.2e}""")
+
+        centre_x_px = self.profile.shape[1]
+        centre_y_px = self.profile.shape[0]
+
+        grating_width_px = int(grating_width_um / self.pixel_size)
+        distance_px = int(distance_um / self.pixel_size)
+
+        n_gratings = self.profile.shape[1] / (distance_px)
+
+
+        grating_coords_x = np.linspace(0, self.profile.shape[1], int(self.profile.shape[1] / distance_px))
+        
+        print("Grating Width (px): ", grating_width_px)
+        print("N Gratings: ", n_gratings)
+        print("LEN GRATINGS: ", len(grating_coords_x))
+
+        return NotImplemented
+
+
+    def calculate_grating_parameters(self):
+        # grating calculations
+        if self.grating:
+            buffer = 0
+            if self.grating_edge:
+                buffer = 1
+            self.grating_points = list()
+
+            if self.grating_mode == 'distance':
+                # TODO: only define grating by width, not px
+                self.grating_spacing_px = int(self.grating_spacing/self.pixel_size_x)
+                if self.grating_centered:
+                    point = self.center_x_px
+                else:
+                    point = self.center_x_px - self.grating_spacing_px/2
+
+                while point < self.center_x_px + self.radius_px + buffer:
+                    self.grating_points.append(point)
+                    point += self.grating_spacing_px
+
+                if self.grating_centered:
+                    point = self.center_x_px - self.grating_spacing_px
+                else:
+                    point = self.center_x_px - self.grating_spacing_px*3/2
+
+                while point > self.center_x_px - self.radius_px - buffer:
+                    self.grating_points.append(point)
+                    point -= self.grating_spacing_px
+
+                # TODO: maybe remove this?
+                self.grating_count = len(self.grating_points)
+
+            # TODO: Add more Y things eventually
+            elif self.grating_mode == 'count':
+                step_size = self.diameter/(self.grating_count+1)
+                step_size_px = step_size/self.pixel_size_x
+                for i in range(self.grating_count):
+                    self.grating_points.append(self.center_x_px-self.radius_px
+                                               + (i + 1) * step_size_px)
+                if self.grating_edge:
+                    self.grating_points.append(self.center_x_px-self.radius_px)
+                    self.grating_points.append(self.center_x_px+self.radius_px)
+
+                self.grating_spacing = self.diameter / self.grating_count
+                self.grating_spacing_px = int(
+                    self.n_pixels_x / self.sim_width * self.grating_width)
+            else:
+                raise ValueError('Grating type not accepted')
+
+            if self.dimension == 1:
+                self.grating_direction = 'x'
+            if self.grating_direction == 'x':
+                grating_width_px_half = int((self.grating_width/self.pixel_size_x)/2)
+            else:
+                grating_width_px_half = int((self.grating_width/self.pixel_size_y)/2)
+            for position in self.grating_points:
+                start = int(np.floor(position - grating_width_px_half))
+                end = int(np.ceil(position + grating_width_px_half))
+                if self.grating_direction == 'x':
+                    self.grating_mask[start:end + 1] = self.grating_depth
+                else:
+                    self.grating_mask[:, start:end + 1] = self.grating_depth

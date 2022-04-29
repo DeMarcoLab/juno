@@ -178,7 +178,7 @@ def plot_lens_profile_2D(lens: Lens):
     return fig
 
 
-def plot_lens_profile_slices(lens: Lens) -> plt.Figure:
+def plot_lens_profile_slices(lens: Lens, max_height: float = None) -> plt.Figure:
     # TODO: add proper distances to plot
     """Plot slices of a two-dimensional lens at one-eighth, one-quarter and one-half distances"""
     
@@ -200,6 +200,7 @@ def plot_lens_profile_slices(lens: Lens) -> plt.Figure:
     plt.plot(lens_profile[mid_px, :], "b--", label="0.5")
     plt.plot(lens_profile[quarter_px, :], "g--", label="0.25")
     plt.plot(lens_profile[sixth_px, :], "r--", label="0.125") 
+    plt.ylim([0, max_height])
     plt.legend(loc="best")
     
     return fig
