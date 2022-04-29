@@ -1,5 +1,6 @@
 
-from lens_simulation.Lens import Lens, Medium, LensType
+from lens_simulation.Lens import Lens, LensType
+from lens_simulation.Medium import Medium
 from dataclasses import dataclass
 import numpy as np
 

@@ -12,7 +12,8 @@ from scipy import fftpack
 from tqdm import tqdm
 
 from lens_simulation import utils
-from lens_simulation.Lens import Lens, Medium, LensType
+from lens_simulation.Lens import Lens, LensType
+from lens_simulation.Medium import Medium
 from lens_simulation.SimulationUtils import (
     SimulationOptions,
     SimulationParameters,
@@ -46,7 +47,7 @@ from lens_simulation.SimulationUtils import (
 # TODO:
 # update viz for vertical slicing, and user defined slice plane
 # refactor names for 3-d axes
-# update and add tests
+
 
 
 class Simulation:

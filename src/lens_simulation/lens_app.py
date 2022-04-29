@@ -5,7 +5,8 @@ import matplotlib.pyplot as plt
 import pandas as pd
 
 from lens_simulation import utils
-from lens_simulation.Lens import Medium, Lens, LensType
+from lens_simulation.Lens import Lens, LensType
+from lens_simulation.Medium import Medium
 
 st.set_page_config(page_title="Lens Configuration", layout="wide", initial_sidebar_state="expanded")
 
@@ -44,17 +45,14 @@ if submitted:
 
     if lens_type == LensType.Spherical.name:
         lens.generate_profile(1e-6, lens_type=LensType.Spherical)
-        # lens.revolve_profile()
-
-        fig_2d = utils.plot_lens_profile_2D(lens)
-        lens_fig = utils.plot_lens_profile_slices(lens)
 
     if lens_type == LensType.Cylindrical.name:
         lens.generate_profile(1e-6, lens_type=LensType.Cylindrical)
         lens.extrude_profile(length)
 
-        fig_2d = utils.plot_lens_profile_2D(lens)
-        lens_fig = utils.plot_lens_profile_slices(lens)
+    # generate profile plots
+    fig_2d = utils.plot_lens_profile_2D(lens)
+    lens_fig = utils.plot_lens_profile_slices(lens)
         
     # show plots
     cols = st.columns(3)

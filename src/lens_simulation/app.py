@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 
 from lens_simulation import utils, Lens
+from lens_simulation.Medium import Medium
 
 pd.set_option("display.precision", 8)
 
@@ -68,7 +69,7 @@ def load_simulation_run(sim_path):
 
 def plot_lens_profile(df, stage_no):
     df_lens = df[df["stage"] == stage_no]
-    lens_medium = Lens.Medium(refractive_index=float(df_lens["lens_refractive_index"]))
+    lens_medium = Medium(refractive_index=float(df_lens["lens_refractive_index"]))
     lens = Lens.Lens(
         diameter=float(df_lens["sim_width"]),
         height=float(df_lens["lens_height"]),
