@@ -221,30 +221,6 @@ class Simulation:
                     f"Sim: {self.petname} ({str(self.sim_id)[-10:]}) - Plotting Simulation"
                 )
 
-                # # plot sim result
-                # if sim.ndim == 3:
-                #     width = sim.shape[2]
-                #     height = sim.shape[0]
-                # elif sim.ndim == 2:
-                #     width = sim.shape[1]
-                #     height = sim.shape[0]
-                # else:
-                #     raise ValueError(f"Simulation of {sim.ndim} is not supported")
-
-                # fig = utils.plot_simulation(
-                #     sim,
-                #     width,
-                #     height,
-                #     self.parameters.pixel_size,
-                #     stage.start_distance,
-                #     stage.finish_distance,
-                # )
-
-                # utils.save_figure(
-                #     fig, os.path.join(self.log_dir, str(stage_id), "img.png")
-                # )
-
-                # plt.close(fig)
 
             # pass the wavefront to the next stage
             passed_wavefront = propagation
@@ -322,10 +298,6 @@ class Simulation:
         finish_distance = sim_stage.finish_distance
 
         DEBUG = self.options.debug
-
-        # create 2D lens profile
-        # lens.extrude_profile(1e-6)
-        # lens.revolve_profile()  # TODO: move this somewhere better
 
         # padding (width of lens on each side)
         pad_px = lens.profile.shape[-1]
@@ -406,6 +378,8 @@ class Simulation:
             else:
                 top_down_view[i, :] = rounded_output
 
+
+        # TODO: separate plotting / save from simulating
         ################## SAVE ##################
         if lens.profile.ndim == 2:
             utils.plot_image(freq_arr, "Frequency Array", 
@@ -417,33 +391,30 @@ class Simulation:
             utils.plot_image(phase, "Phase Profile", 
                     save=True, fname=os.path.join(self.log_dir, str(self.stage_id), "phase.png"))
 
-        # save top-down
-        fig = utils.plot_simulation(
-            top_down_view,
-            top_down_view.shape[1],
-            top_down_view.shape[0],
-            self.parameters.pixel_size,
-            start_distance,
-            finish_distance,
-        )
+        if self.options.save_plot:
+            # save top-down
+            fig = utils.plot_simulation(
+                arr=top_down_view,
+                pixel_size_x=self.parameters.pixel_size,
+                start_distance=start_distance,
+                finish_distance=finish_distance,
+            )
 
-        utils.save_figure(
-            fig, os.path.join(self.log_dir, str(self.stage_id), "topdown.png")
-        )
-        plt.close(fig)
+            utils.save_figure(
+                fig, os.path.join(self.log_dir, str(self.stage_id), "topdown.png")
+            )
+            plt.close(fig)
 
-        fig = utils.plot_simulation(
-            side_on_view,
-            side_on_view.shape[1],
-            side_on_view.shape[0],
-            self.parameters.pixel_size,
-            start_distance,
-            finish_distance,
-        )
-        utils.save_figure(
-            fig, os.path.join(self.log_dir, str(self.stage_id), "sideon.png")
-        )
-        plt.close(fig)
+            fig = utils.plot_simulation(
+                arr=side_on_view,
+                pixel_size_x=self.parameters.pixel_size,
+                start_distance=start_distance,
+                finish_distance=finish_distance,
+            )
+            utils.save_figure(
+                fig, os.path.join(self.log_dir, str(self.stage_id), "sideon.png")
+            )
+            plt.close(fig)
 
         return propagation
 

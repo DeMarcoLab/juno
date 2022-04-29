@@ -63,7 +63,6 @@ def test_revolve_lens():
                 medium=Medium(1))
     profile_2D = lens.generate_profile(1e-6, lens_type=LensType.Spherical)
 
-    
     # corners should be zero
     assert profile_2D[0, 0] == 0, "Corner point should be zero"
     assert profile_2D[0, profile_2D.shape[1]-1] == 0, "Corner point should be zero"
@@ -74,14 +73,11 @@ def test_revolve_lens():
     assert np.array_equal(profile_2D[0, :], profile_2D[profile_2D.shape[0]-1, :]), "Edges should be equal (symmetric)"
     assert np.array_equal(profile_2D[:, 0], profile_2D[:, profile_2D.shape[1]-1]), "Edges should be equal (symmetric)"
 
-
     # edges should be zero
-    assert np.array_equal(profile_2D[0, :], 0), "Edges should be zero (symmetric)"
-    assert np.array_equal(profile_2D[:, 0], 0), "Edges should be zero (symmetric)"
-    assert np.array_equal(profile_2D[profile_2D.shape[0]-1, :], 0), "Edges should be zero (symmetric)"
-    assert np.array_equal(profile_2D[:, profile_2D.shape[1]-1], 0), "Edges should be zero (symmetric)"
-
-
+    assert np.allclose(profile_2D[0, :], 0), "Edges should be zero (symmetric)"
+    assert np.allclose(profile_2D[:, 0], 0), "Edges should be zero (symmetric)"
+    assert np.allclose(profile_2D[-1, :], 0), "Edges should be zero (symmetric)"
+    assert np.allclose(profile_2D[:, -1], 0), "Edges should be zero (symmetric)"
 
     # maximum at midpoint
     midx, midy = profile_2D.shape[0] // 2, profile_2D.shape[1] // 2

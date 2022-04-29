@@ -18,11 +18,11 @@ from lens_simulation.Lens import Lens
 
 def plot_simulation(
     arr: np.ndarray,
-    width: int,
-    height: int,
-    pixel_size_x: float,
-    start_distance: float,
-    finish_distance: float,
+    width: int=None,
+    height: int=None,
+    pixel_size_x: float=1e-6,
+    start_distance: float=0e-6,
+    finish_distance: float=10e-6,
 ) -> plt.Figure:
     """Plot the output simulation array from the top down perspective.
 
@@ -37,6 +37,10 @@ def plot_simulation(
     Returns:
         [Figure]: [matplotlib Figure of the simulation plot]
     """
+    if width is None:
+        width = arr.shape[1]
+    if height is None:
+        height = arr.shape[0]
 
     arr_resized, min_h, max_h = crop_image(arr, width, height)
 

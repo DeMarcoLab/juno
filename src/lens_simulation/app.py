@@ -8,6 +8,7 @@ import pandas as pd
 
 from lens_simulation import utils, Lens
 from lens_simulation.Medium import Medium
+from lens_simulation.Lens import LensType
 
 pd.set_option("display.precision", 8)
 
@@ -61,6 +62,7 @@ def load_simulation_run(sim_path):
     df_join["lens_height"] = df_join["lens_height"]  # convert to mm
     df_join["start_distance"] = round(df_join["start_distance"], 3)
     df_join["finish_distance"] = round(df_join["finish_distance"], 3)
+    df_join["lens_type"] = metadata["sim_parameters"]["lens_type"]
 
     # df_join["lens_inverted"] = True if df_join["lens_inverted"] == "true" else False
 
@@ -76,16 +78,21 @@ def plot_lens_profile(df, stage_no):
         exponent=float(df_lens["lens_exponent"]),
         medium=lens_medium,
     )
-    lens.generate_profile(pixel_size=df_lens["pixel_size"])
+    lens_type = LensType[df["lens_type"][0]]
+    lens.generate_profile(df_lens["pixel_size"], lens_type=lens_type)
 
+    if lens_type == LensType.Cylindrical:
+        lens.extrude_profile(lens.diameter)
+
+    # generate profile plots
+    fig_2d = utils.plot_lens_profile_2D(lens)
+    lens_fig = utils.plot_lens_profile_slices(lens)
+    
     # invert the profile
     if bool(df_lens["lens_inverted"].values[0]) is True:
         lens.invert_profile()
 
-    fig = plt.figure()
-    plt.plot(lens.profile)
-    plt.title(f"{lens}")
-    return fig
+    return lens_fig
 
 
 @st.cache
