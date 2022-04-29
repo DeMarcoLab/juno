@@ -204,8 +204,7 @@ def plot_lens_profile_slices(lens: Lens) -> plt.Figure:
     
     return fig
 
-def save_simulation_slice(sim, log_dir, stage_id, fname):
+def save_simulation_slice(sim, fname):
     # TODO: use npz (compressed)
-    save_path = os.path.join(log_dir, str(stage_id), fname)
-    os.makedirs(os.path.dirname(save_path), exist_ok=True)
-    np.save(save_path, sim)
+    os.makedirs(os.path.dirname(fname), exist_ok=True)
+    np.save(fname, sim)

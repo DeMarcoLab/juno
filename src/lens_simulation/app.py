@@ -138,6 +138,7 @@ def show_simulation_data(sim_path, df_sim):
 
         # try to load image
         img_fname = os.path.join(fname, "topdown.png")
+        log_fname = os.path.join(fname, "log_topdown.png")
         sideon_fname = os.path.join(fname, "sideon.png")
         freq_fname = os.path.join(fname, "freq.png")
         delta_fname = os.path.join(fname, "delta.png")
@@ -154,6 +155,9 @@ def show_simulation_data(sim_path, df_sim):
             # faster to load the image than the sim
             img = PIL.Image.open(img_fname)
             cols[i].image(img)
+            if os.path.exists(log_fname):
+                limg = PIL.Image.open(log_fname)
+                cols[i].image(limg)
             if os.path.exists(sideon_fname):
                 simg = PIL.Image.open(sideon_fname)
                 cols[i].image(simg)

@@ -362,8 +362,11 @@ class Simulation:
                 fft_wavefront, distance, freq_arr, output_medium.wave_number
             )
 
-            # save output
-            utils.save_simulation_slice(rounded_output, self.log_dir, self.stage_id, f"{distance*1000:.8f}mm.npy")
+            if self.options.save:
+                # save output
+                utils.save_simulation_slice(rounded_output, 
+                    fname=os.path.join(self.log_dir, str(self.stage_id), f"{distance*1000:.8f}mm.npy")
+                    )
             
             if lens.profile.ndim == 2:
                 # calculate views
@@ -402,6 +405,19 @@ class Simulation:
 
             utils.save_figure(
                 fig, os.path.join(self.log_dir, str(self.stage_id), "topdown.png")
+            )
+            plt.close(fig)
+
+
+            fig = utils.plot_simulation(
+                np.log(top_down_view + 10e-12),
+                pixel_size_x=self.parameters.pixel_size,
+                start_distance=start_distance,
+                finish_distance=finish_distance,
+            )
+
+            utils.save_figure(
+                fig, os.path.join(self.log_dir, str(self.stage_id), "log_topdown.png")
             )
             plt.close(fig)
 

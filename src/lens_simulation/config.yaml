@@ -6,7 +6,7 @@ sim_parameters:
   lens_type:  "Cylindrical" # "Cylindrical" or "Spherical
 options:
   verbose: false
-  save: false
+  save: true
   save_plot: true
   debug: false 
 lenses:
