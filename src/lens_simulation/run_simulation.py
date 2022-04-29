@@ -2,7 +2,7 @@ import os
 import sys
 
 import lens_simulation
-from lens_simulation import Simulation, SimulationRunner, utils
+from lens_simulation import SimulationRunner
 
 def main(args):
 

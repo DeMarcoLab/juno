@@ -2,6 +2,8 @@ from dataclasses import dataclass
 import numpy as np
 
 from scipy import ndimage
+from enum import Enum
+
 
 # TODO: 488 comes from sim
 # TODO: fix the __repr__ for Medium
@@ -36,6 +38,11 @@ class LithiumNiabate(Medium):
 # - grating
 
 
+class LensType(Enum):
+    Cylindrical = 1
+    Spherical = 2
+
+
 class Lens:
     def __init__(
         self, diameter: float, height: float, exponent: float, medium: Medium = Medium()
@@ -52,7 +59,7 @@ class Lens:
 
         return f""" Lens (diameter: {self.diameter:.2e}, height: {self.height:.2e}, \nexponent: {self.exponent:.3f}, refractive_index: {self.medium.refractive_index:.3f}),"""
 
-    def generate_profile(self, pixel_size) -> np.ndarray:
+    def generate_profile(self, pixel_size, lens_type: LensType = LensType.Cylindrical) -> np.ndarray:
         """[summary]
 
         Returns:
@@ -61,15 +68,28 @@ class Lens:
         # TODO: someone might define using the n_pixels
 
         radius = self.diameter / 2
-        n_pixels = int(radius / pixel_size)
-        # n_pixels must be odd (symmetry).
+        n_pixels = int(radius / pixel_size) # n_pixels in radius
+        # n_pixels must be odd (symmetry). 
         if n_pixels % 2 == 0:
             n_pixels += 1
 
         self.pixel_size = pixel_size
         self.n_pixels = n_pixels
+        self.lens_type = lens_type
 
-        # x coordinate of pixels (TODO: better name)
+        if self.lens_type == LensType.Cylindrical:
+        
+            self.profile = self.create_profile_1d(radius, n_pixels)
+        
+        if self.lens_type == LensType.Spherical:
+
+            self.profile = self.revolve_profile()
+
+        return self.profile
+
+    def create_profile_1d(self, radius, n_pixels):
+
+        # x coordinate of pixels
         radius_px = np.linspace(0, radius, n_pixels)
         self.radius_px = radius_px
 
@@ -80,10 +100,6 @@ class Lens:
         # generic lens formula
         # H = h - C*r ^ e
         heights = self.height - coefficient * radius_px ** self.exponent
-        # print("Lens Data:")
-        # print(f"{coefficient=}")
-        # print(f"{radius=}")
-        # print(f"{self.exponent=}")
 
         # generate symmetric height profile (NOTE: assumed symmetric lens).
         profile = np.append(np.flip(heights[1:]), heights)
@@ -91,9 +107,12 @@ class Lens:
         # always smooth
         profile = ndimage.gaussian_filter(profile, sigma=3)
 
-        self.profile = profile
+        print(f"{self.n_pixels=}")
+        print(f"{self.diameter=}")
+        print(f"{profile.shape=}")
 
         return profile
+
 
     def invert_profile(self):
         """Invert the lens profile"""
@@ -111,12 +130,14 @@ class Lens:
 
         # assume lens diameter is sim width
         if arr.shape[-1] != self.n_pixels:
-            raise ValueError(f"Custom lens profiles must match the simulation width. Custom Profile Shape: {arr.shape}, Simulation Pixels: {self.n_pixels}.")
+            raise ValueError(
+                f"Custom lens profiles must match the simulation width. Custom Profile Shape: {arr.shape}, Simulation Pixels: {self.n_pixels}."
+            )
 
         # TODO: we need pad the lens if the size is smaller than the sim n_pixels?
 
         self.profile = arr
-        
+
         return self.profile
 
     def extrude_profile(self, length: float) -> np.ndarray:
@@ -131,45 +152,38 @@ class Lens:
                 "This lens has no profile. Please generate the lens profile before extruding"
             )
 
-        # TODO: should probably regenerate the profile here to be certain
+        # regenerate the profile
         self.generate_profile(self.pixel_size)
 
         # length in pixels
         length_px = int(length // self.pixel_size)
 
-        # extrude profile       
+        # extrude profile
         self.profile = np.ones((length_px, *self.profile.shape)) * self.profile
-                
-        return self.profile
 
+        return self.profile
 
     def revolve_profile(self):
         """Revolve the lens profile around the centre of the lens"""
 
-        # TODO: remove / refactor
-        self.sim_width = self.diameter 
-        self.sim_height = self.diameter
-        self.n_pixels_x = self.n_pixels
-        self.n_pixels_y = self.n_pixels
-
-
-        # TODO: validate what sim_width, sim_height represent
-        # TODO: validate the dimensions of this, doesn't seem correct (seems to be half sized)
-
-
-        x = np.linspace(0, self.sim_width, self.n_pixels_x)
-        y = np.linspace(0, self.sim_height, self.n_pixels_y)
+        # len/sim parameters
+        lens_width = self.diameter 
+        lens_length = self.diameter
+        n_pixels_x = self.n_pixels * 2
+        n_pixels_y = self.n_pixels * 2
+                
+        # revolve the profile around the centre (distance)
+        x = np.linspace(0, lens_width, n_pixels_x)
+        y = np.linspace(0, lens_length, n_pixels_y)
         X, Y = np.meshgrid(x, y)
-        distance = np.sqrt(((self.sim_width/2)-X)**2 + ((self.sim_height/2)-Y)**2)     
+        distance = np.sqrt(((lens_width / 2) - X) ** 2 + ((lens_length / 2) - Y) ** 2)
 
         # general profile formula...
-        coefficient = self.height / max(x ** self.exponent)
+        # coefficient is defined on the radius, not diameter
+
+        coefficient = self.height / (lens_width/2) ** self.exponent
         profile = self.height - coefficient * distance ** self.exponent
 
-        print("---REVOLVE LENS----")
-        print(f"{coefficient=}")
-        print(f"{self.exponent=}")
-        
         # clip the profile to zero
         profile = np.clip(profile, 0, np.max(profile))
 
@@ -194,7 +208,3 @@ class Lens:
 P
 
     """
-        
-
-# TODO:
-# top down "heatmap/contour" for 2D lens

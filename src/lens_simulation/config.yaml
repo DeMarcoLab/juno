@@ -3,11 +3,12 @@ sim_parameters:
   pixel_size: 200.e-9
   sim_width: 500.e-6
   sim_wavelength: 488.e-9
+  lens_type:  "Spherical" # "Cylindrical" or "Spherical
 options:
   verbose: false
   save: false
   save_plot: true
-  debug: true 
+  debug: false 
 lenses:
   - name: lens_1
     height: 0.e-6

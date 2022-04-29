@@ -67,24 +67,21 @@ def test_pad_simulation():
                 height=20e-6, 
                 exponent=2.0, 
                 medium=Lens.Medium(1))
-    lens.generate_profile(1e-6)
-
-    # fail for 1D
-    with pytest.raises(TypeError):
-        Simulation.pad_simulation(lens)
 
     # default horizontal padding for extrude
-    lens.extrude_profile(5000e-6)
-    sim_profile = Simulation.pad_simulation(lens)
-    assert sim_profile.shape ==  (lens.profile.shape[0], lens.profile.shape[1] * 3)
-    assert np.allclose(sim_profile[:, :lens.profile.shape[1]], 0)   # padded areas should be zero
-    assert np.allclose(sim_profile[:, -lens.profile.shape[1]:], 0)  # padded areas should be zero
+    lens.generate_profile(1e-6, Lens.LensType.Cylindrical)
+    pad_px = lens.profile.shape[-1]
+    sim_profile = Simulation.pad_simulation(lens, pad_px=pad_px)
+    assert sim_profile.shape ==  (1, lens.profile.shape[0] + 2 * pad_px)
+    assert np.allclose(sim_profile[:, :pad_px], 0)   # padded areas should be zero
+    assert np.allclose(sim_profile[:, -pad_px:], 0)  # padded areas should be zero
 
 
     # symmetric padding for revolve
-    lens.revolve_profile()
-    sim_profile = Simulation.pad_simulation(lens, pad_px=(lens.profile.shape))
-    assert sim_profile.shape == (lens.profile.shape[0] * 3, lens.profile.shape[1] * 3)
+    lens.generate_profile(1e-6, Lens.LensType.Spherical)
+    pad_px=lens.profile.shape[-1]
+    sim_profile = Simulation.pad_simulation(lens, pad_px=pad_px)
+    assert sim_profile.shape == (lens.profile.shape[0] + 2 * pad_px, lens.profile.shape[1] + 2*pad_px)
     assert np.allclose(sim_profile[:lens.profile.shape[0], :], 0)   # padded areas should be zero
     assert np.allclose(sim_profile[:, :lens.profile.shape[1]], 0)   # padded areas should be zero
     assert np.allclose(sim_profile[-lens.profile.shape[0]:, :], 0)  # padded areas should be zero

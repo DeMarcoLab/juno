@@ -82,6 +82,19 @@ def crop_image(arr, width, height):
     return arr_resized, min_h,max_h
 
 
+def plot_image(arr: np.ndarray, title: str = "Image Title", save: bool = False, fname: str = None) -> plt.Figure:
+    """Plot an image and optionally save."""
+    fig = plt.figure()
+    plt.imshow(arr)
+    plt.title(title)
+    plt.colorbar()
+    if save:
+        save_figure(fig, fname)
+    # plt.close(fig)
+
+    return fig  
+
+
 def save_figure(fig, fname: str = "img.png") -> None:
     # TODO: clean up the implementation (no reference to fig...)
     os.makedirs(os.path.dirname(fname), exist_ok=True)

@@ -1,5 +1,5 @@
 
-from lens_simulation.Lens import Lens, Medium
+from lens_simulation.Lens import Lens, Medium, LensType
 from dataclasses import dataclass
 import numpy as np
 
@@ -11,6 +11,7 @@ class SimulationParameters:
     pixel_size: float 
     sim_width: float
     sim_wavelength: float
+    lens_type: LensType
 
 @dataclass
 class SimulationOptions:

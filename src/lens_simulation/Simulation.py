@@ -7,11 +7,12 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 from pprint import pprint
+from pytest import param
 from scipy import fftpack
 from tqdm import tqdm
 
 from lens_simulation import utils
-from lens_simulation.Lens import Lens, Medium
+from lens_simulation.Lens import Lens, Medium, LensType
 from lens_simulation.SimulationUtils import (
     SimulationOptions,
     SimulationParameters,
@@ -87,6 +88,7 @@ class Simulation:
             pixel_size=self.config["sim_parameters"]["pixel_size"],
             sim_width=self.config["sim_parameters"]["sim_width"],
             sim_wavelength=self.config["sim_parameters"]["sim_wavelength"],
+            lens_type=LensType[self.config["sim_parameters"]["lens_type"]]
         )
 
         # generate all mediums for simulation
@@ -167,7 +169,7 @@ class Simulation:
                         medium=self.sim_stages[i - 1].output,
                     )  # replace the lens with lens of previous output medium
 
-                    sim_stage.lens.generate_profile(self.parameters.pixel_size)
+                    sim_stage.lens.generate_profile(self.parameters.pixel_size, lens_type=self.parameters.lens_type)
                     sim_stage.lens.invert_profile()
                     sim_stage.lens_inverted = True
 
@@ -175,7 +177,7 @@ class Simulation:
                 eq_fd = calculate_equivalent_focal_distance(
                     sim_stage.lens, sim_stage.output
                 )
-                print("EQ_FD: ", eq_fd)
+                # print("EQ_FD: ", eq_fd)
 
                 sim_stage.start_distance = 0.0 * eq_fd
                 sim_stage.finish_distance = (
@@ -302,7 +304,8 @@ class Simulation:
             )
 
             lens_dict[lens["name"]].generate_profile(
-                pixel_size=self.parameters.pixel_size
+                pixel_size=self.parameters.pixel_size,
+                lens_type=self.parameters.lens_type
             )
 
         return lens_dict
@@ -319,10 +322,9 @@ class Simulation:
 
         DEBUG = self.options.debug
 
-        # TODO: move this somewhere better
         # create 2D lens profile
         # lens.extrude_profile(1e-6)
-        lens.revolve_profile()
+        # lens.revolve_profile()  # TODO: move this somewhere better
 
         # padding (width of lens on each side)
         pad_px = lens.profile.shape[-1]
@@ -377,7 +379,6 @@ class Simulation:
         # propagate the wavefront over distance
         distances = np.linspace(start_distance, finish_distance, n_slices)
 
-
         prop_progress_bar = tqdm(distances, leave=False)
         for i, distance in enumerate(prop_progress_bar):
             prop_progress_bar.set_description(
@@ -405,33 +406,15 @@ class Simulation:
                 top_down_view[i, :] = rounded_output
 
         ################## SAVE ##################
-
         if lens.profile.ndim == 2:
-            fig = plt.figure()
-            plt.imshow(freq_arr)
-            plt.title("Freq Arr")
-            plt.colorbar()
-            utils.save_figure(
-                fig, os.path.join(self.log_dir, str(self.stage_id), "freq.png")
-            )
-            plt.close(fig)
+            utils.plot_image(freq_arr, "Frequency Array", 
+                    save=True, fname=os.path.join(self.log_dir, str(self.stage_id), "freq.png"))
 
-            fig = plt.figure()
-            plt.imshow(delta)
-            plt.title("Delta")
-            plt.colorbar()
-            utils.save_figure(
-                fig, os.path.join(self.log_dir, str(self.stage_id), "delta.png")
-            )
-            plt.close(fig)
-            fig = plt.figure()
-            plt.imshow(phase)
-            plt.title("Phase")
-            plt.colorbar()
-            utils.save_figure(
-                fig, os.path.join(self.log_dir, str(self.stage_id), "phase.png")
-            )
-            plt.close(fig)
+            utils.plot_image(delta, "Delta Profile", 
+                save=True, fname=os.path.join(self.log_dir, str(self.stage_id), "delta.png"))
+
+            utils.plot_image(phase, "Phase Profile", 
+                    save=True, fname=os.path.join(self.log_dir, str(self.stage_id), "phase.png"))
 
         # save top-down
         fig = utils.plot_simulation(
