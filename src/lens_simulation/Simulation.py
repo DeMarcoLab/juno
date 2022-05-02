@@ -325,6 +325,7 @@ class Simulation:
         fft_wavefront = fftpack.fft2(wavefront)
 
         # pre-allocate view arrays
+        sim = np.zeros(shape=(n_slices, *sim_profile.shape), dtype=np.float32)
         top_down_view = np.zeros(
             shape=(n_slices, sim_profile.shape[1]), dtype=np.float32
         )
@@ -378,8 +379,13 @@ class Simulation:
                 # append views
                 top_down_view[i, :] = top_down_slice
                 side_on_view[i, :] = side_on_slice
+                sim[i, :, :] = rounded_output
             else:
                 top_down_view[i, :] = rounded_output
+
+
+        if self.options.save:
+            self.save_simulation(sim, self.stage_id)
 
 
         # TODO: separate plotting / save from simulating
