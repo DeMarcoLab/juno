@@ -189,6 +189,8 @@ def plot_lens_profile_slices(lens: Lens, max_height: float = None) -> plt.Figure
     else:
         raise TypeError("Non-Lens passed")
     
+    thirty_two_px = lens.profile.shape[0] // 32
+    sixteen_px = lens.profile.shape[0] // 16
     sixth_px = lens_profile.shape[0] // 8
     quarter_px = lens_profile.shape[0] // 4
     mid_px = lens_profile.shape[0] // 2
@@ -200,6 +202,8 @@ def plot_lens_profile_slices(lens: Lens, max_height: float = None) -> plt.Figure
     plt.plot(lens_profile[mid_px, :], "b--", label="0.5")
     plt.plot(lens_profile[quarter_px, :], "g--", label="0.25")
     plt.plot(lens_profile[sixth_px, :], "r--", label="0.125") 
+    plt.plot(lens_profile[sixteen_px, :], "c--", label="0.0625")
+    plt.plot(lens_profile[thirty_two_px, :], "m--", label="0.03125")
     plt.ylim([0, max_height])
     plt.legend(loc="best")
     

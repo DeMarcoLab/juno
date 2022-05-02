@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from dis import dis
 from math import trunc
 import numpy as np
 
@@ -10,6 +11,15 @@ from lens_simulation.Medium import Medium
 # TODO:
 # - grating
 
+@dataclass
+class GratingSettings:
+    width: float                # metres
+    distance: float             # metres
+    depth: float                # metres
+    axis: int = 1           
+    centred: bool = True 
+    distance_px: int = None     # pixels
+    width_px: int = None        # pixels
 
 class LensType(Enum):
     Cylindrical = 1
@@ -32,7 +42,9 @@ class Lens:
 
         return f""" Lens (diameter: {self.diameter:.2e}, height: {self.height:.2e}, \nexponent: {self.exponent:.3f}, refractive_index: {self.medium.refractive_index:.3f}),"""
 
-    def generate_profile(self, pixel_size, lens_type: LensType = LensType.Cylindrical) -> np.ndarray:
+    def generate_profile(
+        self, pixel_size, lens_type: LensType = LensType.Cylindrical
+    ) -> np.ndarray:
         """[summary]
 
         Returns:
@@ -41,8 +53,8 @@ class Lens:
         # TODO: someone might define using the n_pixels
 
         radius = self.diameter / 2
-        n_pixels = int(radius / pixel_size) # n_pixels in radius
-        # n_pixels must be odd (symmetry). 
+        n_pixels = int(radius / pixel_size)  # n_pixels in radius
+        # n_pixels must be odd (symmetry).
         if n_pixels % 2 == 0:
             n_pixels += 1
 
@@ -51,9 +63,9 @@ class Lens:
         self.lens_type = lens_type
 
         if self.lens_type == LensType.Cylindrical:
-        
+
             self.profile = self.create_profile_1d(radius, n_pixels)
-        
+
         if self.lens_type == LensType.Spherical:
 
             self.profile = self.revolve_profile()
@@ -81,7 +93,6 @@ class Lens:
         profile = ndimage.gaussian_filter(profile, sigma=3)
 
         return profile
-
 
     def invert_profile(self):
         """Invert the lens profile"""
@@ -136,11 +147,11 @@ class Lens:
         """Revolve the lens profile around the centre of the lens"""
 
         # len/sim parameters
-        lens_width = self.diameter 
+        lens_width = self.diameter
         lens_length = self.diameter
         n_pixels_x = self.n_pixels * 2
         n_pixels_y = self.n_pixels * 2
-                
+
         # revolve the profile around the centre (distance)
         x = np.linspace(0, lens_width, n_pixels_x)
         y = np.linspace(0, lens_length, n_pixels_y)
@@ -150,7 +161,7 @@ class Lens:
         # general profile formula...
         # coefficient is defined on the radius, not diameter
 
-        coefficient = self.height / (lens_width/2) ** self.exponent
+        coefficient = self.height / (lens_width / 2) ** self.exponent
         profile = self.height - coefficient * distance ** self.exponent
 
         # clip the profile to zero
@@ -175,10 +186,14 @@ class Lens:
     #####################
     """
 
-    def calculate_truncation_mask(self, truncation: float = None, radius: float = 0, type: str = "value"):
+    def calculate_truncation_mask(
+        self, truncation: float = None, radius: float = 0, type: str = "value"
+    ):
         """Calculate the truncation mask """
         if self.profile is None:
-            raise RuntimeError("A Lens profile must be defined before applying a mask. Please generate a profile first.")
+            raise RuntimeError(
+                "A Lens profile must be defined before applying a mask. Please generate a profile first."
+            )
 
         # if radius == 0:
         #     self.truncation_mask = np.zeros_like(self.profile).astype(int)
@@ -187,11 +202,13 @@ class Lens:
 
         if type == "value":
 
-           if truncation is None:
-                raise ValueError(f"No truncation value has been supplied for a {type} type truncation. Please provide a maximum truncation height")
+            if truncation is None:
+                raise ValueError(
+                    f"No truncation value has been supplied for a {type} type truncation. Please provide a maximum truncation height"
+                )
 
         if type == "radial":
-            radius_px = int(radius/self.pixel_size)
+            radius_px = int(radius / self.pixel_size)
 
             truncation_px = self.profile.shape[0] // 2 + radius_px
 
@@ -199,15 +216,20 @@ class Lens:
 
         self.truncation_mask = self.profile >= truncation
         self.truncation = truncation
-        
+
         return self.profile
 
-    def apply_masks(self, grating: bool = False, truncation: bool = False, 
-            apeture: bool = False, escape_path: bool = True):
-        
+    def apply_masks(
+        self,
+        grating: bool = False,
+        truncation: bool = False,
+        apeture: bool = False,
+        escape_path: bool = True,
+    ):
+
         # grating
         if grating:
-            self.profile[:, self.grating_mask] -= self.grating_depth
+            self.profile[self.grating_mask] -= self.grating_depth
 
         # truncation
         if truncation:
@@ -215,8 +237,7 @@ class Lens:
 
         # apeture
         if apeture:
-            self.profile = self.profile * self.apeture_mask
-
+            self.profile[self.apeture_mask] = 0
 
         # if escape_path:
         #     self.profile = self.calculate_escape_path(ratio=0.2)
@@ -226,15 +247,14 @@ class Lens:
 
         return self.profile
 
-
     def calculate_escape_path(self, ratio=0.2):
-        
+
         inner_px = int(self.profile.shape[1] / self.pixel_size)
-        outer_px = int(self.profile.shape[1] * (1+0.2) /self.pixel_size) 
+        outer_px = int(self.profile.shape[1] * (1 + 0.2) / self.pixel_size)
 
         mask = np.ones_like(self.profile)
-        
-        if type=="radial":
+
+        if type == "radial":
 
             inner_rad_px = self.profile.shape[1] // 2 + inner_px
             outer_rad_px = self.profile.shape[1] // 2 + outer_px
@@ -247,8 +267,8 @@ class Lens:
             mask[inner_mask * outer_mask] = 0
 
         h, w = self.profile.shape
-        
-        h1, w1 = int(h*(1+ratio)), int(w*(1+ratio))
+
+        h1, w1 = int(h * (1 + ratio)), int(w * (1 + ratio))
         profile_with_escape_path = np.zeros(shape=(h1, w1))
 
         profile_with_escape_path[:h, :w] = self.profile
@@ -263,41 +283,51 @@ class Lens:
     # e.g. 1.1 * lens_radius
     # pad with zero?
 
-    def calculate_apeture(self, inner_m: float = 0, outer_m: float = 0, type: str = "square"):
+    def calculate_apeture(
+        self,
+        inner_m: float = 0,
+        outer_m: float = 0,
+        type: str = "square",
+        inverted: bool = False,
+    ):
         """Calculate the apeture mask"""
 
         # Apeture
         # define mask, apply to profile (wavefront = 0)
 
         if inner_m > outer_m:
-            raise ValueError("""Inner radius must be smaller than outer radius. 
-                            inner = {inner_m:.1e}m, outer = {outer_m:.1e}m""")
+            raise ValueError(
+                """Inner radius must be smaller than outer radius. 
+                            inner = {inner_m:.1e}m, outer = {outer_m:.1e}m"""
+            )
 
         if inner_m == 0.0 and outer_m == 0.0:
-            self.apeture_mask = np.ones_like(self.profile)
-            # self.apeture_value = 0
+            self.apeture_mask = np.zeros_like(self.profile, dtype=np.uint8)
             return self.profile
 
-        inner_px = int(inner_m/self.pixel_size)
-        outer_px = int(outer_m/self.pixel_size) 
+        inner_px = int(inner_m / self.pixel_size)
+        outer_px = int(outer_m / self.pixel_size)
 
-        mask = np.ones_like(self.profile)
+        if not inverted:
+            mask = np.zeros_like(self.profile, dtype=np.uint8)
+        else:
+            mask = np.ones_like(self.profile, dtype=np.uint8)
 
         centre_x_px = mask.shape[1] // 2
         centre_y_px = mask.shape[0] // 2
 
-        if type=="square":
+        if type == "square":
 
             min_x, max_x = centre_x_px - inner_px, centre_x_px + inner_px
-            min_y, max_y = centre_y_px - inner_px, centre_y_px + inner_px 
+            min_y, max_y = centre_y_px - inner_px, centre_y_px + inner_px
 
             outer_x0, outer_x1 = centre_x_px - outer_px, centre_x_px + outer_px
             outer_y0, outer_y1 = centre_y_px - outer_px, centre_y_px + outer_px
 
-            mask[outer_y0: outer_y1, outer_x0: outer_x1] = 0
-            mask[min_y:max_y, min_x:max_x  ] = 1
-        
-        if type=="radial":
+            mask[outer_y0:outer_y1, outer_x0:outer_x1] = 1
+            mask[min_y:max_y, min_x:max_x] = 0
+
+        if type == "radial":
 
             inner_rad_px = self.profile.shape[1] // 2 + inner_px
             outer_rad_px = self.profile.shape[1] // 2 + outer_px
@@ -307,113 +337,92 @@ class Lens:
 
             inner_mask = self.profile <= inner_val
             outer_mask = self.profile >= outer_val
-            mask[inner_mask * outer_mask] = 0
 
-        self.apeture_mask = mask
+            mask[inner_mask * outer_mask] = not inverted
+
+        self.apeture_mask = mask == 1
 
         return self.profile
 
+    def calculate_grating_mask(
+        self,
+        settings: GratingSettings,
+        x_axis: bool = True,
+        y_axis: bool = False,
+    ):
+        """Calculate the grating mask for the specified settings"""
 
-
-    def calculate_grating_mask(self, grating_width_m: float, distance_m: float, depth_m: float, centred: bool = True):
+        if settings.width == 0.0:
+            self.grating_mask = np.zeros_like(self.profile, dtype=np.uint8)
+            self.grating_depth = 0
+            return self.profile        
         
-        if grating_width_m >= distance_m:
-            raise ValueError(f"""Grating width cannot be equal or larger than the distance between gratings. 
-                                    width={grating_width_m:.2e}, distance = {distance_m:.2e}""")
+        if settings.width >= settings.distance:
+            raise ValueError(
+                f"""Grating width cannot be equal or larger than the distance between gratings. 
+                                    width={settings.width:.2e}, distance = {settings.distance:.2e}"""
+            )
 
-        if grating_width_m == 0.0:
-            
-            return self.profile 
+        settings.width_px = int(settings.width / self.pixel_size)
+        settings.distance_px = int(settings.distance / self.pixel_size)
+
+        grating_coords_x = self.calculate_grating_coords(self.profile, settings, axis=1)
+        grating_coords_y = self.calculate_grating_coords(self.profile, settings, axis=0)
+
+        mask = np.zeros_like(self.profile, dtype=np.uint8)
+
+        if x_axis:
+            mask[:, grating_coords_x] = 1
+
+        if y_axis:
+            mask[grating_coords_y, :] = 1
+
+        self.grating_mask = mask == 1
+        self.grating_depth = settings.depth
+
+        return self.profile
+
+    def calculate_grating_coords(
+        self,
+        profile: np.ndarray,
+        settings: GratingSettings, 
+        axis: int = 1,
+    ):
+
+        """Calculate the positions of grating coordinates for the specified axis"""
+
+        start_coord = profile.shape[axis] // 2
+
+        if settings.centred:
+            # start at centre pixel then move out            
+            start_coord_1 = profile.shape[axis] // 2
+            start_coord_2 = profile.shape[axis] // 2
+
+        else:            
+            # start at centre pixel + half then move out           
+            start_coord_1 = start_coord - settings.distance_px // 2
+            start_coord_2 = start_coord + settings.distance_px // 2
         
-        # TODO: gratings in y directions
-        grating_width_px = int(grating_width_m / self.pixel_size)
-        distance_px = int(distance_m / self.pixel_size)
+        grating_centre_coords_x1 = np.arange(start_coord_1, 0, -settings.distance_px)
+        
+        grating_centre_coords_x2 = np.arange(start_coord_2, profile.shape[axis], settings.distance_px)
 
-        if centred:
-            start_coord = 0
-        else:
-            start_coord = grating_width_px // 2
-
-        grating_centre_coords_x = np.arange(start_coord, self.profile.shape[1], distance_px)
+        grating_centre_coords = sorted(np.append(grating_centre_coords_x1, grating_centre_coords_x2))
 
         # this coord +/- width / 2
-        grating_coords_x = []
+        grating_coords = []
 
-        for px in grating_centre_coords_x:
+        for px in grating_centre_coords:
 
-            min_px, max_px = px - grating_width_px / 2, px + grating_width_px / 2
+            min_px, max_px = px - settings.width_px / 2, px + settings.width_px / 2
 
-            grating_x = np.arange(min_px, max_px).astype(int)
+            grating = np.arange(min_px, max_px).astype(int)
 
-            grating_x = np.clip(grating_x, 0, self.profile.shape[1]-1)
-            
-            grating_coords_x.append(grating_x)
+            grating = np.clip(grating, 0, profile.shape[axis] - 1)
 
-        self.grating_mask = np.ravel(grating_coords_x)
-        self.grating_depth = depth_m
+            grating_coords.append(grating)
 
-        return self.profile
+        return np.ravel(grating_coords)
 
 
-    # def calculate_grating_parameters(self):
-    #     # grating calculations
-    #     if self.grating:
-    #         buffer = 0
-    #         if self.grating_edge:
-    #             buffer = 1
-    #         self.grating_points = list()
-
-    #         if self.grating_mode == 'distance':
-    #             # TODO: only define grating by width, not px
-    #             self.grating_spacing_px = int(self.grating_spacing/self.pixel_size_x)
-    #             if self.grating_centered:
-    #                 point = self.center_x_px
-    #             else:
-    #                 point = self.center_x_px - self.grating_spacing_px/2
-
-    #             while point < self.center_x_px + self.radius_px + buffer:
-    #                 self.grating_points.append(point)
-    #                 point += self.grating_spacing_px
-
-    #             if self.grating_centered:
-    #                 point = self.center_x_px - self.grating_spacing_px
-    #             else:
-    #                 point = self.center_x_px - self.grating_spacing_px*3/2
-
-    #             while point > self.center_x_px - self.radius_px - buffer:
-    #                 self.grating_points.append(point)
-    #                 point -= self.grating_spacing_px
-
-    #             # TODO: maybe remove this?
-    #             self.grating_count = len(self.grating_points)
-
-    #         # TODO: Add more Y things eventually
-    #         elif self.grating_mode == 'count':
-    #             step_size = self.diameter/(self.grating_count+1)
-    #             step_size_px = step_size/self.pixel_size_x
-    #             for i in range(self.grating_count):
-    #                 self.grating_points.append(self.center_x_px-self.radius_px
-    #                                            + (i + 1) * step_size_px)
-    #             if self.grating_edge:
-    #                 self.grating_points.append(self.center_x_px-self.radius_px)
-    #                 self.grating_points.append(self.center_x_px+self.radius_px)
-
-    #             self.grating_spacing = self.diameter / self.grating_count
-    #             self.grating_spacing_px = int(
-    #                 self.n_pixels_x / self.sim_width * self.grating_width)
-    #         else:
-    #             raise ValueError('Grating type not accepted')
-
-    #         if self.dimension == 1:
-    #             self.grating_direction = 'x'
-    #         if self.grating_direction == 'x':
-    #             grating_width_px_half = int((self.grating_width/self.pixel_size_x)/2)
-    #         else:
-    #             grating_width_px_half = int((self.grating_width/self.pixel_size_y)/2)
-    #         for position in self.grating_points:
-    #             start = int(np.floor(position - grating_width_px_half))
-    #             end = int(np.ceil(position + grating_width_px_half))
-    #             if self.grating_direction == 'x':
-    #                 self.grating_mask[start:end + 1] = self.grating_depth
-    #             else:
-    #                 self.grating_mask[:, start:end + 1] = self.grating_depth
+    
