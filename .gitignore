@@ -12,3 +12,11 @@ src/**/sim.png
 *.npz
 **/log/*
 *.prof
+scripts/#load_conda.sh#
+scripts/load_conda.sh
+scripts/load_conda.sh~
+*/scripts/slurm*
+scripts/*
+*.out
+*.sh
+*.err

@@ -1,14 +1,14 @@
 sim_parameters:
   A: 10000
   pixel_size: 200.e-9
-  sim_width: 500.e-6
+  sim_width: 700.e-6
   sim_wavelength: 488.e-9
   lens_type:  "Spherical" # "Cylindrical" or "Spherical
 options:
   verbose: false
   save: true
   save_plot: true
-  debug: false 
+  debug: false
 lenses:
   - name: lens_1
     height: 0.e-6
@@ -16,8 +16,8 @@ lenses:
     medium: medium_1
     custom: filepath or dir_path
   - name: lens_2
-    height: 20.e-6
-    exponent: 2.0
+    height: 5.e-6
+    exponent: 2.4
     medium: medium_1
 mediums:
   - name: medium_1
@@ -26,34 +26,36 @@ mediums:
     refractive_index: 1.33
 stages:
   - lens: lens_1
-    output: medium_1 
-    n_slices: 2
+    output: medium_1
+    n_slices: 1
     start_distance: 0
-    finish_distance: 0.1e-3 
-    options: 
+    finish_distance: 0.1e-3
+    options:
       use_equivalent_focal_distance: False
       focal_distance_multiple: 2.0
   - lens: lens_2
-    output: medium_2 
-    n_slices: 10 
-    start_distance: 0
-    finish_distance: 0.15e-3 
-    options: 
+    output: medium_2
+    n_slices: 100
+    start_distance: 15.e-3
+    finish_distance: 25.e-3
+    options:
       use_equivalent_focal_distance: true
-      focal_distance_multiple: 1.0
+      # david change (add start focal distance)
+      focal_distance_start_multiple: 0.8
+      focal_distance_multiple: 1.5
   # - lens: lens_2
-  #   output: medium_2 
-  #   n_slices: 100 
+  #   output: medium_2
+  #   n_slices: 100
   #   start_distance: 0
-  #   finish_distance: [10.0e-3] #, 15.0e-3, 2.5e-3] 
-  #   options: 
+  #   finish_distance: [10.0e-3] #, 15.0e-3, 2.5e-3]
+  #   options:
   #     use_equivalent_focal_distance: True
   #     focal_distance_multiple: 2.0
   # - lens: lens_2
-  #   output: medium_2 
-  #   n_slices: 100 
+  #   output: medium_2
+  #   n_slices: 100
   #   start_distance: 0
-  #   finish_distance: 10.0e-3 
-  #   options:  
+  #   finish_distance: 10.0e-3
+  #   options:
   #     use_equivalent_focal_distance: True
-  #     focal_distance_multiple: 2.0 
+  #     focal_distance_multiple: 2.0

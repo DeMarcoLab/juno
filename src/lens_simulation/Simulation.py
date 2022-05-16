@@ -179,8 +179,8 @@ class Simulation:
                     sim_stage.lens, sim_stage.output
                 )
                 # print("EQ_FD: ", eq_fd)
-
-                sim_stage.start_distance = 0.0 * eq_fd
+                # david change (add start distance)
+                sim_stage.start_distance = (sim_stage.options["focal_distance_start_multiple"] * eq_fd)
                 sim_stage.finish_distance = (
                     sim_stage.options["focal_distance_multiple"] * eq_fd
                 )
@@ -300,7 +300,8 @@ class Simulation:
         DEBUG = self.options.debug
 
         # padding (width of lens on each side)
-        pad_px = lens.profile.shape[-1]
+        # David changes here
+        pad_px = 10 #lens.profile.shape[-1]
         sim_profile = pad_simulation(lens, pad_px=pad_px)
 
         # generate frequency array
@@ -365,10 +366,10 @@ class Simulation:
 
             if self.options.save:
                 # save output
-                utils.save_simulation_slice(rounded_output, 
+                utils.save_simulation_slice(rounded_output,
                     fname=os.path.join(self.log_dir, str(self.stage_id), f"{distance*1000:.8f}mm.npy")
                     )
-            
+
             if lens.profile.ndim == 2:
                 # calculate views
                 centre_px_h = rounded_output.shape[0] // 2
@@ -381,23 +382,33 @@ class Simulation:
                 side_on_view[i, :] = side_on_slice
                 sim[i, :, :] = rounded_output
             else:
+                # david changes (Added sim to 1D)
+                sim[i, :, :] = rounded_output
                 top_down_view[i, :] = rounded_output
 
-
-        if self.options.save:
+        # david changes here (or 1)
+        if self.options.save or 1:
             self.save_simulation(sim, self.stage_id)
+
+            # # david changes (middle cutting)
+            # middle = sim[:, 0, sim.shape[2]//2]
+            # mid_max = np.amax(middle)
+            # print(mid_max/2)
+            # a = middle > mid_max
+            # plt.plot(a)
+            # plt.show()
 
 
         # TODO: separate plotting / save from simulating
         ################## SAVE ##################
         if lens.profile.ndim == 2:
-            utils.plot_image(freq_arr, "Frequency Array", 
+            utils.plot_image(freq_arr, "Frequency Array",
                     save=True, fname=os.path.join(self.log_dir, str(self.stage_id), "freq.png"))
 
-            utils.plot_image(delta, "Delta Profile", 
+            utils.plot_image(delta, "Delta Profile",
                 save=True, fname=os.path.join(self.log_dir, str(self.stage_id), "delta.png"))
 
-            utils.plot_image(phase, "Phase Profile", 
+            utils.plot_image(phase, "Phase Profile",
                     save=True, fname=os.path.join(self.log_dir, str(self.stage_id), "phase.png"))
 
         if self.options.save_plot:
@@ -461,7 +472,7 @@ def generate_squared_frequency_array(n_pixels: int, pixel_size: float) -> np.nda
 
 def generate_sq_freq_arr(sim_profile: np.ndarray, pixel_size: float) -> np.ndarray:
     """Generate the squared frequency array for the simulation"""
-    
+
     if sim_profile.ndim != 2:
         raise TypeError(f"Only 2D Simulation Profile is supported. Simulation profile of shape {sim_profile.shape} not supported.")
 
