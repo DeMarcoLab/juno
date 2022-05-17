@@ -149,8 +149,8 @@ class Lens:
         # len/sim parameters
         lens_width = self.diameter
         lens_length = self.diameter
-        n_pixels_x = self.n_pixels * 2
-        n_pixels_y = self.n_pixels * 2
+        n_pixels_x = self.n_pixels * 2 - 1 # odd
+        n_pixels_y = self.n_pixels * 2 - 1 # odd
 
         # revolve the profile around the centre (distance)
         x = np.linspace(0, lens_width, n_pixels_x)

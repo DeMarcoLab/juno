@@ -13,6 +13,7 @@ class SimulationParameters:
     sim_width: float
     sim_wavelength: float
     lens_type: LensType
+    padding: int = None # px
 
 @dataclass
 class SimulationOptions:

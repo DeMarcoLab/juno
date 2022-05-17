@@ -89,7 +89,8 @@ class Simulation:
             pixel_size=self.config["sim_parameters"]["pixel_size"],
             sim_width=self.config["sim_parameters"]["sim_width"],
             sim_wavelength=self.config["sim_parameters"]["sim_wavelength"],
-            lens_type=LensType[self.config["sim_parameters"]["lens_type"]]
+            lens_type=LensType[self.config["sim_parameters"]["lens_type"]],
+            padding=self.config["sim_parameters"]["padding"]
         )
 
         # generate all mediums for simulation
@@ -164,7 +165,7 @@ class Simulation:
 
                     # change to 'air' lens, and invert the profile
                     sim_stage.lens = Lens(
-                        diameter=self.parameters.sim_width,
+                        diameter=self.stage.lens.diameter,
                         height=sim_stage.lens.height,
                         exponent=sim_stage.lens.exponent,
                         medium=self.sim_stages[i - 1].output,
@@ -178,8 +179,7 @@ class Simulation:
                 eq_fd = calculate_equivalent_focal_distance(
                     sim_stage.lens, sim_stage.output
                 )
-                # print("EQ_FD: ", eq_fd)
-                # david change (add start distance)
+
                 sim_stage.start_distance = (sim_stage.options["focal_distance_start_multiple"] * eq_fd)
                 sim_stage.finish_distance = (
                     sim_stage.options["focal_distance_multiple"] * eq_fd
@@ -272,9 +272,8 @@ class Simulation:
             assert (
                 lens["medium"] in self.medium_dict
             ), "Lens Medium not found in simulation mediums"
-
             lens_dict[lens["name"]] = Lens(
-                diameter=self.parameters.sim_width,
+                diameter=lens["diameter"],
                 height=lens["height"],
                 exponent=lens["exponent"],
                 medium=self.medium_dict[lens["medium"]],
@@ -284,6 +283,8 @@ class Simulation:
                 pixel_size=self.parameters.pixel_size,
                 lens_type=self.parameters.lens_type
             )
+
+            # TODO: load profile from disk...
 
         return lens_dict
 
@@ -299,10 +300,17 @@ class Simulation:
 
         DEBUG = self.options.debug
 
-        # padding (width of lens on each side)
-        # David changes here
-        pad_px = 10 #lens.profile.shape[-1]
-        sim_profile = pad_simulation(lens, pad_px=pad_px)
+        def calculate_num_of_pixels(width, pixel_size, odd=True):
+            n_pixels = int(width / pixel_size)  
+            # n_pixels must be odd (symmetry).
+            if odd and n_pixels % 2 == 0:
+                n_pixels += 1
+
+            return n_pixels
+        
+        # pad the lens profile to be the same size as the simulation, add user defined padding.
+        pad_px = self.parameters.padding
+        sim_profile = pad_simulation(lens, parameters = self.parameters, pad_px=pad_px)
 
         # generate frequency array
         freq_arr = generate_sq_freq_arr(
@@ -382,22 +390,11 @@ class Simulation:
                 side_on_view[i, :] = side_on_slice
                 sim[i, :, :] = rounded_output
             else:
-                # david changes (Added sim to 1D)
                 sim[i, :, :] = rounded_output
                 top_down_view[i, :] = rounded_output
 
-        # david changes here (or 1)
-        if self.options.save or 1:
+        if self.options.save:
             self.save_simulation(sim, self.stage_id)
-
-            # # david changes (middle cutting)
-            # middle = sim[:, 0, sim.shape[2]//2]
-            # mid_max = np.amax(middle)
-            # print(mid_max/2)
-            # a = middle > mid_max
-            # plt.plot(a)
-            # plt.show()
-
 
         # TODO: separate plotting / save from simulating
         ################## SAVE ##################
@@ -515,43 +512,38 @@ def calculate_equivalent_focal_distance(lens: Lens, medium: Medium) -> float:
 
     return equivalent_focal_distance
 
+def calculate_num_of_pixels(width, pixel_size, odd=True):
+    n_pixels = int(width / pixel_size)  
+    # n_pixels must be odd (symmetry).
+    if odd and n_pixels % 2 == 0:
+        n_pixels += 1
 
-def pad_simulation_old(lens: Lens, pad_px: tuple = None) -> np.ndarray:
-    """Pad the area around the lens profile to prevent reflection"""
+    return n_pixels
 
-    if lens.profile.ndim != 2:
-        raise TypeError(
-            f"Pad simulation only supports two-dimensional lens. Lens shape was: {lens.profile.shape}."
-        )
+# def pad_simulation(lens: Lens, pad_px: int = None) -> np.ndarray:
+#     """Pad the area around the lens profile to prevent reflection"""
 
-    if pad_px is None:
-        if lens.profile.ndim == 2:
-            pad_px = lens.profile.shape  # TODO: check symmetry
+#     # TODO: make this work for assymmetric shape
+#     if lens.profile.ndim not in (1, 2):
+#         raise TypeError(
+#             f"Padding is only supported for 1D and 2D lens. Lens shape was: {lens.profile.shape}."
+#         )
 
-    if not isinstance(pad_px, tuple):
-        raise TypeError(
-            f"Padding pixels should be given as a tuple in the form (vertical_pad_px, horizontal_pad_px). {type(pad_px)} ({pad_px}) was passed."
-        )
+#     if pad_px is None:
+#         pad_px = lens.profile.shape[-1]
 
-    vpad_px = pad_px[0]
-    hpad_px = pad_px[1]
+#     # two different types of padding?
+#     sim_profile = np.pad(lens.profile, pad_px, mode="constant")
 
-    # two different types of padding?
-    sim_profile = np.pad(
-        lens.profile, ((vpad_px, vpad_px), (hpad_px, hpad_px)), mode="constant"
-    )
+#     if lens.profile.ndim == 1:
+#         sim_profile = np.expand_dims(
+#             sim_profile, axis=0
+#         )  # expand 1D lens to 2D sim shape
 
-    sim_profile = np.pad(
-        lens.profile, ((vpad_px, vpad_px), (hpad_px, hpad_px)), mode="constant"
-    )
+#     return sim_profile
 
-    # TODO: pad symmetrically
-
-    return sim_profile
-
-
-def pad_simulation(lens: Lens, pad_px: int = None) -> np.ndarray:
-    """Pad the area around the lens profile to prevent reflection"""
+def pad_simulation(lens: Lens, parameters: SimulationParameters = None,  pad_px: int = None) -> np.ndarray:
+    """Pad the area around the lens profile to prevent reflection. Pad the lens profile to match the simulation width"""
 
     # TODO: make this work for assymmetric shape
     if lens.profile.ndim not in (1, 2):
@@ -561,6 +553,9 @@ def pad_simulation(lens: Lens, pad_px: int = None) -> np.ndarray:
 
     if pad_px is None:
         pad_px = lens.profile.shape[-1]
+
+    if parameters is not None:
+        lens = _pad_lens_profile_to_sim_width(lens, parameters.sim_width, parameters.pixel_size)
 
     # two different types of padding?
     sim_profile = np.pad(lens.profile, pad_px, mode="constant")
@@ -572,6 +567,21 @@ def pad_simulation(lens: Lens, pad_px: int = None) -> np.ndarray:
 
     return sim_profile
 
+def _pad_lens_profile_to_sim_width(lens: Lens, width: float, pixel_size: float):
+
+    # if the lens is smaller than the simulation, pad the lens to the width.
+    sim_n_pixels = calculate_num_of_pixels(width, pixel_size)
+    lens_n_pixels = 2 * lens.n_pixels #TODO: change lens.n_pixels so that it is the total n_pixels not in the radisu.....
+    if lens_n_pixels % 2 == 0:
+        lens_n_pixels -= 1 # n_pixels should be odd
+
+    if sim_n_pixels != lens.n_pixels:
+        diff = sim_n_pixels - lens_n_pixels
+        lens_profile_padded = np.pad(lens.profile, pad_width=diff // 2, mode="constant")
+
+        lens.profile = lens_profile_padded
+
+    return lens
 
 def calculate_delta_profile(
     sim_profile, lens: Lens, output_medium: Medium

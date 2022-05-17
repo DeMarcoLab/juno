@@ -99,6 +99,7 @@ class SimulationRunner:
                 for i, lens in enumerate(self.config["lenses"]):
                     lens_dict = {
                         "name": lens["name"],
+                        "diameter": lens["diameter"],
                         "height": lens_combo[i][0],   
                         "exponent": lens_combo[i][1],
                         "medium": lens["medium"]
