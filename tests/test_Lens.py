@@ -1,5 +1,3 @@
-from msilib.schema import Error
-from operator import ge
 import pytest
 
 from lens_simulation.Lens import Lens, LensType, GratingSettings
