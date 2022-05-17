@@ -1,9 +1,8 @@
-from lens_simulation import Simulation, SimulationRunner, utils
-import uuid
 import os
-import yaml
 import sys
 
+import lens_simulation
+from lens_simulation import SimulationRunner
 
 def main(args):
 
@@ -14,7 +13,7 @@ def main(args):
 
 if __name__ == "__main__":
 
-    args = "config.yaml"
+    args = os.path.join(os.path.dirname(lens_simulation.__file__), "config.yaml")
     if len(sys.argv) >= 2:
         args = sys.argv[1]
 

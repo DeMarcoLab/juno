@@ -1,56 +1,84 @@
 sim_parameters:
   A: 10000
-  pixel_size: 1.e-6 
-  sim_width: 4500.e-6
+  pixel_size: 200.e-9
+  sim_width: 700.e-6
   sim_wavelength: 488.e-9
+  lens_type:  "Spherical" # "Cylindrical" or "Spherical
+  padding: 0 # pixels
 options:
   verbose: false
-  save: false
+  save: true
   save_plot: true
+  debug: false
 lenses:
   - name: lens_1
-    height: [70.e-6]
+    diameter: 700.e-6
+    height: 0.e-6
     exponent: 0.0
     medium: medium_1
+    custom: null # filepath or dir?
+    grating: null
+    truncation: null
+    apeture: null
   - name: lens_2
-    height: [75.e-6, 80.e-6, 5.0e-6]
-    exponent: [2.0, 3.0, 1]
+    diameter: 700.e-6
+    height: 5.e-6
+    exponent: 2.4
     medium: medium_1
+    custom: null
+    grating:
+      width: 20.e-6
+      distance: 50.e-6
+      depth: 1.e-6
+      x: True
+      y: True
+      centred: True
+    truncation:
+      type: "radial"  # "value" or "radial"
+      height: 20.e-6  # metres
+      radius: 50.e-6  # metres
+    apeture:
+      type: "radial"  # "radial" or square"
+      inner: 0.0      # metres
+      outer: 0.0      # metres
+      invert: false 
 mediums:
   - name: medium_1
     refractive_index: 2.348
   - name: medium_2
-    refractive_index: 1.5
+    refractive_index: 1.33
 stages:
   - lens: lens_1
-    output: medium_1 
-    n_slices: 100 
+    output: medium_1
+    n_slices: 1
     start_distance: 0
-    finish_distance: 10.0e-3 
-    options: 
+    finish_distance: 0.1e-3
+    options:
       use_equivalent_focal_distance: False
+      focal_distance_start_multiple: 0.0
       focal_distance_multiple: 2.0
   - lens: lens_2
-    output: medium_2 
-    n_slices: 1000 
-    start_distance: 0
-    finish_distance: 10.0e-3 
-    options: 
+    output: medium_2
+    n_slices: 100
+    start_distance: 15.e-3
+    finish_distance: 25.e-3
+    options:
       use_equivalent_focal_distance: true
+      focal_distance_start_multiple: 0.0
       focal_distance_multiple: 2.0
-  - lens: lens_2
-    output: medium_1 
-    n_slices: 1000 
-    start_distance: 0
-    finish_distance: [10.0e-3, 15.0e-3, 2.5e-3] 
-    options: 
-      use_equivalent_focal_distance: False
-      focal_distance_multiple: 2.0
-  - lens: lens_2
-    output: medium_2 
-    n_slices: 1000 
-    start_distance: 0
-    finish_distance: 10.0e-3 
-    options:  
-      use_equivalent_focal_distance: True
-      focal_distance_multiple: 2.0 
+  # - lens: lens_2
+  #   output: medium_2
+  #   n_slices: 100
+  #   start_distance: 0
+  #   finish_distance: [10.0e-3] #, 15.0e-3, 2.5e-3]
+  #   options:
+  #     use_equivalent_focal_distance: True
+  #     focal_distance_multiple: 2.0
+  # - lens: lens_2
+  #   output: medium_2
+  #   n_slices: 100
+  #   start_distance: 0
+  #   finish_distance: 10.0e-3
+  #   options:
+  #     use_equivalent_focal_distance: True
+  #     focal_distance_multiple: 2.0

@@ -7,6 +7,8 @@ import matplotlib.pyplot as plt
 import pandas as pd
 
 from lens_simulation import utils, Lens
+from lens_simulation.Medium import Medium
+from lens_simulation.Lens import LensType
 
 pd.set_option("display.precision", 8)
 
@@ -57,9 +59,10 @@ def load_simulation_run(sim_path):
     df_join["pixel_size"] = metadata["sim_parameters"]["pixel_size"]
     df_join["sim_wavelength"] = metadata["sim_parameters"]["sim_wavelength"]
     df_join["data_path"] = os.path.join(metadata["log_dir"], metadata["sim_id"])
-    df_join["lens_height"] = round(df_join["lens_height"] * 10e3, 3)  # convert to mm
+    df_join["lens_height"] = df_join["lens_height"]  # convert to mm
     df_join["start_distance"] = round(df_join["start_distance"], 3)
     df_join["finish_distance"] = round(df_join["finish_distance"], 3)
+    df_join["lens_type"] = metadata["sim_parameters"]["lens_type"]
 
     # df_join["lens_inverted"] = True if df_join["lens_inverted"] == "true" else False
 
@@ -68,23 +71,28 @@ def load_simulation_run(sim_path):
 
 def plot_lens_profile(df, stage_no):
     df_lens = df[df["stage"] == stage_no]
-    lens_medium = Lens.Medium(refractive_index=float(df_lens["lens_refractive_index"]))
+    lens_medium = Medium(refractive_index=float(df_lens["lens_refractive_index"]))
     lens = Lens.Lens(
         diameter=float(df_lens["sim_width"]),
         height=float(df_lens["lens_height"]),
         exponent=float(df_lens["lens_exponent"]),
         medium=lens_medium,
     )
-    lens.generate_profile(pixel_size=df_lens["pixel_size"])
+    lens_type = LensType[df["lens_type"][0]]
+    lens.generate_profile(df_lens["pixel_size"], lens_type=lens_type)
 
+    if lens_type == LensType.Cylindrical:
+        lens.extrude_profile(lens.diameter)
+
+    # generate profile plots
+    fig_2d = utils.plot_lens_profile_2D(lens)
+    lens_fig = utils.plot_lens_profile_slices(lens)
+    
     # invert the profile
     if bool(df_lens["lens_inverted"].values[0]) is True:
         lens.invert_profile()
 
-    fig = plt.figure()
-    plt.plot(lens.profile)
-    plt.title(f"{lens}")
-    return fig
+    return lens_fig
 
 
 @st.cache
@@ -129,7 +137,12 @@ def show_simulation_data(sim_path, df_sim):
         cols[i].write(f"Stage {i}")
 
         # try to load image
-        img_fname = os.path.join(fname, "img.png")
+        img_fname = os.path.join(fname, "topdown.png")
+        log_fname = os.path.join(fname, "log_topdown.png")
+        sideon_fname = os.path.join(fname, "sideon.png")
+        freq_fname = os.path.join(fname, "freq.png")
+        delta_fname = os.path.join(fname, "delta.png")
+        phase_fname = os.path.join(fname, "phase.png")
         sim_fname = os.path.join(fname, "sim.npy")
 
         # plot lens profile
@@ -141,7 +154,22 @@ def show_simulation_data(sim_path, df_sim):
         if os.path.exists(img_fname):
             # faster to load the image than the sim
             img = PIL.Image.open(img_fname)
-            cols[i].image(img)
+            cols[i].image(img, caption="Top Down View")
+            if os.path.exists(log_fname):
+                limg = PIL.Image.open(log_fname)
+                cols[i].image(limg, caption="Log Top Down View")
+            if os.path.exists(sideon_fname):
+                simg = PIL.Image.open(sideon_fname)
+                cols[i].image(simg, caption="Side On View")
+            if os.path.exists(freq_fname):
+                fimg = PIL.Image.open(freq_fname)
+                cols[i].image(fimg, caption="Frequency Array")
+            if os.path.exists(delta_fname):
+                dimg = PIL.Image.open(delta_fname)
+                cols[i].image(dimg, caption="Delta Profile")
+            if os.path.exists(phase_fname):
+                pimg = PIL.Image.open(phase_fname)
+                cols[i].image(pimg, caption="Phase Profile")
         else:
             # try to load sim
             if os.path.exists(sim_fname):

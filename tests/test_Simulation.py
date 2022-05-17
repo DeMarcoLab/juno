@@ -1,6 +1,8 @@
 import numpy as np
 import pytest
 from lens_simulation import Simulation, Lens
+from lens_simulation.Lens import LensType
+from lens_simulation.SimulationUtils import SimulationParameters
 
 
 @pytest.mark.parametrize(
@@ -59,3 +61,77 @@ def test_calculate_equivalent_focal_distance_fail_due_to_height(lens_exponent):
 
     focal_distance = Simulation.calculate_equivalent_focal_distance(lens, medium)
     assert not np.isclose(focal_distance, 0.0268514, rtol=1e-6)
+
+def test_pad_simulation():
+
+    # create lens
+    lens = Lens.Lens(diameter=4500e-6, 
+                height=20e-6, 
+                exponent=2.0, 
+                medium=Lens.Medium(1))
+
+    # default horizontal padding for extrude
+    lens.generate_profile(1e-6, LensType.Cylindrical)
+    pad_px = lens.profile.shape[-1]
+    sim_profile = Simulation.pad_simulation(lens, pad_px=pad_px)
+    assert sim_profile.shape ==  (1, lens.profile.shape[0] + 2 * pad_px)
+    assert np.allclose(sim_profile[:, :pad_px], 0)   # padded areas should be zero
+    assert np.allclose(sim_profile[:, -pad_px:], 0)  # padded areas should be zero
+
+
+    # symmetric padding for revolve
+    lens.generate_profile(1e-6, LensType.Spherical)
+    pad_px=lens.profile.shape[-1]
+    sim_profile = Simulation.pad_simulation(lens, pad_px=pad_px)
+    assert sim_profile.shape == (lens.profile.shape[0] + 2 * pad_px, lens.profile.shape[1] + 2*pad_px)
+    assert np.allclose(sim_profile[:lens.profile.shape[0], :], 0)   # padded areas should be zero
+    assert np.allclose(sim_profile[:, :lens.profile.shape[1]], 0)   # padded areas should be zero
+    assert np.allclose(sim_profile[-lens.profile.shape[0]:, :], 0)  # padded areas should be zero
+    assert np.allclose(sim_profile[:, -lens.profile.shape[1]:], 0)  # padded areas should be zero
+
+def test_pad_simulation_lens_width():
+
+    lens = Lens.Lens(diameter=700.e-6, 
+            height=20e-6, 
+            exponent=2.0, 
+            medium=Lens.Medium(1))
+
+    sim_parameters = SimulationParameters(
+        A=10000,
+        pixel_size=200.e-9,
+        sim_width=700.e-6,
+        sim_wavelength=488.e-9,
+        lens_type=LensType.Spherical, 
+        padding= 0 # pixels
+    )
+
+    # check profile shape before / after
+    # check for both lens types
+
+    lens.generate_profile(sim_parameters.pixel_size, LensType.Cylindrical)
+    pre_shape = lens.profile.shape
+    sim_profile = Simulation.pad_simulation(lens, sim_parameters, pad_px=0)
+    assert sim_profile.shape == (1, *pre_shape)
+    
+    lens.generate_profile(sim_parameters.pixel_size, LensType.Spherical)
+    pre_shape = lens.profile.shape
+    sim_profile = Simulation.pad_simulation(lens, sim_parameters, pad_px=0)
+    assert sim_profile.shape == pre_shape
+
+    lens = Lens.Lens(diameter=200.e-6, 
+        height=20e-6, 
+        exponent=2.0, 
+        medium=Lens.Medium(1))
+
+    lens.generate_profile(sim_parameters.pixel_size, LensType.Cylindrical)
+    sim_profile = Simulation.pad_simulation(lens, sim_parameters, pad_px=0)
+    sim_n_pixels = Simulation.calculate_num_of_pixels(sim_parameters.sim_width, sim_parameters.pixel_size) 
+    assert sim_profile.shape == (1, sim_n_pixels)
+
+    lens.generate_profile(sim_parameters.pixel_size, LensType.Spherical)
+    sim_profile = Simulation.pad_simulation(lens, sim_parameters, pad_px=0)
+    sim_n_pixels = Simulation.calculate_num_of_pixels(sim_parameters.sim_width, sim_parameters.pixel_size) 
+    assert sim_profile.shape == (sim_n_pixels, sim_n_pixels)
+
+
+

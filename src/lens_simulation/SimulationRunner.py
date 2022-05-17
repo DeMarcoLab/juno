@@ -96,13 +96,12 @@ class SimulationRunner:
                 
                 # create lens combinations
                 lens_combination = []
-                for i, lens in enumerate(self.config["lenses"]):
-                    lens_dict = {
-                        "name": lens["name"],
-                        "height": lens_combo[i][0],   
-                        "exponent": lens_combo[i][1],
-                        "medium": lens["medium"]
-                    }
+                for i, lens_config in enumerate(self.config["lenses"]):
+                    
+                    lens_dict = lens_config
+                    lens_dict["height"] = lens_combo[i][0]   
+                    lens_dict["exponent"] = lens_combo[i][1]
+                    
                     lens_combination.append(lens_dict)
                 
                 # create stage combination
@@ -131,46 +130,21 @@ class SimulationRunner:
                 }
 
                 self.simulation_configurations.append(sim_config)
-                # pprint(sim_config)
-                # break
-            # break
+
        
         print(f"Generated {len(self.simulation_configurations)} simulation configurations.")
-
-
-        #############
-        # self.simulation_configurations = []
-
-        # for v in tqdm(self.all_parameters_combinations_lens):
-       
-        #     lens_combination = []
-        #     for i, lens in enumerate(self.config["lenses"]):
-        #         lens_dict = {
-        #             "name": lens["name"],
-        #             "height": v[i][0],   # TODO: hardcoded
-        #             "exponent": v[i][1], # TODO: hardcoded
-        #             "medium": lens["medium"]
-        #         }
-        #         lens_combination.append(lens_dict)
-            
-        #     sim_config = {
-        #         "run_id": self.run_id, 
-        #         "run_petname": self.petname, 
-        #         "log_dir": self.data_path, 
-        #         "sim_parameters": self.config["sim_parameters"],
-        #         "options": self.config["options"],
-        #         "mediums": self.config["mediums"], 
-        #         "lenses": lens_combination,
-        #         "stages": self.config["stages"]
-        #     }
-            
-        #     self.simulation_configurations.append(sim_config)
 
         # save sim configurations
         utils.save_metadata(self.config, self.data_path)
 
     def run_simulations(self):
         print(f"\nRunning {len(self.simulation_configurations)} Simulations")
+
+        print("----------- Simulation Summary -----------")
+        print(f"Pixel Size: {self.config['sim_parameters']['pixel_size']:.1e}m")
+        print(f"Simulation Width: {self.config['sim_parameters']['sim_width']:.1e}m")
+        print(f"No. Stages: {len(self.config['stages'])}")
+        print("------------------------------------------")
 
         for sim_config in tqdm(self.simulation_configurations):
 
