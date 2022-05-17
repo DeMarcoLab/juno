@@ -20,3 +20,4 @@ scripts/*
 *.out
 *.sh
 *.err
+src/lens_simulation/lens.yaml

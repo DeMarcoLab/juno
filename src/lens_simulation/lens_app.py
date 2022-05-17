@@ -32,10 +32,13 @@ with st.form("lens_form"):
     diameter = form_cols[0].number_input("Diameter (um)", min_value=100, max_value=10000, value=1000, step=50) * MICRON_TO_METRE
     height = form_cols[0].number_input("Height (um)", min_value=5, max_value=100, value=20, step=1) * MICRON_TO_METRE
     exponent = form_cols[0].number_input("Exponent", min_value=0.0, max_value=10.0, value=2.0, step=0.1)
+    lens_name = form_cols[0].text_input("Lens Name", "lens_x")
+    
     lens_type = form_cols[1].selectbox("Lens Type", [lens_type.name for lens_type in LensType])
     invert_profile = form_cols[1].selectbox("Invert Profile", [False, True])
     medium_refractive_index = form_cols[1].number_input("Refractive Index", min_value=1.0, max_value=10.0, value=1.0, step=0.01)
-    
+    medium_name = form_cols[1].text_input("Medium Name", "medium_x")
+
     grating_width_m = form_cols[2].number_input("Grating Width (um)", min_value=0.0, max_value=1000.0, value=50.0, step=0.1) * MICRON_TO_METRE
     grating_distance_m = form_cols[2].number_input("Grating Distance (um)", min_value=0.0, max_value=diameter * METRE_TO_MICRON , value=diameter*METRE_TO_MICRON / 2, step=0.1) * MICRON_TO_METRE
     grating_depth_m = form_cols[2].number_input("Grating Depth (um)", min_value=0.0, max_value=height * METRE_TO_MICRON , value=0.0, step=0.1) * MICRON_TO_METRE
@@ -140,4 +143,38 @@ save_button = st.button("Save Lens Configuration")
 
 if save_button:
     # TODO: 
-    st.success("TODO: make this button do something")
+
+    lens_config = {
+        "name": lens_name,
+        "diameter" : diameter,
+        "height" : height,
+        "exponent" : exponent, 
+        "medium" : medium_name,
+        "custom" : None,
+        "grating" : {
+            "width" : grating_width_m,
+            "distance" : grating_distance_m,
+            "depth" : grating_depth_m,
+            "x" : grating_x,
+            "y" : grating_y,
+            "centred" : grating_centred
+        },
+        "truncation": {
+            "type": truncation_type,
+            "height": truncation,
+            "radius": truncation_radius,
+        },
+        "apeture": {
+            "type": apeture_type,
+            "inner": inner_m,
+            "outer": outer_m,
+            "invert": invert_apeture
+        }
+    }    
+
+    import yaml
+    fname = "lens.yaml"
+    with open(fname, 'w') as f:
+        yaml.dump(lens_config, f, sort_keys=False)
+
+        st.success(f"Lens configuration save to {fname}")
