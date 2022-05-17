@@ -37,7 +37,7 @@ with st.form("lens_form"):
     medium_refractive_index = form_cols[1].number_input("Refractive Index", min_value=1.0, max_value=10.0, value=1.0, step=0.01)
     
     grating_width_m = form_cols[2].number_input("Grating Width (um)", min_value=0.0, max_value=1000.0, value=50.0, step=0.1) * MICRON_TO_METRE
-    grating_distance_m = form_cols[2].number_input("Grating Distance (um)", min_value=0.0, max_value=diameter * METRE_TO_MICRON , value=100.0, step=0.1) * MICRON_TO_METRE
+    grating_distance_m = form_cols[2].number_input("Grating Distance (um)", min_value=0.0, max_value=diameter * METRE_TO_MICRON , value=diameter*METRE_TO_MICRON / 2, step=0.1) * MICRON_TO_METRE
     grating_depth_m = form_cols[2].number_input("Grating Depth (um)", min_value=0.0, max_value=height * METRE_TO_MICRON , value=0.0, step=0.1) * MICRON_TO_METRE
     grating_x = form_cols[2].selectbox("Grating Direction X", [True, False])
     grating_y = form_cols[2].selectbox("Grating Direction Y", [True, False])
@@ -110,7 +110,7 @@ if submitted:
     lens.calculate_grating_mask(grating_settings, x_axis=grating_x, y_axis=grating_y)
     lens.calculate_truncation_mask(truncation=truncation, radius= truncation_radius, type=truncation_type)
     lens.calculate_apeture(inner_m = inner_m, outer_m=outer_m, type=apeture_type)
-    lens.apply_masks(grating=True, truncation=True, apeture=True)
+    lens.apply_masks(grating=True, truncation=True, apeture=True) # TODO: inverting doesnt work in this case?
     mask_fig = utils.plot_lens_profile_2D(lens)
     mask1d_fig = utils.plot_lens_profile_slices(lens, max_height=height)  
 

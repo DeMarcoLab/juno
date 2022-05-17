@@ -1,9 +1,25 @@
+from msilib.schema import Error
+from operator import ge
 import pytest
 
-from lens_simulation.Lens import Lens, LensType
+from lens_simulation.Lens import Lens, LensType, GratingSettings
 from lens_simulation.Medium import Medium
 import numpy as np
 
+
+
+
+# TODO: lens fixture
+def generate_default_lens():
+    # create lens
+    lens = Lens(diameter=100e-6, 
+                height=20e-6, 
+                exponent=2.0, 
+                medium=Medium(2.348))
+
+    lens.generate_profile(1e-6, lens_type=LensType.Spherical)
+
+    return lens
 
 def test_Lens():
 
@@ -82,3 +98,137 @@ def test_revolve_lens():
     # maximum at midpoint
     midx, midy = profile_2D.shape[0] // 2, profile_2D.shape[1] // 2
     assert profile_2D[midx, midy] == np.max(profile_2D), "Maximum should be at the midpoint"
+
+
+
+def test_lens_inverted():
+
+    lens = generate_default_lens()
+
+    lens.invert_profile()
+
+    midx, midy = lens.profile.shape[0] // 2, lens.profile.shape[1] // 2
+
+    assert np.isclose(np.min(lens.profile), lens.profile[midx, midy], atol=0.25e-6)
+    assert np.isclose(np.max(lens.profile), lens.profile[0, 0], atol=0.25e-6)
+    assert np.isclose(np.max(lens.profile), lens.profile[-1, -1], atol=0.25e-6)
+
+
+
+def test_grating_mask():
+
+
+    lens = generate_default_lens()
+
+    grating_settings = GratingSettings(
+        width = 20e-6,
+        distance = 50e-6,
+        depth = 1e-6,
+        centred = True
+    )
+    lens.calculate_grating_mask(grating_settings, x_axis=True, y_axis=True)
+    lens.apply_masks(grating=True)
+
+    centre_x, centre_y = lens.profile.shape[0] // 2 , lens.profile.shape[1] // 2
+
+    assert np.isclose(lens.profile[centre_x, centre_y], lens.height - grating_settings.depth, atol=0.25e-6), "Centre of lens should have grating"
+
+def test_grating_mask_is_not_centred():
+
+    lens = generate_default_lens()
+
+    grating_settings = GratingSettings(
+        width = 20e-6,
+        distance = 50e-6,
+        depth = 1e-6,
+        centred = False
+    )
+    lens.calculate_grating_mask(grating_settings, x_axis=True, y_axis=True)
+    lens.apply_masks(grating=True)
+
+    centre_x, centre_y = lens.profile.shape[0] // 2 , lens.profile.shape[1] // 2
+
+    assert np.isclose(lens.profile[centre_x, centre_y], lens.height, atol=0.25e-6), "Centre of lens should not have grating"
+
+
+def test_grating_mask_raises_error():
+    
+    lens = generate_default_lens()
+
+    grating_settings = GratingSettings(
+        width = 10e-6,
+        distance = 10e-6,
+        depth = 1e-6,
+        centred = True
+    )
+
+    with pytest.raises(ValueError):
+        # distance between grating must be greater than grating width
+        lens.calculate_grating_mask(grating_settings, x_axis=True, y_axis=True)
+    
+def test_truncation_by_value():
+
+    truncation_value = 15e-6
+
+    lens = generate_default_lens()
+
+    lens.calculate_truncation_mask(truncation=truncation_value, type="value")
+    lens.apply_masks(truncation=True)
+
+    assert np.max(lens.profile) == truncation_value, "Maximum value should be truncation value"
+
+def test_truncation_by_radius():
+
+    truncation_radius = 25.0e-6
+
+    lens = generate_default_lens()
+
+    lens.calculate_truncation_mask(radius=truncation_radius, type="radial")
+    lens.apply_masks(truncation=True)
+
+    assert np.isclose(np.max(lens.profile), 15.e-6, atol=0.25e-6), "Maximum value should be 15e-6"
+
+
+def test_apeture():
+
+    inner_m = 0e-6
+    outer_m = 25e-6
+
+    lens = generate_default_lens()
+
+    lens.calculate_apeture(inner_m = inner_m, outer_m=outer_m, type="radial", inverted=False) 
+    lens.apply_masks(apeture=True)
+
+    centre_x, centre_y = lens.profile.shape[0] // 2 , lens.profile.shape[1] // 2
+    outer_px = int(outer_m / lens.pixel_size) - 1
+
+    assert lens.profile[centre_x, centre_y] == 0, "Centre should be apetured"
+    assert lens.profile[centre_x - outer_px, centre_y] == 0, "Outer radius should be apetured"
+    assert lens.profile[centre_x + outer_px, centre_y] == 0, "Outer radius should be apetured"
+    assert lens.profile[centre_x, centre_y - outer_px] == 0, "Outer radius should be apetured"
+    assert lens.profile[centre_x, centre_y + outer_px] == 0, "Outer radius should be apetured"
+
+def test_apeture_inverted():
+    inner_m = 0e-6
+    outer_m = 25e-6
+
+    lens = generate_default_lens()
+
+    lens.calculate_apeture(inner_m = inner_m, outer_m=outer_m, type="radial", inverted=True) 
+    lens.apply_masks(apeture=True)
+
+    centre_x, centre_y = lens.profile.shape[0] // 2 , lens.profile.shape[1] // 2
+    outer_px = int(outer_m / lens.pixel_size) + 2
+
+    assert np.isclose(lens.profile[centre_x, centre_y], lens.height, atol=0.25e-6), "Centre should be not apetured"
+    assert lens.profile[centre_x - outer_px, centre_y] == 0, "Outer radius should be apetured"
+    assert lens.profile[centre_x + outer_px, centre_y] == 0, "Outer radius should be apetured"
+    assert lens.profile[centre_x, centre_y - outer_px] == 0, "Outer radius should be apetured"
+    assert lens.profile[centre_x, centre_y + outer_px] == 0, "Outer radius should be apetured"
+
+    assert lens.profile[0, 0] == 0, "Outer area should be apetured"
+    assert lens.profile[0, -1] == 0, "Outer area should be apetured"
+    assert lens.profile[-1, 0] == 0, "Outer area should be apetured"
+    assert lens.profile[0, -1] == 0, "Outer area should be apetured"
+
+# TODO: do the same tests for cylindrical....

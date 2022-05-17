@@ -185,6 +185,34 @@ class Lens:
     #         x         #
     #####################
     """
+    
+    def apply_masks(
+        self,
+        grating: bool = False,
+        truncation: bool = False,
+        apeture: bool = False,
+        escape_path: bool = True,
+    ):
+
+        # grating
+        if grating:
+            self.profile[self.grating_mask] -= self.grating_depth
+
+        # truncation
+        if truncation:
+            self.profile[self.truncation_mask] = self.truncation
+
+        # apeture
+        if apeture:
+            self.profile[self.apeture_mask] = 0
+
+        # if escape_path:
+        #     self.profile = self.calculate_escape_path(ratio=0.2)
+
+        # clip the profile to zero
+        self.profile = np.clip(self.profile, 0, np.max(self.profile))
+
+        return self.profile
 
     def calculate_truncation_mask(
         self, truncation: float = None, radius: float = 0, type: str = "value"
@@ -219,33 +247,7 @@ class Lens:
 
         return self.profile
 
-    def apply_masks(
-        self,
-        grating: bool = False,
-        truncation: bool = False,
-        apeture: bool = False,
-        escape_path: bool = True,
-    ):
-
-        # grating
-        if grating:
-            self.profile[self.grating_mask] -= self.grating_depth
-
-        # truncation
-        if truncation:
-            self.profile[self.truncation_mask] = self.truncation
-
-        # apeture
-        if apeture:
-            self.profile[self.apeture_mask] = 0
-
-        # if escape_path:
-        #     self.profile = self.calculate_escape_path(ratio=0.2)
-
-        # clip the profile to zero
-        self.profile = np.clip(self.profile, 0, np.max(self.profile))
-
-        return self.profile
+    
 
     def calculate_escape_path(self, ratio=0.2):
 
@@ -403,13 +405,12 @@ class Lens:
             start_coord_1 = start_coord - settings.distance_px // 2
             start_coord_2 = start_coord + settings.distance_px // 2
         
+        # coordinates of grating centres (starting from centre to both edges)
         grating_centre_coords_x1 = np.arange(start_coord_1, 0, -settings.distance_px)
-        
         grating_centre_coords_x2 = np.arange(start_coord_2, profile.shape[axis], settings.distance_px)
-
         grating_centre_coords = sorted(np.append(grating_centre_coords_x1, grating_centre_coords_x2))
 
-        # this coord +/- width / 2
+        # coordinates of full grating which is grating centre +/- width / 2
         grating_coords = []
 
         for px in grating_centre_coords:
