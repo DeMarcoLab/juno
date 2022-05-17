@@ -1,15 +1,12 @@
 from dataclasses import dataclass
-from dis import dis
-from math import trunc
+
 import numpy as np
 
+from pathlib import Path
 from scipy import ndimage
 from enum import Enum
 
 from lens_simulation.Medium import Medium
-
-# TODO:
-# - grating
 
 @dataclass
 class GratingSettings:
@@ -105,15 +102,16 @@ class Lens:
 
         return self.profile
 
-    def load_profile(self, arr: np.ndarray):
+    def load_profile(self, fname: Path, pixel_size: float):
         """Load the lens profile from np array"""
 
-        # assume lens diameter is sim width
-        if arr.shape[-1] != self.n_pixels:
-            raise ValueError(
-                f"Custom lens profiles must match the simulation width. Custom Profile Shape: {arr.shape}, Simulation Pixels: {self.n_pixels}."
-            )
+        # load the profile
+        arr = np.load(fname)
 
+        # n_pixels = shape of arr
+        self.pixel_size = pixel_size
+
+        # TODO: error checking?
         # TODO: we need pad the lens if the size is smaller than the sim n_pixels?
 
         self.profile = arr
@@ -168,6 +166,7 @@ class Lens:
         profile = np.clip(profile, 0, np.max(profile))
 
         # override 1D profile
+        # profile = ndimage.gaussian_filter(profile, sigma=3)
         self.profile = profile
 
         return self.profile

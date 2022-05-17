@@ -96,14 +96,12 @@ class SimulationRunner:
                 
                 # create lens combinations
                 lens_combination = []
-                for i, lens in enumerate(self.config["lenses"]):
-                    lens_dict = {
-                        "name": lens["name"],
-                        "diameter": lens["diameter"],
-                        "height": lens_combo[i][0],   
-                        "exponent": lens_combo[i][1],
-                        "medium": lens["medium"]
-                    }
+                for i, lens_config in enumerate(self.config["lenses"]):
+                    
+                    lens_dict = lens_config
+                    lens_dict["height"] = lens_combo[i][0]   
+                    lens_dict["exponent"] = lens_combo[i][1]
+                    
                     lens_combination.append(lens_dict)
                 
                 # create stage combination

@@ -12,7 +12,7 @@ from scipy import fftpack
 from tqdm import tqdm
 
 from lens_simulation import utils
-from lens_simulation.Lens import Lens, LensType
+from lens_simulation.Lens import Lens, LensType, GratingSettings
 from lens_simulation.Medium import Medium
 from lens_simulation.SimulationUtils import (
     SimulationOptions,
@@ -67,6 +67,8 @@ class Simulation:
         self.mediums = config["mediums"]
         self.lenses = config["lenses"]
         self.stages = config["stages"]
+
+        pprint(self.lenses)
 
         # options
         self.options = SimulationOptions(
@@ -267,22 +269,65 @@ class Simulation:
     def generate_lenses(self):
         """Generate all the lenses for the simulation"""
         lens_dict = {}
-        for lens in self.lenses:
+        for lens_config in self.lenses:
 
             assert (
-                lens["medium"] in self.medium_dict
+                lens_config["medium"] in self.medium_dict
             ), "Lens Medium not found in simulation mediums"
-            lens_dict[lens["name"]] = Lens(
-                diameter=lens["diameter"],
-                height=lens["height"],
-                exponent=lens["exponent"],
-                medium=self.medium_dict[lens["medium"]],
+
+
+            lens = Lens(
+                diameter=lens_config["diameter"],
+                height=lens_config["height"],
+                exponent=lens_config["exponent"],
+                medium=self.medium_dict[lens_config["medium"]],
             )
 
-            lens_dict[lens["name"]].generate_profile(
-                pixel_size=self.parameters.pixel_size,
-                lens_type=self.parameters.lens_type
-            )
+            # load a custom lens profile
+            if lens_config["custom"]:
+                lens.load_profile(fname=lens_config["custom"])
+            
+            # generate the profile from the configuration
+            else:
+                lens.generate_profile(
+                    pixel_size=self.parameters.pixel_size,
+                    lens_type=self.parameters.lens_type
+                )
+
+            # TODO: do we want to be able to apply masks to custom profiles?
+                if lens_config["grating"] is not None:
+                    grating_settings = GratingSettings(
+                        width = lens_config["grating"]["width"],
+                        distance=lens_config["grating"]["distance"],
+                        depth = lens_config["grating"]["depth"],
+                        centred=lens_config["grating"]["centred"]
+                    )
+                    lens.calculate_grating_mask(
+                            grating_settings, 
+                            x_axis=lens_config["grating"]["x"], 
+                            y_axis=lens_config["grating"]["y"])
+
+                if lens_config["truncation"] is not None:
+                    lens.calculate_truncation_mask(
+                        truncation=lens_config["truncation"]["height"], 
+                        radius=lens_config["truncation"]["radius"],
+                        type=lens_config["truncation"]["type"])
+
+                if lens_config["apeture"] is not None:
+                    lens.calculate_apeture(
+                        inner_m=lens_config["apeture"]["inner"],
+                        outer_m=lens_config["apeture"]["outer"],
+                        type=lens_config["apeture"]["type"],
+                        inverted=lens_config["apeture"]["invert"]
+                    )
+
+                use_grating = True if lens_config["grating"] is not None else False
+                use_truncation = True if lens_config["truncation"] is not None else False
+                use_apeture = True if lens_config["apeture"] is not None else False
+
+                lens.apply_masks(grating=use_grating, truncation=use_truncation, apeture=use_apeture)
+
+            lens_dict[lens_config["name"]] = lens
 
             # TODO: load profile from disk...
 
