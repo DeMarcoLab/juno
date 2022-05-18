@@ -13,8 +13,8 @@ class GratingSettings:
     width: float                # metres
     distance: float             # metres
     depth: float                # metres
-    axis: int = 1           
-    centred: bool = True 
+    axis: int = 1
+    centred: bool = True
     distance_px: int = None     # pixels
     width_px: int = None        # pixels
 
@@ -120,10 +120,10 @@ class Lens:
 
     def extrude_profile(self, length: float) -> np.ndarray:
         """Extrude the lens profile to create a cylindrical lens profile.
-        
+
         args:
             length: (int) the length of the extruded lens (metres)
-        
+
         """
         if self.profile is None:
             raise RuntimeError(
@@ -184,12 +184,12 @@ class Lens:
     #         x         #
     #####################
     """
-    
+
     def apply_masks(
         self,
         grating: bool = False,
         truncation: bool = False,
-        apeture: bool = False,
+        aperture: bool = False,
         escape_path: bool = True,
     ):
 
@@ -201,9 +201,9 @@ class Lens:
         if truncation:
             self.profile[self.truncation_mask] = self.truncation
 
-        # apeture
-        if apeture:
-            self.profile[self.apeture_mask] = 0
+        # aperture
+        if aperture:
+            self.profile[self.aperture_mask] = 0
 
         # if escape_path:
         #     self.profile = self.calculate_escape_path(ratio=0.2)
@@ -246,7 +246,7 @@ class Lens:
 
         return self.profile
 
-    
+
 
     def calculate_escape_path(self, ratio=0.2):
 
@@ -284,26 +284,26 @@ class Lens:
     # e.g. 1.1 * lens_radius
     # pad with zero?
 
-    def calculate_apeture(
+    def calculate_aperture(
         self,
         inner_m: float = 0,
         outer_m: float = 0,
         type: str = "square",
         inverted: bool = False,
     ):
-        """Calculate the apeture mask"""
+        """Calculate the aperture mask"""
 
-        # Apeture
+        # Aperture
         # define mask, apply to profile (wavefront = 0)
 
         if inner_m > outer_m:
             raise ValueError(
-                """Inner radius must be smaller than outer radius. 
+                """Inner radius must be smaller than outer radius.
                             inner = {inner_m:.1e}m, outer = {outer_m:.1e}m"""
             )
 
         if inner_m == 0.0 and outer_m == 0.0:
-            self.apeture_mask = np.zeros_like(self.profile, dtype=np.uint8)
+            self.aperture_mask = np.zeros_like(self.profile, dtype=np.uint8)
             return self.profile
 
         inner_px = int(inner_m / self.pixel_size)
@@ -341,7 +341,7 @@ class Lens:
 
             mask[inner_mask * outer_mask] = not inverted
 
-        self.apeture_mask = mask == 1
+        self.aperture_mask = mask == 1
 
         return self.profile
 
@@ -356,11 +356,11 @@ class Lens:
         if settings.width == 0.0:
             self.grating_mask = np.zeros_like(self.profile, dtype=np.uint8)
             self.grating_depth = 0
-            return self.profile        
-        
+            return self.profile
+
         if settings.width >= settings.distance:
             raise ValueError(
-                f"""Grating width cannot be equal or larger than the distance between gratings. 
+                f"""Grating width cannot be equal or larger than the distance between gratings.
                                     width={settings.width:.2e}, distance = {settings.distance:.2e}"""
             )
 
@@ -386,7 +386,7 @@ class Lens:
     def calculate_grating_coords(
         self,
         profile: np.ndarray,
-        settings: GratingSettings, 
+        settings: GratingSettings,
         axis: int = 1,
     ):
 
@@ -395,15 +395,15 @@ class Lens:
         start_coord = profile.shape[axis] // 2
 
         if settings.centred:
-            # start at centre pixel then move out            
+            # start at centre pixel then move out
             start_coord_1 = profile.shape[axis] // 2
             start_coord_2 = profile.shape[axis] // 2
 
-        else:            
-            # start at centre pixel + half then move out           
+        else:
+            # start at centre pixel + half then move out
             start_coord_1 = start_coord - settings.distance_px // 2
             start_coord_2 = start_coord + settings.distance_px // 2
-        
+
         # coordinates of grating centres (starting from centre to both edges)
         grating_centre_coords_x1 = np.arange(start_coord_1, 0, -settings.distance_px)
         grating_centre_coords_x2 = np.arange(start_coord_2, profile.shape[axis], settings.distance_px)
@@ -425,4 +425,4 @@ class Lens:
         return np.ravel(grating_coords)
 
 
-    
+

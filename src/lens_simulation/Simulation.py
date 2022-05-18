@@ -313,19 +313,19 @@ class Simulation:
                         radius=lens_config["truncation"]["radius"],
                         type=lens_config["truncation"]["type"])
 
-                if lens_config["apeture"] is not None:
-                    lens.calculate_apeture(
-                        inner_m=lens_config["apeture"]["inner"],
-                        outer_m=lens_config["apeture"]["outer"],
-                        type=lens_config["apeture"]["type"],
-                        inverted=lens_config["apeture"]["invert"]
+                if lens_config["aperture"] is not None:
+                    lens.calculate_aperture(
+                        inner_m=lens_config["aperture"]["inner"],
+                        outer_m=lens_config["aperture"]["outer"],
+                        type=lens_config["aperture"]["type"],
+                        inverted=lens_config["aperture"]["invert"]
                     )
 
                 use_grating = True if lens_config["grating"] is not None else False
                 use_truncation = True if lens_config["truncation"] is not None else False
-                use_apeture = True if lens_config["apeture"] is not None else False
+                use_aperture = True if lens_config["aperture"] is not None else False
 
-                lens.apply_masks(grating=use_grating, truncation=use_truncation, apeture=use_apeture)
+                lens.apply_masks(grating=use_grating, truncation=use_truncation, aperture=use_aperture)
 
             lens_dict[lens_config["name"]] = lens
 
@@ -662,7 +662,7 @@ def calculate_wavefront(
     if passed_wavefront is not None:
         wavefront[phase == 0] = 0 + 0j
 
-    # zero out padded area (TODO: replace with apeture mask)
+    # zero out padded area (TODO: replace with aperture mask)
     if pad_px:
         wavefront[:, :pad_px] = 0 + 0j
         wavefront[:, -pad_px:] = 0 + 0j

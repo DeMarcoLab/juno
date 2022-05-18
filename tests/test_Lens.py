@@ -10,9 +10,9 @@ import numpy as np
 # TODO: lens fixture
 def generate_default_lens():
     # create lens
-    lens = Lens(diameter=100e-6, 
-                height=20e-6, 
-                exponent=2.0, 
+    lens = Lens(diameter=100e-6,
+                height=20e-6,
+                exponent=2.0,
                 medium=Medium(2.348))
 
     lens.generate_profile(1e-6, lens_type=LensType.Spherical)
@@ -57,9 +57,9 @@ def test_focusing_lens():
 
 # def test_extrude_lens():
 
-#     lens = Lens(diameter=4500e-6, 
-#                 height=20e-6, 
-#                 exponent=2.0, 
+#     lens = Lens(diameter=4500e-6,
+#                 height=20e-6,
+#                 exponent=2.0,
 #                 medium=Medium(1))
 #     base_profile = lens.generate_profile(1e-6)
 
@@ -71,9 +71,9 @@ def test_focusing_lens():
 
 def test_revolve_lens():
 
-    lens = Lens(diameter=4500e-6, 
-                height=20e-6, 
-                exponent=2.0, 
+    lens = Lens(diameter=4500e-6,
+                height=20e-6,
+                exponent=2.0,
                 medium=Medium(1))
     profile_2D = lens.generate_profile(1e-6, lens_type=LensType.Spherical)
 
@@ -150,7 +150,7 @@ def test_grating_mask_is_not_centred():
 
 
 def test_grating_mask_raises_error():
-    
+
     lens = generate_default_lens()
 
     grating_settings = GratingSettings(
@@ -163,7 +163,7 @@ def test_grating_mask_raises_error():
     with pytest.raises(ValueError):
         # distance between grating must be greater than grating width
         lens.calculate_grating_mask(grating_settings, x_axis=True, y_axis=True)
-    
+
 def test_truncation_by_value():
 
     truncation_value = 15e-6
@@ -187,46 +187,46 @@ def test_truncation_by_radius():
     assert np.isclose(np.max(lens.profile), 15.e-6, atol=0.25e-6), "Maximum value should be 15e-6"
 
 
-def test_apeture():
+def test_aperture():
 
     inner_m = 0e-6
     outer_m = 25e-6
 
     lens = generate_default_lens()
 
-    lens.calculate_apeture(inner_m = inner_m, outer_m=outer_m, type="radial", inverted=False) 
-    lens.apply_masks(apeture=True)
+    lens.calculate_aperture(inner_m = inner_m, outer_m=outer_m, type="radial", inverted=False)
+    lens.apply_masks(aperture=True)
 
     centre_x, centre_y = lens.profile.shape[0] // 2 , lens.profile.shape[1] // 2
     outer_px = int(outer_m / lens.pixel_size) - 1
 
-    assert lens.profile[centre_x, centre_y] == 0, "Centre should be apetured"
-    assert lens.profile[centre_x - outer_px, centre_y] == 0, "Outer radius should be apetured"
-    assert lens.profile[centre_x + outer_px, centre_y] == 0, "Outer radius should be apetured"
-    assert lens.profile[centre_x, centre_y - outer_px] == 0, "Outer radius should be apetured"
-    assert lens.profile[centre_x, centre_y + outer_px] == 0, "Outer radius should be apetured"
+    assert lens.profile[centre_x, centre_y] == 0, "Centre should be apertured"
+    assert lens.profile[centre_x - outer_px, centre_y] == 0, "Outer radius should be apertured"
+    assert lens.profile[centre_x + outer_px, centre_y] == 0, "Outer radius should be apertured"
+    assert lens.profile[centre_x, centre_y - outer_px] == 0, "Outer radius should be apertured"
+    assert lens.profile[centre_x, centre_y + outer_px] == 0, "Outer radius should be apertured"
 
-def test_apeture_inverted():
+def test_aperture_inverted():
     inner_m = 0e-6
     outer_m = 25e-6
 
     lens = generate_default_lens()
 
-    lens.calculate_apeture(inner_m = inner_m, outer_m=outer_m, type="radial", inverted=True) 
-    lens.apply_masks(apeture=True)
+    lens.calculate_aperture(inner_m = inner_m, outer_m=outer_m, type="radial", inverted=True)
+    lens.apply_masks(aperture=True)
 
     centre_x, centre_y = lens.profile.shape[0] // 2 , lens.profile.shape[1] // 2
     outer_px = int(outer_m / lens.pixel_size) + 2
 
-    assert np.isclose(lens.profile[centre_x, centre_y], lens.height, atol=0.25e-6), "Centre should be not apetured"
-    assert lens.profile[centre_x - outer_px, centre_y] == 0, "Outer radius should be apetured"
-    assert lens.profile[centre_x + outer_px, centre_y] == 0, "Outer radius should be apetured"
-    assert lens.profile[centre_x, centre_y - outer_px] == 0, "Outer radius should be apetured"
-    assert lens.profile[centre_x, centre_y + outer_px] == 0, "Outer radius should be apetured"
+    assert np.isclose(lens.profile[centre_x, centre_y], lens.height, atol=0.25e-6), "Centre should be not apertured"
+    assert lens.profile[centre_x - outer_px, centre_y] == 0, "Outer radius should be apertured"
+    assert lens.profile[centre_x + outer_px, centre_y] == 0, "Outer radius should be apertured"
+    assert lens.profile[centre_x, centre_y - outer_px] == 0, "Outer radius should be apertured"
+    assert lens.profile[centre_x, centre_y + outer_px] == 0, "Outer radius should be apertured"
 
-    assert lens.profile[0, 0] == 0, "Outer area should be apetured"
-    assert lens.profile[0, -1] == 0, "Outer area should be apetured"
-    assert lens.profile[-1, 0] == 0, "Outer area should be apetured"
-    assert lens.profile[0, -1] == 0, "Outer area should be apetured"
+    assert lens.profile[0, 0] == 0, "Outer area should be apertured"
+    assert lens.profile[0, -1] == 0, "Outer area should be apertured"
+    assert lens.profile[-1, 0] == 0, "Outer area should be apertured"
+    assert lens.profile[0, -1] == 0, "Outer area should be apertured"
 
 # TODO: do the same tests for cylindrical....

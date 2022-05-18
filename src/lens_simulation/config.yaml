@@ -19,7 +19,7 @@ lenses:
     custom: null # filepath or dir?
     grating: null
     truncation: null
-    apeture: null
+    aperture: null
   - name: lens_2
     diameter: 700.e-6
     height: 5.e-6
@@ -37,7 +37,7 @@ lenses:
       type: "radial"  # "value" or "radial"
       height: 20.e-6  # metres
       radius: 50.e-6  # metres
-    apeture:
+    aperture:
       type: "radial"  # "radial" or square"
       inner: 0.0      # metres
       outer: 0.0      # metres

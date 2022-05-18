@@ -27,13 +27,13 @@ with st.form("lens_form"):
     form_cols[1].subheader("Method Parameters")
     form_cols[2].subheader("Grating Parameters")
     form_cols[3].subheader("Truncation Parameters")
-    form_cols[4].subheader("Apeture Parameters")
+    form_cols[4].subheader("Aperture Parameters")
 
     diameter = form_cols[0].number_input("Diameter (um)", min_value=100, max_value=10000, value=1000, step=50) * MICRON_TO_METRE
     height = form_cols[0].number_input("Height (um)", min_value=5, max_value=100, value=20, step=1) * MICRON_TO_METRE
     exponent = form_cols[0].number_input("Exponent", min_value=0.0, max_value=10.0, value=2.0, step=0.1)
     lens_name = form_cols[0].text_input("Lens Name", "lens_x")
-    
+
     lens_type = form_cols[1].selectbox("Lens Type", [lens_type.name for lens_type in LensType])
     invert_profile = form_cols[1].selectbox("Invert Profile", [False, True])
     medium_refractive_index = form_cols[1].number_input("Refractive Index", min_value=1.0, max_value=10.0, value=1.0, step=0.01)
@@ -51,10 +51,10 @@ with st.form("lens_form"):
     truncation = form_cols[3].number_input("Truncation Height (um)", min_value=0.0, max_value=height * METRE_TO_MICRON, value=height*METRE_TO_MICRON, step=0.1) * MICRON_TO_METRE
     truncation_radius = form_cols[3].number_input("Truncation Radius (um)", min_value=0.0, max_value=diameter / 2 * METRE_TO_MICRON, value=0.0, step=1.0) * MICRON_TO_METRE
 
-    inner_m = form_cols[4].number_input("Apeture Inner (um)", min_value=0.0, max_value=diameter / 2 * METRE_TO_MICRON, value=0.0, step=1.0) * MICRON_TO_METRE
-    outer_m = form_cols[4].number_input("Apeture Outer (um)", min_value=0.0, max_value=diameter / 2 * METRE_TO_MICRON, value=0.0, step=1.0) * MICRON_TO_METRE
-    apeture_type = form_cols[4].selectbox("Apeture Type", ["radial", "square"])
-    invert_apeture = form_cols[4].selectbox("Invert Apeture", [False, True])
+    inner_m = form_cols[4].number_input("Aperture Inner (um)", min_value=0.0, max_value=diameter / 2 * METRE_TO_MICRON, value=0.0, step=1.0) * MICRON_TO_METRE
+    outer_m = form_cols[4].number_input("Aperture Outer (um)", min_value=0.0, max_value=diameter / 2 * METRE_TO_MICRON, value=0.0, step=1.0) * MICRON_TO_METRE
+    aperture_type = form_cols[4].selectbox("Aperture Type", ["radial", "square"])
+    invert_aperture = form_cols[4].selectbox("Invert Aperture", [False, True])
 
     submitted = st.form_submit_button("Generate Lens Profile")
 
@@ -70,9 +70,9 @@ if submitted:
 
 
     # create lens
-    lens = Lens(diameter=diameter, 
-                height=height, 
-                exponent=exponent, 
+    lens = Lens(diameter=diameter,
+                height=height,
+                exponent=exponent,
                 medium=Medium(medium_refractive_index))
 
     if lens_type == LensType.Spherical.name:
@@ -82,14 +82,14 @@ if submitted:
         lens.generate_profile(1e-6, lens_type=LensType.Cylindrical)
         lens.extrude_profile(lens.diameter)
 
-    
+
     if invert_profile:
         lens.invert_profile()
 
     # generate profile plots
     lens_fig = utils.plot_lens_profile_slices(lens, max_height=height)
     lens2d_fig = utils.plot_lens_profile_2D(lens)
-    
+
     lens.generate_profile(1e-6, lens_type=LensType.Spherical)
     lens.calculate_grating_mask(grating_settings, x_axis=grating_x, y_axis=grating_y)
     lens.apply_masks(grating=True)
@@ -103,19 +103,19 @@ if submitted:
     truncation1d_fig = utils.plot_lens_profile_slices(lens, max_height=height)
 
     lens.generate_profile(1e-6, lens_type=LensType.Spherical)
-    lens.calculate_apeture(inner_m = inner_m, outer_m=outer_m, type=apeture_type, inverted=invert_apeture) 
-    lens.apply_masks(apeture=True)
-    apeture_fig = utils.plot_lens_profile_2D(lens)
-    apeture1d_fig = utils.plot_lens_profile_slices(lens, max_height=height)
+    lens.calculate_aperture(inner_m = inner_m, outer_m=outer_m, type=aperture_type, inverted=invert_aperture)
+    lens.apply_masks(aperture=True)
+    aperture_fig = utils.plot_lens_profile_2D(lens)
+    aperture1d_fig = utils.plot_lens_profile_slices(lens, max_height=height)
 
 
     lens.generate_profile(1e-6, lens_type=LensType.Spherical)
     lens.calculate_grating_mask(grating_settings, x_axis=grating_x, y_axis=grating_y)
     lens.calculate_truncation_mask(truncation=truncation, radius= truncation_radius, type=truncation_type)
-    lens.calculate_apeture(inner_m = inner_m, outer_m=outer_m, type=apeture_type)
-    lens.apply_masks(grating=True, truncation=True, apeture=True) # TODO: inverting doesnt work in this case?
+    lens.calculate_aperture(inner_m = inner_m, outer_m=outer_m, type=aperture_type)
+    lens.apply_masks(grating=True, truncation=True, aperture=True) # TODO: inverting doesnt work in this case?
     mask_fig = utils.plot_lens_profile_2D(lens)
-    mask1d_fig = utils.plot_lens_profile_slices(lens, max_height=height)  
+    mask1d_fig = utils.plot_lens_profile_slices(lens, max_height=height)
 
     # show plots
     cols = st.columns(5)
@@ -126,14 +126,14 @@ if submitted:
     cols[1].subheader("Grating Profile")
     cols[1].pyplot(grating1d_fig)
     cols[1].pyplot(grating_fig)
-    
+
     cols[2].subheader("Truncation Profile")
     cols[2].pyplot(truncation1d_fig)
     cols[2].pyplot(truncation_fig)
-    
-    cols[3].subheader("Apeture Applied")
-    cols[3].pyplot(apeture1d_fig)
-    cols[3].pyplot(apeture_fig)
+
+    cols[3].subheader("Aperture Applied")
+    cols[3].pyplot(aperture1d_fig)
+    cols[3].pyplot(aperture_fig)
 
     cols[4].subheader("All Masks")
     cols[4].pyplot(mask1d_fig)
@@ -142,13 +142,13 @@ if submitted:
 save_button = st.button("Save Lens Configuration")
 
 if save_button:
-    # TODO: 
+    # TODO:
 
     lens_config = {
         "name": lens_name,
         "diameter" : diameter,
         "height" : height,
-        "exponent" : exponent, 
+        "exponent" : exponent,
         "medium" : medium_name,
         "custom" : None,
         "grating" : {
@@ -164,13 +164,13 @@ if save_button:
             "height": truncation,
             "radius": truncation_radius,
         },
-        "apeture": {
-            "type": apeture_type,
+        "aperture": {
+            "type": aperture_type,
             "inner": inner_m,
             "outer": outer_m,
-            "invert": invert_apeture
+            "invert": invert_aperture
         }
-    }    
+    }
 
     import yaml
     fname = "lens.yaml"
