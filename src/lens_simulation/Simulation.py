@@ -286,7 +286,7 @@ class Simulation:
             # load a custom lens profile
             if lens_config["custom"]:
                 lens.load_profile(fname=lens_config["custom"])
-            
+
             # generate the profile from the configuration
             else:
                 lens.generate_profile(
@@ -303,13 +303,13 @@ class Simulation:
                         centred=lens_config["grating"]["centred"]
                     )
                     lens.calculate_grating_mask(
-                            grating_settings, 
-                            x_axis=lens_config["grating"]["x"], 
+                            grating_settings,
+                            x_axis=lens_config["grating"]["x"],
                             y_axis=lens_config["grating"]["y"])
 
                 if lens_config["truncation"] is not None:
                     lens.calculate_truncation_mask(
-                        truncation=lens_config["truncation"]["height"], 
+                        truncation=lens_config["truncation"]["height"],
                         radius=lens_config["truncation"]["radius"],
                         type=lens_config["truncation"]["type"])
 
@@ -346,13 +346,13 @@ class Simulation:
         DEBUG = self.options.debug
 
         def calculate_num_of_pixels(width, pixel_size, odd=True):
-            n_pixels = int(width / pixel_size)  
+            n_pixels = int(width / pixel_size)
             # n_pixels must be odd (symmetry).
             if odd and n_pixels % 2 == 0:
                 n_pixels += 1
 
             return n_pixels
-        
+
         # pad the lens profile to be the same size as the simulation, add user defined padding.
         pad_px = self.parameters.padding
         sim_profile = pad_simulation(lens, parameters = self.parameters, pad_px=pad_px)
@@ -558,7 +558,7 @@ def calculate_equivalent_focal_distance(lens: Lens, medium: Medium) -> float:
     return equivalent_focal_distance
 
 def calculate_num_of_pixels(width, pixel_size, odd=True):
-    n_pixels = int(width / pixel_size)  
+    n_pixels = int(width / pixel_size)
     # n_pixels must be odd (symmetry).
     if odd and n_pixels % 2 == 0:
         n_pixels += 1

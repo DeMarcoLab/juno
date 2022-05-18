@@ -41,7 +41,7 @@ lenses:
       type: "radial"  # "radial" or square"
       inner: 0.0      # metres
       outer: 0.0      # metres
-      invert: false 
+      invert: false
 mediums:
   - name: medium_1
     refractive_index: 2.348
