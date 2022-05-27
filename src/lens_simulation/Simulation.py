@@ -134,8 +134,28 @@ class Simulation:
 
         self.sim_stages = []
 
-        for i, stage in enumerate(self.stages):
 
+        # first stage is a beam
+        from lens_simulation.beam import generate_beam
+        beam = generate_beam(self.config["beam"], self.parameters)
+        
+        utils.plot_lens_profile_2D(beam.lens)
+        plt.show()
+
+        beam_stage = SimulationStage(
+            lens = beam.lens,
+            output=Medium(1.33),
+            n_slices = 10, 
+            start_distance=beam.start_distance,
+            finish_distance=beam.finish_distance
+        )
+
+        # self.sim_stages.append(beam_stage)
+
+        # TODO: refactor this to incorporate the first beam stage
+        
+        for i, stage in enumerate(self.stages):
+                
             sim_stage = SimulationStage(
                 lens=self.lens_dict[stage["lens"]],
                 output=self.medium_dict[stage["output"]],
@@ -200,18 +220,17 @@ class Simulation:
             self.sim_stages.append(sim_stage)
 
     def run_simulation(self):
+        """Run the simulation propagation over all simulation stages."""
 
-        # Simulation Calculations
         passed_wavefront = None
-        self.progress_bar = tqdm(self.sim_stages, leave=False)
-        for stage_id, stage in enumerate(self.progress_bar):
+        progress_bar = tqdm(self.sim_stages, leave=False)
+        for stage in progress_bar:
 
-            # TODO: remove
-            self.progress_bar.set_description(
+            progress_bar.set_description(
                 f"Sim: {self.petname} ({str(self.sim_id)[-10:]}) - Propagating Wavefront"
             )
             result = propagate_wavefront(
-                sim_stage=stage,
+                stage=stage,
                 parameters=self.parameters, 
                 options=self.options, 
                 passed_wavefront=passed_wavefront
@@ -221,13 +240,13 @@ class Simulation:
             save_path = os.path.join(self.options.log_dir, str(stage._id))
 
             if self.options.save:
-                self.progress_bar.set_description(
+                progress_bar.set_description(
                     f"Sim: {self.petname} ({str(self.sim_id)[-10:]}) - Saving Simulation"
                 )
                 utils.save_simulation(result.sim, os.path.join(save_path, "sim.npy"))
 
             if self.options.save_plot:
-                self.progress_bar.set_description(
+                progress_bar.set_description(
                     f"Sim: {self.petname} ({str(self.sim_id)[-10:]}) - Plotting Simulation"
                 )
                 
@@ -316,20 +335,38 @@ class Simulation:
         return lens_dict
 
 
-
-def propagate_wavefront(sim_stage: SimulationStage, 
+def propagate_wavefront(stage: SimulationStage, 
                         parameters: SimulationParameters, 
                         options: SimulationOptions, 
-                        passed_wavefront: np.ndarray = None):
+                        passed_wavefront: np.ndarray = None) -> SimulationResult:
+    """Propagate the light wavefront using the supplied settings and parameters.
 
-    lens = sim_stage.lens
-    output_medium = sim_stage.output
-    n_slices = sim_stage.n_slices
-    start_distance = sim_stage.start_distance
-    finish_distance = sim_stage.finish_distance
+    Args:
+        sim_stage (SimulationStage): the setup of the simulation stage, lens -> output
+        parameters (SimulationParameters): the global simulation parameters (shared for all stages)
+        options (SimulationOptions): global simulation options
+        passed_wavefront (np.ndarray, optional): the previous wavefront to propagate from. Defaults to None.
+
+    Raises:
+        ValueError: lens is larger than the simulation width
+
+    Returns:
+        SimulationResult: results of the wave propagation (including intermediates if debugging)
+    """
+
+
+    lens = stage.lens
+    output_medium = stage.output
+    n_slices = stage.n_slices
+    start_distance = stage.start_distance
+    finish_distance = stage.finish_distance
+
+    # TODO: move to lens creation??
+    if lens.diameter > parameters.sim_width:
+        raise ValueError(f"Lens diameter must be smaller than the simulation width: lens: {lens.diameter:.2e}, sim: {parameters.sim_width:.2e}")
 
     DEBUG = options.debug
-    save_path = os.path.join(options.log_dir, str(sim_stage._id))
+    save_path = os.path.join(options.log_dir, str(stage._id))
 
     # pad the lens profile to be the same size as the simulation, add user defined padding.
     pad_px = parameters.padding

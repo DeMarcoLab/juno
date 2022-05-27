@@ -1,6 +1,7 @@
 from dataclasses import dataclass, field
 import matplotlib.pyplot as plt
 import numpy as np
+from pytest import param
 from scipy import fftpack
 from enum import Enum, auto
 
@@ -135,11 +136,9 @@ class Beam:
         else:
             raise TypeError(f"Unsupport Beam Spread: {self.spread}")
 
-
-
         # set up the part of the lens square that isn't the lens for aperturing
         non_lens_profile = lens.profile == 0 
-        aperturing_value = -1e-9 # QUERY why not zero
+        aperturing_value = -1e-9 # QUERY why not zero, parts of lens at zero might not be apertures e.g. escape path...
         lens.profile[non_lens_profile] = aperturing_value
 
         # apeturing profile
@@ -273,7 +272,7 @@ def load_beam_config(config: dict) -> BeamSettings:
 
     position = config["position"] if "position" in config else [0.0, 0.0]
     theta = config["theta"] if "theta" in config else 0.0
-    numerical_aperture = config["numerical_aperture"] if "numerical_aperture" in config else None
+    numerical_aperture = config["numerical_aperture"] if "numerical_aperture" in config else None 
     tilt = config["tilt"] if "tilt" in config else 0.0
     source_distance = config["source_distance"] if "source_distance" in config else None
     final_width = config["final_width"] if "final_width" in config else None
@@ -295,3 +294,24 @@ def load_beam_config(config: dict) -> BeamSettings:
     )
 
     return beam_settings
+
+def generate_beam(config: dict, parameters: SimulationParameters):
+    """Create a beam for simulation
+
+    Args:
+        config (dict): beam configuration
+        parameters (SimulationParameters): global simulation parameters 
+
+    Returns:
+        Beam: initial simulation beam
+    """
+    # load beam settings
+    beam_settings = load_beam_config(config)
+
+    # create beam
+    beam = Beam(settings=beam_settings)
+
+    # generate profile
+    beam.generate_profile(sim_parameters=parameters)
+
+    return beam
