@@ -1,4 +1,5 @@
 
+from pathlib import Path
 from lens_simulation.Lens import Lens, LensType
 from lens_simulation.Medium import Medium
 from dataclasses import dataclass
@@ -17,6 +18,7 @@ class SimulationParameters:
 
 @dataclass
 class SimulationOptions:
+    log_dir: Path
     save: bool = True
     save_plot: bool = True
     verbose: bool = False
@@ -33,8 +35,9 @@ class SimulationStage:
     n_slices: int
     start_distance: float
     finish_distance: float
-    options: dict
+    options: dict = None
     lens_inverted: bool = False
+    _id: int = 0
 
 
 @dataclass

@@ -14,7 +14,7 @@ from tqdm import tqdm
 from lens_simulation import utils
 from lens_simulation.Lens import Lens, LensType, GratingSettings
 from lens_simulation.Medium import Medium
-from lens_simulation.SimulationUtils import (
+from lens_simulation.structures import (
     SimulationOptions,
     SimulationParameters,
     SimulationStage,
@@ -68,10 +68,15 @@ class Simulation:
         self.lenses = config["lenses"]
         self.stages = config["stages"]
 
-        pprint(self.lenses)
+        # pprint(self.lenses)
+
+        # TODO: change to petname? careful of collisions
+        log_dir = os.path.join(self.config["log_dir"], str(self.sim_id))  
+        os.makedirs(log_dir, exist_ok=True)
 
         # options
         self.options = SimulationOptions(
+            log_dir=log_dir,
             save=config["options"]["save"],
             save_plot=config["options"]["save_plot"],
             verbose=config["options"]["verbose"],
@@ -79,11 +84,6 @@ class Simulation:
         )
 
     def setup_simulation(self):
-
-        self.log_dir = os.path.join(
-            self.config["log_dir"], str(self.sim_id)
-        )  # TODO: change to petname? careful of collisions
-        os.makedirs(self.log_dir, exist_ok=True)
 
         # common sim parameters
         self.parameters = SimulationParameters(
@@ -208,8 +208,11 @@ class Simulation:
             self.progress_bar.set_description(
                 f"Sim: {self.petname} ({str(self.sim_id)[-10:]}) - Propagating Wavefront"
             )
-            propagation = self.propagate_wavefront(
-                stage, passed_wavefront=passed_wavefront
+            propagation = propagate_wavefront(
+                sim_stage=stage,
+                parameters=self.parameters, 
+                options=self.options, 
+                passed_wavefront=passed_wavefront
             )
 
             if self.options.save:
@@ -223,38 +226,11 @@ class Simulation:
                     f"Sim: {self.petname} ({str(self.sim_id)[-10:]}) - Plotting Simulation"
                 )
 
-
             # pass the wavefront to the next stage
             passed_wavefront = propagation
 
-        if self.options.verbose:
-            print("-" * 20)
-            print("---------- Summary ----------")
+        utils.save_metadata(self.config, self.options.log_dir)
 
-            print("---------- Medium ----------")
-            pprint(self.medium_dict)
-
-            print("---------- Lenses ----------")
-            pprint(self.lens_dict)
-
-            print("---------- Parameters ----------")
-            pprint(self.config["sim_parameters"])
-
-            print("---------- Simulation ----------")
-            pprint(self.sim_stages)
-
-            print("---------- Configuration ----------")
-            pprint(self.config)
-
-        utils.save_metadata(self.config, self.log_dir)
-
-    def save_simulation(self, sim, block_id):
-        """Save the simulation data"""
-        # TODO: save compressed version?
-        save_path = os.path.join(self.log_dir, str(block_id), "sim.npy")
-        # save_file = os.path.join(save_path, "sim.npy")
-        os.makedirs(os.path.dirname(save_path), exist_ok=True)
-        np.save(save_path, sim)
 
     def generate_mediums(self):
         """Generate all the mediums for the simulation"""
@@ -333,165 +309,171 @@ class Simulation:
 
         return lens_dict
 
-    def propagate_wavefront(
-        self, sim_stage: SimulationStage, passed_wavefront=None,
-    ):
 
-        lens = sim_stage.lens
-        output_medium = sim_stage.output
-        n_slices = sim_stage.n_slices
-        start_distance = sim_stage.start_distance
-        finish_distance = sim_stage.finish_distance
 
-        DEBUG = self.options.debug
+def propagate_wavefront(sim_stage: SimulationStage, 
+                        parameters: SimulationParameters, 
+                        options: SimulationOptions, 
+                        passed_wavefront: np.ndarray = None):
 
-        def calculate_num_of_pixels(width, pixel_size, odd=True):
-            n_pixels = int(width / pixel_size)
-            # n_pixels must be odd (symmetry).
-            if odd and n_pixels % 2 == 0:
-                n_pixels += 1
+    lens = sim_stage.lens
+    output_medium = sim_stage.output
+    n_slices = sim_stage.n_slices
+    start_distance = sim_stage.start_distance
+    finish_distance = sim_stage.finish_distance
 
-            return n_pixels
+    DEBUG = options.debug
+    save_path = os.path.join(options.log_dir, str(sim_stage._id))
 
-        # pad the lens profile to be the same size as the simulation, add user defined padding.
-        pad_px = self.parameters.padding
-        sim_profile = pad_simulation(lens, parameters = self.parameters, pad_px=pad_px)
+    # pad the lens profile to be the same size as the simulation, add user defined padding.
+    pad_px = parameters.padding
+    sim_profile = pad_simulation(lens, parameters = parameters, pad_px=pad_px)
 
-        # generate frequency array
-        freq_arr = generate_sq_freq_arr(
-            sim_profile, pixel_size=self.parameters.pixel_size
+    # generate frequency array
+    freq_arr = generate_sq_freq_arr(
+        sim_profile, pixel_size=parameters.pixel_size
+    )
+
+    # calculate delta and phase profiles
+    delta = calculate_delta_profile(
+        sim_profile=sim_profile, lens=lens, output_medium=output_medium
+    )
+    phase = calculate_phase_profile(
+        delta=delta, wavelength=parameters.sim_wavelength
+    )
+
+    A = parameters.A if passed_wavefront is None else 1.0
+    wavefront = calculate_wavefront(
+        phase=phase, passed_wavefront=passed_wavefront, A=A, pad_px=pad_px
+    )
+
+    # fourier transform of wavefront
+    fft_wavefront = fftpack.fft2(wavefront)
+
+    # pre-allocate view arrays
+    sim = np.zeros(shape=(n_slices, *sim_profile.shape), dtype=np.float32)
+    top_down_view = np.zeros(
+        shape=(n_slices, sim_profile.shape[1]), dtype=np.float32
+    )
+    side_on_view = np.zeros(
+        shape=(n_slices, sim_profile.shape[0]), dtype=np.float32
+    )
+
+    if DEBUG:
+        print(f"sim_profile.shape={sim_profile.shape}")
+        print(f"freq_arr.shape={freq_arr.shape}")
+        print(f"delta.shape={delta.shape}")
+        print(f"phase.shape={phase.shape}")
+        print(f"wavefront.shape={wavefront.shape}")
+        print(f"fft_wavefront.shape={fft_wavefront.shape}")
+        print(f"top_down_view.shape={top_down_view.shape}")
+        print(f"side_on_view.shape={side_on_view.shape}")
+
+        # check the freq arr was created correctly
+        assert freq_arr.shape[-1] == wavefront.shape[-1]
+        if passed_wavefront is not None:
+            assert not np.array_equal(
+                np.unique(wavefront), [0 + 0j]
+            )  # non empty sim
+
+    # propagate the wavefront over distance
+    distances = np.linspace(start_distance, finish_distance, n_slices)
+
+    prop_progress_bar = tqdm(distances, leave=False)
+    for i, distance in enumerate(prop_progress_bar):
+        prop_progress_bar.set_description(
+            f"Propagating Wavefront at Distance {distance:.4f} / {distances[-1]:.4f}m"
         )
 
-        # calculate delta and phase profiles
-        delta = calculate_delta_profile(
-            sim_profile=sim_profile, lens=lens, output_medium=output_medium
-        )
-        phase = calculate_phase_profile(
-            delta=delta, wavelength=self.parameters.sim_wavelength
+        rounded_output, propagation = propagate_over_distance(
+            fft_wavefront, distance, freq_arr, output_medium.wave_number
         )
 
-        A = self.parameters.A if passed_wavefront is None else 1.0
-        wavefront = calculate_wavefront(
-            phase=phase, passed_wavefront=passed_wavefront, A=A, pad_px=pad_px
-        )
+        if options.save:
+            # save output
+            utils.save_simulation(rounded_output,
+                fname=os.path.join(save_path, f"{distance*1000:.8f}mm.npy")
+                )
 
-        # fourier transform of wavefront
-        fft_wavefront = fftpack.fft2(wavefront)
-
-        # pre-allocate view arrays
-        sim = np.zeros(shape=(n_slices, *sim_profile.shape), dtype=np.float32)
-        top_down_view = np.zeros(
-            shape=(n_slices, sim_profile.shape[1]), dtype=np.float32
-        )
-        side_on_view = np.zeros(
-            shape=(n_slices, sim_profile.shape[0]), dtype=np.float32
-        )
-
-        if DEBUG:
-            print(f"sim_profile.shape={sim_profile.shape}")
-            print(f"freq_arr.shape={freq_arr.shape}")
-            print(f"delta.shape={delta.shape}")
-            print(f"phase.shape={phase.shape}")
-            print(f"wavefront.shape={wavefront.shape}")
-            print(f"fft_wavefront.shape={fft_wavefront.shape}")
-            print(f"top_down_view.shape={top_down_view.shape}")
-            print(f"side_on_view.shape={side_on_view.shape}")
-
-            # check the freq arr was created correctly
-            assert freq_arr.shape[-1] == wavefront.shape[-1]
-            if passed_wavefront is not None:
-                assert not np.array_equal(
-                    np.unique(wavefront), [0 + 0j]
-                )  # non empty sim
-
-        # propagate the wavefront over distance
-        distances = np.linspace(start_distance, finish_distance, n_slices)
-
-        prop_progress_bar = tqdm(distances, leave=False)
-        for i, distance in enumerate(prop_progress_bar):
-            prop_progress_bar.set_description(
-                f"Propagating Wavefront at Distance {distance:.4f} / {distances[-1]:.4f}m"
-            )
-
-            rounded_output, propagation = propagate_over_distance(
-                fft_wavefront, distance, freq_arr, output_medium.wave_number
-            )
-
-            if self.options.save:
-                # save output
-                utils.save_simulation_slice(rounded_output,
-                    fname=os.path.join(self.log_dir, str(self.stage_id), f"{distance*1000:.8f}mm.npy")
-                    )
-
-            if lens.profile.ndim == 2:
-                # calculate views
-                centre_px_h = rounded_output.shape[0] // 2
-                centre_px_v = rounded_output.shape[1] // 2
-                top_down_slice = rounded_output[centre_px_v, :]
-                side_on_slice = rounded_output[:, centre_px_h]
-
-                # append views
-                top_down_view[i, :] = top_down_slice
-                side_on_view[i, :] = side_on_slice
-                sim[i, :, :] = rounded_output
-            else:
-                sim[i, :, :] = rounded_output
-                top_down_view[i, :] = rounded_output
-
-        if self.options.save:
-            self.save_simulation(sim, self.stage_id)
-
-        # TODO: separate plotting / save from simulating
-        ################## SAVE ##################
         if lens.profile.ndim == 2:
-            utils.plot_image(freq_arr, "Frequency Array",
-                    save=True, fname=os.path.join(self.log_dir, str(self.stage_id), "freq.png"))
+            # calculate views
+            centre_px_h = rounded_output.shape[0] // 2
+            centre_px_v = rounded_output.shape[1] // 2
+            top_down_slice = rounded_output[centre_px_v, :]
+            side_on_slice = rounded_output[:, centre_px_h]
 
-            utils.plot_image(delta, "Delta Profile",
-                save=True, fname=os.path.join(self.log_dir, str(self.stage_id), "delta.png"))
+            # append views
+            top_down_view[i, :] = top_down_slice
+            side_on_view[i, :] = side_on_slice
+            sim[i, :, :] = rounded_output
+        else:
+            sim[i, :, :] = rounded_output
+            top_down_view[i, :] = rounded_output
 
+    if options.save:
+        utils.save_simulation(sim, os.path.join(save_path, "sim.npy"))
+
+    # TODO: separate plotting / save from simulating
+    ################## SAVE ##################
+
+    
+    if options.save_plot:
+        # save top-down
+        fig = utils.plot_simulation(
+            arr=top_down_view,
+            pixel_size_x=parameters.pixel_size,
+            start_distance=start_distance,
+            finish_distance=finish_distance,
+        )
+
+        utils.save_figure(
+            fig, os.path.join(save_path, "topdown.png")
+        )
+        plt.close(fig)
+
+
+        fig = utils.plot_simulation(
+            np.log(top_down_view + 10e-12),
+            pixel_size_x=parameters.pixel_size,
+            start_distance=start_distance,
+            finish_distance=finish_distance,
+        )
+
+        utils.save_figure(
+            fig, os.path.join(save_path, "log_topdown.png")
+        )
+        plt.close(fig)
+
+        fig = utils.plot_simulation(
+            arr=side_on_view,
+            pixel_size_x=parameters.pixel_size,
+            start_distance=start_distance,
+            finish_distance=finish_distance,
+        )
+        utils.save_figure(
+            fig, os.path.join(save_path, "sideon.png")
+        )
+        plt.close(fig)
+
+        if lens.profile.ndim == 2:
+            fig = utils.plot_image(freq_arr, "Frequency Array",
+                    save=True, fname=os.path.join(save_path, "freq.png"))
+            plt.close(fig)
+            fig = utils.plot_image(delta, "Delta Profile",
+                save=True, fname=os.path.join(save_path, "delta.png"))
+            plt.close(fig)
+            
             utils.plot_image(phase, "Phase Profile",
-                    save=True, fname=os.path.join(self.log_dir, str(self.stage_id), "phase.png"))
-
-        if self.options.save_plot:
-            # save top-down
-            fig = utils.plot_simulation(
-                arr=top_down_view,
-                pixel_size_x=self.parameters.pixel_size,
-                start_distance=start_distance,
-                finish_distance=finish_distance,
-            )
-
-            utils.save_figure(
-                fig, os.path.join(self.log_dir, str(self.stage_id), "topdown.png")
-            )
+                    save=True, fname=os.path.join(save_path, "phase.png"))
             plt.close(fig)
 
+            fig = utils.plot_lens_profile_2D(lens)
+            utils.save_figure(fig, fname=os.path.join(save_path, "lens_profile.png"))
 
-            fig = utils.plot_simulation(
-                np.log(top_down_view + 10e-12),
-                pixel_size_x=self.parameters.pixel_size,
-                start_distance=start_distance,
-                finish_distance=finish_distance,
-            )
+            fig = utils.plot_lens_profile_slices(lens)
+            utils.save_figure(fig, fname=os.path.join(save_path, "lens_slices.png"))
 
-            utils.save_figure(
-                fig, os.path.join(self.log_dir, str(self.stage_id), "log_topdown.png")
-            )
-            plt.close(fig)
-
-            fig = utils.plot_simulation(
-                arr=side_on_view,
-                pixel_size_x=self.parameters.pixel_size,
-                start_distance=start_distance,
-                finish_distance=finish_distance,
-            )
-            utils.save_figure(
-                fig, os.path.join(self.log_dir, str(self.stage_id), "sideon.png")
-            )
-            plt.close(fig)
-
-        return propagation
+    return propagation
 
 
 def generate_squared_frequency_array(n_pixels: int, pixel_size: float) -> np.ndarray:
@@ -565,27 +547,6 @@ def calculate_num_of_pixels(width, pixel_size, odd=True):
 
     return n_pixels
 
-# def pad_simulation(lens: Lens, pad_px: int = None) -> np.ndarray:
-#     """Pad the area around the lens profile to prevent reflection"""
-
-#     # TODO: make this work for assymmetric shape
-#     if lens.profile.ndim not in (1, 2):
-#         raise TypeError(
-#             f"Padding is only supported for 1D and 2D lens. Lens shape was: {lens.profile.shape}."
-#         )
-
-#     if pad_px is None:
-#         pad_px = lens.profile.shape[-1]
-
-#     # two different types of padding?
-#     sim_profile = np.pad(lens.profile, pad_px, mode="constant")
-
-#     if lens.profile.ndim == 1:
-#         sim_profile = np.expand_dims(
-#             sim_profile, axis=0
-#         )  # expand 1D lens to 2D sim shape
-
-#     return sim_profile
 
 def pad_simulation(lens: Lens, parameters: SimulationParameters = None,  pad_px: int = None) -> np.ndarray:
     """Pad the area around the lens profile to prevent reflection. Pad the lens profile to match the simulation width"""
@@ -629,7 +590,7 @@ def _pad_lens_profile_to_sim_width(lens: Lens, width: float, pixel_size: float):
     return lens
 
 def calculate_delta_profile(
-    sim_profile, lens: Lens, output_medium: Medium
+    sim_profile: np.ndarray, lens: Lens, output_medium: Medium
 ) -> np.ndarray:
     """Calculate the delta profile of the wave"""
     delta = (
@@ -637,6 +598,35 @@ def calculate_delta_profile(
     ) * sim_profile
 
     return delta
+
+
+def calculate_tilted_delta_profile(sim_profile: np.ndarray, lens: Lens, output_medium: Medium, tilt_enabled: bool = False, xtilt: float = 0, ytilt: float = 0) -> np.ndarray:
+    """_summary_
+
+    Args:
+        lens (Lens): lens
+        output_medium (Medium): output medium
+        tilt_enabled (bool, optional): delta profile is tilted. Defaults to False.
+        xtilt (float, optional): tilt in x-axis (degrees). Defaults to 0.
+        ytilt (float, optional): tilt in y-axis (degrees). Defaults to 0.
+
+    Returns:
+        np.ndarray: delta profile
+    """
+
+    # regular delta calculation
+    delta = calculate_delta_profile(sim_profile, lens, output_medium)
+
+    # tilt the beam
+    if tilt_enabled:
+        x = np.arange(len(lens.profile))*lens.pixel_size
+        y = np.arange(len(lens.profile))*lens.pixel_size
+
+        # modify the optical path of the light based on tilt
+        delta = delta + np.add.outer(y * np.tan(np.deg2rad(ytilt)), -x * np.tan(np.deg2rad(xtilt)))
+
+    return delta
+
 
 
 def calculate_phase_profile(delta: np.ndarray, wavelength: float) -> np.ndarray:
@@ -682,3 +672,6 @@ def propagate_over_distance(
     rounded_output = np.round(output.astype(np.float32), 10)
 
     return rounded_output, propagation
+
+
+

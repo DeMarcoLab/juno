@@ -8,6 +8,8 @@ import yaml
 
 from lens_simulation.Lens import Lens
 
+from pathlib import Path
+
 # TODO: visualisation
 # visualisation between lens and sim data is inconsistent, 
 # light comes from bottom for lens profile, and top for sim result.
@@ -94,7 +96,6 @@ def plot_image(arr: np.ndarray, title: str = "Image Title", save: bool = False, 
     plt.colorbar()
     if save:
         save_figure(fig, fname)
-    # plt.close(fig)
 
     return fig  
 
@@ -209,7 +210,14 @@ def plot_lens_profile_slices(lens: Lens, max_height: float = None) -> plt.Figure
     
     return fig
 
-def save_simulation_slice(sim, fname):
+
+def save_simulation(sim: np.ndarray, fname: Path) -> None:
+    """Save the simulation array as a numpy array
+
+    Args:
+        sim (_type_): _description_
+        fname (_type_): _description_
+    """
     # TODO: use npz (compressed)
     os.makedirs(os.path.dirname(fname), exist_ok=True)
     np.save(fname, sim)

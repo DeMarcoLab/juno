@@ -2,7 +2,7 @@ import numpy as np
 import pytest
 from lens_simulation import Simulation, Lens
 from lens_simulation.Lens import LensType
-from lens_simulation.SimulationUtils import SimulationParameters
+from lens_simulation.structures import SimulationParameters
 
 
 @pytest.mark.parametrize(
