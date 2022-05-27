@@ -57,6 +57,7 @@ def test_beam_converging_is_circular(beam_settings):
 
     beam_settings.beam_shape = BeamShape.Square
     beam_settings.beam_spread = BeamSpread.Converging
+    beam_settings.theta = 10
 
     beam = Beam(beam_settings)
 
@@ -111,6 +112,7 @@ def test_beam_generate_profile_converging(beam_settings, sim_parameters):
     # converging beam 
     beam_settings.beam_shape = BeamShape.Circular
     beam_settings.beam_spread = BeamSpread.Converging
+    beam_settings.theta = 10
     beam = Beam(beam_settings)
 
     return NotImplemented
@@ -137,6 +139,7 @@ def test_beam_generate_profile_diverging(beam_settings, sim_parameters):
     # diverging beam
     beam_settings.beam_shape = BeamShape.Circular
     beam_settings.beam_spread = BeamSpread.Diverging
+    beam_settings.theta = 10
     beam = Beam(beam_settings)
     beam.generate_profile(sim_parameters)
 
@@ -154,7 +157,8 @@ def test_beam_propagation_distance_direct(beam_settings, sim_parameters):
 
     test_distance = 10.e-3
     beam_settings.distance_mode = DistanceMode.Direct
-    beam_settings.beam_spread = BeamSpread.Converging
+    beam_settings.beam_spread = BeamSpread.Plane
+    
     beam_settings.source_distance = test_distance 
     beam = Beam(beam_settings)
     beam.generate_profile(sim_parameters)
@@ -184,6 +188,7 @@ def test_beam_propagation_distance_focal(beam_settings, sim_parameters):
     test_distance = 10.e-3
     beam_settings.distance_mode = DistanceMode.Focal
     beam_settings.beam_spread = BeamSpread.Converging
+    beam_settings.theta = 10
     beam_settings.source_distance = test_distance 
     beam = Beam(beam_settings)
     beam.generate_profile(sim_parameters)
@@ -202,6 +207,7 @@ def test_beam_propagation_distance_width(beam_settings, sim_parameters):
     test_distance = 10.e-3
     beam_settings.distance_mode = DistanceMode.Width
     beam_settings.beam_spread = BeamSpread.Converging
+    beam_settings.theta = 10
     beam_settings.final_width = 5e-6
     beam_settings.source_distance = test_distance 
     beam = Beam(beam_settings)
