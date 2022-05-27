@@ -11,6 +11,8 @@ options:
   save: true
   save_plot: true
   debug: false
+beam:
+
 lenses:
   - name: lens_1
     diameter: 700.e-6

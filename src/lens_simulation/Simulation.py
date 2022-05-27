@@ -154,12 +154,17 @@ class Simulation:
 
                 # NOTE: if the lens and the output have the same medium, the lens is assumed to be 'double-sided'
                 # therefore, we invert the lens profile to create an 'air lens' to properly simulate the double sided lens
-
                 if (
                     sim_stage.lens.medium.refractive_index
                     == sim_stage.output.refractive_index
                 ):  # TODO: figure out why dataclass comparison isnt working
+                    
+                    # TODO: finish this
+                    # def invert_lens_and_output_medium(stage: SimulationStage, previous_stage: SimulationStage, parameters: SimulationParameters) -> SimulationStage:
+                    #     pass
 
+                    # sim_stage = invert_lens_and_output_medium(sim_stage, self.sim_stages[i - 1], self.parameters)
+                    
                     if (
                         sim_stage.lens.medium.refractive_index
                         == self.sim_stages[i - 1].output.refractive_index
@@ -170,7 +175,7 @@ class Simulation:
 
                     # change to 'air' lens, and invert the profile
                     sim_stage.lens = Lens(
-                        diameter=self.stage.lens.diameter,
+                        diameter=sim_stage.lens.diameter,
                         height=sim_stage.lens.height,
                         exponent=sim_stage.lens.exponent,
                         medium=self.sim_stages[i - 1].output,
@@ -181,14 +186,10 @@ class Simulation:
                     sim_stage.lens_inverted = True
 
             if sim_stage.options["use_equivalent_focal_distance"]:
-                eq_fd = calculate_equivalent_focal_distance(
-                    sim_stage.lens, sim_stage.output
-                )
+                eq_fd = calculate_equivalent_focal_distance(sim_stage.lens, sim_stage.output)
 
                 sim_stage.start_distance = (sim_stage.options["focal_distance_start_multiple"] * eq_fd)
-                sim_stage.finish_distance = (
-                    sim_stage.options["focal_distance_multiple"] * eq_fd
-                )
+                sim_stage.finish_distance = (sim_stage.options["focal_distance_multiple"] * eq_fd)
 
                 # update the metadata if this option is used...
                 self.config["stages"][i]["start_distance"] = sim_stage.start_distance
@@ -304,6 +305,7 @@ class Simulation:
                         inverted=lens_config["aperture"]["invert"]
                     )
 
+                # apply masks
                 use_grating = True if lens_config["grating"] is not None else False
                 use_truncation = True if lens_config["truncation"] is not None else False
                 use_aperture = True if lens_config["aperture"] is not None else False
@@ -311,8 +313,6 @@ class Simulation:
                 lens.apply_masks(grating=use_grating, truncation=use_truncation, aperture=use_aperture)
 
             lens_dict[lens_config["name"]] = lens
-
-            # TODO: load profile from disk...
 
         return lens_dict
 
@@ -447,9 +447,6 @@ def propagate_wavefront(sim_stage: SimulationStage,
 
     return result
     
-
-
-
 
 def generate_squared_frequency_array(n_pixels: int, pixel_size: float) -> np.ndarray:
     """Generates the squared frequency array used in the fresnel diffraction integral
