@@ -1,6 +1,4 @@
 from dataclasses import dataclass, field
-from xml.dom import ValidationErr
-from jsonschema import ValidationError
 import matplotlib.pyplot as plt
 import numpy as np
 from scipy import fftpack
@@ -9,7 +7,7 @@ from enum import Enum, auto
 from lens_simulation import utils
 from lens_simulation.Medium import Medium 
 from lens_simulation.Lens import Lens, LensType
-from lens_simulation.SimulationUtils import SimulationParameters
+from lens_simulation.structures import SimulationParameters
 
 class BeamSpread(Enum):
     Plane = auto()
@@ -33,7 +31,6 @@ class BeamShape(Enum):
 # Diverging:      Y                       Y
 
 
-
 @dataclass
 class BeamSettings:
     distance_mode: DistanceMode
@@ -43,8 +40,8 @@ class BeamSettings:
     height: float
     position: list = field(default_factory=[0, 0])
     theta: float = 0.0                      # degrees
-    numerical_aperture: float = None        # ?
-    tilt: float = None                      # degrees
+    numerical_aperture: float = None        # QUERY units
+    tilt: float = 0.0                       # degrees
     source_distance: float = None
     final_width: float = None
     focal_multiple: float = None
@@ -133,13 +130,12 @@ class Beam:
 
         # set up the part of the lens square that isn't the lens for aperturing
         non_lens_profile = lens.profile == 0 
-        aperturing_value = -1e-9
+        aperturing_value = -1e-9 # QUERY why not zero
         lens.profile[non_lens_profile] = aperturing_value
 
         # apeturing profile
         self.non_lens_profile = non_lens_profile
         
-
         # calculate padding parameters
         beam_position = self.position
         pad_width = (int(sim_width/pixel_size)-lens.profile.shape[0])//2 + 1 
@@ -171,43 +167,15 @@ class Beam:
         elif self.distance_mode is DistanceMode.Width:
             final_beam_radius = self.final_width/2
             if self.spread is BeamSpread.Converging:
-                finish_distance = self.focal_distance - (final_beam_radius/np.tan(self.theta))
+                finish_distance = self.focal_distance - (final_beam_radius/np.tan(self.theta+1e-12))
             else:
-                finish_distance = ((final_beam_radius-(self.lens.diameter/2))/np.tan(self.theta))
+                finish_distance = ((final_beam_radius-(self.lens.diameter/2))/np.tan(self.theta+1e-12))
         else:
             raise TypeError(f"Unsupported DistanceMode for calculated propagation distance: {self.distance_mode}")
 
         return start_distance, finish_distance
 
     
-def calculate_tilted_delta_profile(lens: Lens, output_medium: Medium, tilt_enabled: bool = False, xtilt: float = 0, ytilt: float = 0) -> np.ndarray:
-    """_summary_
-
-    Args:
-        lens (Lens): lens
-        output_medium (Medium): output medium
-        tilt_enabled (bool, optional): delta profile is tilted. Defaults to False.
-        xtilt (float, optional): tilt in x-axis (degrees). Defaults to 0.
-        ytilt (float, optional): tilt in y-axis (degrees). Defaults to 0.
-
-    Returns:
-        np.ndarray: delta profile
-    """
-
-    # regular delta calculation
-    delta = (lens.medium.refractive_index-output_medium.refractive_index) * lens.profile
-
-    # tilt the beam
-    if tilt_enabled:
-        x = np.arange(len(lens.profile))*lens.pixel_size
-        y = np.arange(len(lens.profile))*lens.pixel_size
-
-        # modify the optical path of the light based on tilt
-        delta = delta + np.add.outer(y * np.tan(np.deg2rad(ytilt)), -x * np.tan(np.deg2rad(xtilt)))
-
-    return delta
-
-
 
 def validate_beam_configuration(settings: BeamSettings):
     """Validate the user has passed the correct parameters for the given configuration"""
@@ -215,7 +183,7 @@ def validate_beam_configuration(settings: BeamSettings):
     if settings.beam_spread is BeamSpread.Plane:
 
         if settings.source_distance is None:
-            raise ValidationError("A source_distance must be provided for BeamSpread.Plane")
+            raise ValueError("A source_distance must be provided for BeamSpread.Plane")
 
         # plane wave is constant width along optical axis
         settings.final_width = settings.width
@@ -239,15 +207,15 @@ def validate_beam_configuration(settings: BeamSettings):
     # distance mode
     if settings.distance_mode == DistanceMode.Direct:
         if settings.source_distance is None:
-            raise ValidationError("A source_distance must be provided for DistanceMode.Direct")
+            raise ValueError("A source_distance must be provided for DistanceMode.Direct")
 
     if settings.distance_mode == DistanceMode.Focal:
         if settings.beam_spread not in [BeamSpread.Converging, BeamSpread.Diverging]:
-            raise ValidationError(f"BeamSpread must be Converging, or Diverging for DistanceMode.Focal (currently {settings.beam_spread})")
+            raise ValueError(f"BeamSpread must be Converging, or Diverging for DistanceMode.Focal (currently {settings.beam_spread})")
 
     if settings.distance_mode == DistanceMode.Width:
         if settings.final_width is None:
-            raise ValidationError(f"A final_width must be provided for DistanceMode.Width")
+            raise ValueError(f"A final_width must be provided for DistanceMode.Width")
 
     return settings
 
@@ -266,3 +234,30 @@ def height_from_focal_distance(beam: Lens, output_medium: Medium, focal_distance
     if (b**2 - 4*a*c < 0):
         raise ValueError("Negative value encountered in sqrt.  Can't find a lens height to give this focal distance")
     else: return (-b - np.sqrt(b**2 - 4*a*c))/(2*a)
+
+def load_beam_config(config: dict) -> BeamSettings:
+    """Load the beam settings from dictionary
+
+    Args:
+        config (dict): beam configuration as dictionary
+
+    Returns:
+        BeamSettings: beam configuration as BeamSettings
+    """
+    
+    beam_settings = BeamSettings(
+        distance_mode=DistanceMode[config["distance_mode"]],
+        beam_spread=BeamSpread[config["beam_spread"]], 
+        beam_shape=BeamShape[config["beam_shape"]],
+        width=config["width"],
+        height= config["height"],
+        position=config["position"],
+        theta=config["theta"],
+        numerical_aperture=config["numerical_aperture"],
+        tilt=config["tilt"],
+        source_distance = config["source_distance"],
+        final_width = config["final_width"],
+        focal_multiple=config["focal_multiple"]
+    )
+
+    return beam_settings
