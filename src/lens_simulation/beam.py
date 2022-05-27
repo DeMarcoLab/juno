@@ -69,12 +69,22 @@ class Beam:
 
         self.settings: BeamSettings = settings # TODO: remove?
 
+    def __repr__(self) -> str:
+        
+        return f"""Beam: {self.settings}"""
+
 
     def generate_profile(self, sim_parameters: SimulationParameters) -> np.ndarray:
 
         pixel_size = sim_parameters.pixel_size
         sim_width = sim_parameters.sim_width
         lens_type = sim_parameters.lens_type
+
+        # validation
+        if self.width > sim_width:
+            raise ValueError(f"Beam width is larger than simulation width: beam={self.width:.2e}, sim={sim_width:.2e}")
+        if self.width > sim_width:
+            raise ValueError(f"Beam height is larger than simulation width: beam={self.height:.2e}, sim={sim_width:.2e}")
 
         # Default beam specifications
         lens = Lens(
@@ -145,9 +155,11 @@ class Beam:
         lens.profile = np.pad(lens.profile, ((pad_width + relative_position_y, pad_width - relative_position_y),
                                                     (pad_width + relative_position_x, pad_width - relative_position_x)), 
                                                     mode="constant", constant_values=aperturing_value)
-
         # assign lens
         self.lens = lens
+
+        # calculate propagation distance
+        self.start_distance, self.finish_distance = self.calculate_propagation_distance()
 
 
     def calculate_propagation_distance(self):
@@ -181,7 +193,6 @@ class Beam:
             raise TypeError(f"Unsupported DistanceMode for calculated propagation distance: {self.distance_mode}")
 
         return start_distance, finish_distance
-
     
 
 def validate_beam_configuration(settings: BeamSettings):
@@ -190,7 +201,7 @@ def validate_beam_configuration(settings: BeamSettings):
     if settings.beam_spread is BeamSpread.Plane:
 
         if settings.source_distance is None:
-            raise ValueError("A source_distance must be provided for BeamSpread.Plane")
+            raise ValueError(f"A source_distance must be provided for {settings.beam_spread}")
 
         # plane wave is constant width along optical axis
         settings.final_width = settings.width
@@ -205,6 +216,10 @@ def validate_beam_configuration(settings: BeamSettings):
         settings.beam_shape = BeamShape.Circular
         print(f"Only BeamShape.Circular is supported for {settings.beam_spread}. The beam_shape has been set to {settings.beam_shape}.")
 
+        # QUERY?
+        if settings.theta == 0.0:
+            raise ValueError(f"A non-zero theta must be provided for a {settings.beam_spread} beam.")
+
     # beam shape
     # non-rectangular beams are symmetric
     if settings.beam_shape in [BeamShape.Circular, BeamShape.Square]:
@@ -214,15 +229,15 @@ def validate_beam_configuration(settings: BeamSettings):
     # distance mode
     if settings.distance_mode == DistanceMode.Direct:
         if settings.source_distance is None:
-            raise ValueError("A source_distance must be provided for DistanceMode.Direct")
+            raise ValueError(f"A source_distance must be provided for {settings.distance_mode}")
 
     if settings.distance_mode == DistanceMode.Focal:
         if settings.beam_spread not in [BeamSpread.Converging, BeamSpread.Diverging]:
-            raise ValueError(f"BeamSpread must be Converging, or Diverging for DistanceMode.Focal (currently {settings.beam_spread})")
+            raise ValueError(f"BeamSpread must be Converging, or Diverging for {settings.distance_mode} (currently {settings.beam_spread})")
 
     if settings.distance_mode == DistanceMode.Width:
         if settings.final_width is None:
-            raise ValueError(f"A final_width must be provided for DistanceMode.Width")
+            raise ValueError(f"A final_width must be provided for {settings.distance_mode}")
 
     return settings
 
@@ -252,19 +267,31 @@ def load_beam_config(config: dict) -> BeamSettings:
         BeamSettings: beam configuration as BeamSettings
     """
     
+    distance_mode = config["distance_mode"].title() if "distance_mode" in config else "Direct"
+    beam_spread = config["beam_spread"].title() if "beam_spread" in config else "Plane"
+    beam_shape = config["beam_shape"].title() if "beam_shape" in config else "Square"
+
+    position = config["position"] if "position" in config else [0.0, 0.0]
+    theta = config["theta"] if "theta" in config else 0.0
+    numerical_aperture = config["numerical_aperture"] if "numerical_aperture" in config else None
+    tilt = config["tilt"] if "tilt" in config else 0.0
+    source_distance = config["source_distance"] if "source_distance" in config else None
+    final_width = config["final_width"] if "final_width" in config else None
+    focal_multiple = config["focal_multiple"] if "focal_multiple" in config else None
+
     beam_settings = BeamSettings(
-        distance_mode=DistanceMode[config["distance_mode"]],
-        beam_spread=BeamSpread[config["beam_spread"]], 
-        beam_shape=BeamShape[config["beam_shape"]],
+        distance_mode=DistanceMode[distance_mode],
+        beam_spread=BeamSpread[beam_spread], 
+        beam_shape=BeamShape[beam_shape],
         width=config["width"],
         height= config["height"],
-        position=config["position"],
-        theta=config["theta"],
-        numerical_aperture=config["numerical_aperture"],
-        tilt=config["tilt"],
-        source_distance = config["source_distance"],
-        final_width = config["final_width"],
-        focal_multiple=config["focal_multiple"]
+        position=position,
+        theta=theta,
+        numerical_aperture=numerical_aperture,
+        tilt=tilt,
+        source_distance=source_distance,
+        final_width=final_width,
+        focal_multiple=focal_multiple
     )
 
     return beam_settings

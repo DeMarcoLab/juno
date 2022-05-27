@@ -25,10 +25,6 @@ class SimulationOptions:
     debug: bool = False
 
 @dataclass
-class Beam:
-    phase: np.ndarray
-
-@dataclass
 class SimulationStage:
     lens: Lens
     output: Medium

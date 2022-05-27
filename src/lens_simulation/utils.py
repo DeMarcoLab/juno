@@ -244,6 +244,7 @@ def load_simulation_config(config_filename: str = "config.yaml") -> dict:
                 "log_dir": data_path, 
                 "sim_parameters": conf["sim_parameters"], 
                 "options": conf["options"],
+                "beam": conf["beam"],
                 "mediums": conf["mediums"], 
                 "lenses": conf["lenses"],
                 "stages": conf["stages"]}

@@ -19,7 +19,6 @@ from lens_simulation.structures import (
     SimulationOptions,
     SimulationParameters,
     SimulationStage,
-    SimulationRun,
     SimulationResult
 )
 
@@ -690,22 +689,22 @@ def save_result_plots(result: SimulationResult,
     utils.save_figure(fig, os.path.join(save_path, "sideon.png"))
     plt.close(fig)
 
-    if result.freq_arr:
+    if result.freq_arr is not None:
         fig = utils.plot_image(result.freq_arr, "Frequency Array",
                 save=True, fname=os.path.join(save_path, "freq.png"))
         plt.close(fig)
     
-    if result.delta:
+    if result.delta is not None:
         fig = utils.plot_image(result.delta, "Delta Profile",
             save=True, fname=os.path.join(save_path, "delta.png"))
         plt.close(fig)
     
-    if result.phase:
+    if result.phase is not None:
         utils.plot_image(result.phase, "Phase Profile",
                 save=True, fname=os.path.join(save_path, "phase.png"))
         plt.close(fig)
 
-    if result.lens:
+    if result.lens is not None:
         fig = utils.plot_lens_profile_2D(result.lens)
         utils.save_figure(fig, fname=os.path.join(save_path, "lens_profile.png"))
 
