@@ -4,7 +4,6 @@ import numpy as np
 from scipy import fftpack
 from enum import Enum, auto
 
-from lens_simulation import utils
 from lens_simulation.Medium import Medium 
 from lens_simulation.Lens import Lens, LensType
 from lens_simulation.structures import SimulationParameters
@@ -153,6 +152,14 @@ class Beam:
 
     def calculate_propagation_distance(self):
         """Calculate the total distance to propagate the beam depending on configuration"""
+
+        # distance_mode
+        # beam_spread
+        # source_distance
+        # focal_distance
+        # final_width
+        # theta
+        # lens
 
         start_distance = 0
 

@@ -1,5 +1,6 @@
 from lib2to3.pgen2.literals import simple_escapes
 import os
+from pathlib import Path
 import uuid
 
 import petname
@@ -19,6 +20,7 @@ from lens_simulation.structures import (
     SimulationParameters,
     SimulationStage,
     SimulationRun,
+    SimulationResult
 )
 
 # DONE:
@@ -71,7 +73,7 @@ class Simulation:
         # pprint(self.lenses)
 
         # TODO: change to petname? careful of collisions
-        log_dir = os.path.join(self.config["log_dir"], str(self.sim_id))  
+        log_dir = os.path.join(self.config["log_dir"], str(self.petname))  
         os.makedirs(log_dir, exist_ok=True)
 
         # options
@@ -143,6 +145,7 @@ class Simulation:
                 finish_distance=stage["finish_distance"],
                 options=stage["options"],
                 lens_inverted=False,
+                _id = i
             )
 
             # TODO: determine the best way to do double sided lenses (and define them in the config?)
@@ -204,30 +207,34 @@ class Simulation:
         for stage_id, stage in enumerate(self.progress_bar):
 
             # TODO: remove
-            self.stage_id = stage_id
             self.progress_bar.set_description(
                 f"Sim: {self.petname} ({str(self.sim_id)[-10:]}) - Propagating Wavefront"
             )
-            propagation = propagate_wavefront(
+            result = propagate_wavefront(
                 sim_stage=stage,
                 parameters=self.parameters, 
                 options=self.options, 
                 passed_wavefront=passed_wavefront
             )
 
+            # save path
+            save_path = os.path.join(self.options.log_dir, str(stage._id))
+
             if self.options.save:
                 self.progress_bar.set_description(
                     f"Sim: {self.petname} ({str(self.sim_id)[-10:]}) - Saving Simulation"
                 )
-                # self.save_simulation(sim, stage_id)
+                utils.save_simulation(result.sim, os.path.join(save_path, "sim.npy"))
 
             if self.options.save_plot:
                 self.progress_bar.set_description(
                     f"Sim: {self.petname} ({str(self.sim_id)[-10:]}) - Plotting Simulation"
                 )
+                
+                save_result_plots(result, stage, self.parameters, save_path)               
 
             # pass the wavefront to the next stage
-            passed_wavefront = propagation
+            passed_wavefront = result.propagation
 
         utils.save_metadata(self.config, self.options.log_dir)
 
@@ -410,70 +417,38 @@ def propagate_wavefront(sim_stage: SimulationStage,
             sim[i, :, :] = rounded_output
             top_down_view[i, :] = rounded_output
 
-    if options.save:
-        utils.save_simulation(sim, os.path.join(save_path, "sim.npy"))
-
     # TODO: separate plotting / save from simulating
     ################## SAVE ##################
 
+    if DEBUG:
+        result = SimulationResult(
+            propagation=propagation,
+            top_down=top_down_view,
+            side_on=side_on_view, 
+            sim=sim,
+            sim_profile=sim_profile, 
+            lens=lens,
+            freq_arr=freq_arr,
+            delta=delta,
+            phase=phase
+        )
+    else:    
+        result = SimulationResult(
+            propagation=propagation,
+            top_down=top_down_view,
+            side_on=side_on_view, 
+            sim=sim,
+            sim_profile=sim_profile, 
+            lens=lens,
+            freq_arr=freq_arr,
+            delta=delta,
+            phase=phase
+        ) #TODO: reduce
+
+    return result
     
-    if options.save_plot:
-        # save top-down
-        fig = utils.plot_simulation(
-            arr=top_down_view,
-            pixel_size_x=parameters.pixel_size,
-            start_distance=start_distance,
-            finish_distance=finish_distance,
-        )
-
-        utils.save_figure(
-            fig, os.path.join(save_path, "topdown.png")
-        )
-        plt.close(fig)
 
 
-        fig = utils.plot_simulation(
-            np.log(top_down_view + 10e-12),
-            pixel_size_x=parameters.pixel_size,
-            start_distance=start_distance,
-            finish_distance=finish_distance,
-        )
-
-        utils.save_figure(
-            fig, os.path.join(save_path, "log_topdown.png")
-        )
-        plt.close(fig)
-
-        fig = utils.plot_simulation(
-            arr=side_on_view,
-            pixel_size_x=parameters.pixel_size,
-            start_distance=start_distance,
-            finish_distance=finish_distance,
-        )
-        utils.save_figure(
-            fig, os.path.join(save_path, "sideon.png")
-        )
-        plt.close(fig)
-
-        if lens.profile.ndim == 2:
-            fig = utils.plot_image(freq_arr, "Frequency Array",
-                    save=True, fname=os.path.join(save_path, "freq.png"))
-            plt.close(fig)
-            fig = utils.plot_image(delta, "Delta Profile",
-                save=True, fname=os.path.join(save_path, "delta.png"))
-            plt.close(fig)
-            
-            utils.plot_image(phase, "Phase Profile",
-                    save=True, fname=os.path.join(save_path, "phase.png"))
-            plt.close(fig)
-
-            fig = utils.plot_lens_profile_2D(lens)
-            utils.save_figure(fig, fname=os.path.join(save_path, "lens_profile.png"))
-
-            fig = utils.plot_lens_profile_slices(lens)
-            utils.save_figure(fig, fname=os.path.join(save_path, "lens_slices.png"))
-
-    return propagation
 
 
 def generate_squared_frequency_array(n_pixels: int, pixel_size: float) -> np.ndarray:
@@ -673,5 +648,71 @@ def propagate_over_distance(
 
     return rounded_output, propagation
 
+
+
+def save_result_plots(result: SimulationResult, 
+        stage: SimulationStage, 
+        parameters: SimulationParameters, 
+        save_path: Path):
+    """Plot and save the simulation results
+
+    Args:
+        result (SimulationResult): _description_
+        stage (SimulationStage): _description_
+        parameters (SimulationParameters): _description_
+        save_path (Path): _description_
+    """
+                    
+    # save top-down
+    fig = utils.plot_simulation(
+        arr=result.top_down,
+        pixel_size_x=parameters.pixel_size,
+        start_distance=stage.start_distance,
+        finish_distance=stage.finish_distance,
+    )
+
+    utils.save_figure(fig, os.path.join(save_path, "topdown.png"))
+    plt.close(fig)
+
+    fig = utils.plot_simulation(
+        np.log(result.top_down + 10e-12),
+        pixel_size_x=parameters.pixel_size,
+        start_distance=stage.start_distance,
+        finish_distance=stage.finish_distance,
+    )
+
+    utils.save_figure(fig, os.path.join(save_path, "log_topdown.png"))
+    plt.close(fig)
+
+    fig = utils.plot_simulation(
+        arr=result.side_on,
+        pixel_size_x=parameters.pixel_size,
+        start_distance=stage.start_distance,
+        finish_distance=stage.finish_distance,
+    )
+    utils.save_figure(fig, os.path.join(save_path, "sideon.png"))
+    plt.close(fig)
+
+    if result.freq_arr:
+        fig = utils.plot_image(result.freq_arr, "Frequency Array",
+                save=True, fname=os.path.join(save_path, "freq.png"))
+        plt.close(fig)
+    
+    if result.delta:
+        fig = utils.plot_image(result.delta, "Delta Profile",
+            save=True, fname=os.path.join(save_path, "delta.png"))
+        plt.close(fig)
+    
+    if result.phase:
+        utils.plot_image(result.phase, "Phase Profile",
+                save=True, fname=os.path.join(save_path, "phase.png"))
+        plt.close(fig)
+
+    if result.lens:
+        fig = utils.plot_lens_profile_2D(result.lens)
+        utils.save_figure(fig, fname=os.path.join(save_path, "lens_profile.png"))
+
+        fig = utils.plot_lens_profile_slices(result.lens)
+        utils.save_figure(fig, fname=os.path.join(save_path, "lens_slices.png"))
 
 

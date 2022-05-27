@@ -6,6 +6,7 @@ sim_parameters:
   lens_type:  "Spherical" # "Cylindrical" or "Spherical
   padding: 0 # pixels
 options:
+  log_dir: "log"
   verbose: false
   save: true
   save_plot: true

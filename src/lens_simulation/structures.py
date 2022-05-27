@@ -41,14 +41,24 @@ class SimulationStage:
 
 
 @dataclass
-class SimulationConfig:
-    config: dict
-
-@dataclass
 class SimulationRun:
     id: str
     petname: str
-    config: SimulationConfig
     parameters: SimulationParameters
     options: SimulationOptions
     stages: list 
+
+
+@dataclass
+class SimulationResult:
+    propagation: np.ndarray = None
+    top_down: np.ndarray = None
+    side_on: np.ndarray = None
+    sim: np.ndarray = None
+    sim_profile: np.ndarray = None
+    lens: Lens = None
+    freq_arr: np.ndarray = None
+    delta: np.ndarray = None
+    phase: np.ndarray = None
+
+

@@ -45,15 +45,15 @@ stages:
       use_equivalent_focal_distance: False
       focal_distance_start_multiple: 0.0
       focal_distance_multiple: 2.0
-  # - lens: lens_2
-  #   output: medium_2
-  #   n_slices: 100
-  #   start_distance: 15.e-3
-  #   finish_distance: 25.e-3
-  #   options:
-  #     use_equivalent_focal_distance: true
-  #     focal_distance_start_multiple: 0.0
-  #     focal_distance_multiple: 2.0
+  - lens: lens_2
+    output: medium_2
+    n_slices: 100
+    start_distance: 0
+    finish_distance: 10.e-3
+    options:
+      use_equivalent_focal_distance: true
+      focal_distance_start_multiple: 0.0
+      focal_distance_multiple: 2.0
   # - lens: lens_2
   #   output: medium_2
   #   n_slices: 100

@@ -5,6 +5,7 @@ import plotly.express as px
 import os 
 import json
 import yaml
+import petname
 
 from lens_simulation.Lens import Lens
 
@@ -221,3 +222,30 @@ def save_simulation(sim: np.ndarray, fname: Path) -> None:
     # TODO: use npz (compressed)
     os.makedirs(os.path.dirname(fname), exist_ok=True)
     np.save(fname, sim)
+
+
+def load_simulation_config(config_filename: str = "config.yaml") -> dict:
+    """Load the default configuration ready to simulate.
+
+    Args:
+        config_filename (str, optional): config filename. Defaults to "config.yaml".
+
+    Returns:
+        dict: configuration as dictionary formatted for simulation
+    """
+
+    with open(config_filename, "r") as f:
+        conf = yaml.full_load(f)
+
+    run_id = petname.generate(3)  # run_id is for when running a batch of sims, each sim has unique id
+    data_path = os.path.join(conf["options"]["log_dir"],  str(run_id))
+    config = {"run_id": run_id, 
+                "parameters": None, 
+                "log_dir": data_path, 
+                "sim_parameters": conf["sim_parameters"], 
+                "options": conf["options"],
+                "mediums": conf["mediums"], 
+                "lenses": conf["lenses"],
+                "stages": conf["stages"]}
+    
+    return config
