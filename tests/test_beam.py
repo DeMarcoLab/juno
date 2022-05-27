@@ -148,3 +148,67 @@ def test_validate_beam_configuration(beam_settings):
 
     # TODO:
     return NotImplemented
+
+
+def test_beam_propagation_distance_direct(beam_settings, sim_parameters):
+
+    test_distance = 10.e-3
+    beam_settings.distance_mode = DistanceMode.Direct
+    beam_settings.beam_spread = BeamSpread.Converging
+    beam_settings.source_distance = test_distance 
+    beam = Beam(beam_settings)
+    beam.generate_profile(sim_parameters)
+
+    sd, fd = beam.calculate_propagation_distance()
+
+    assert sd == 0
+    assert fd == test_distance, "finish distance for DistanceMode.Direct should be the same as source_distance"
+
+def test_beam_propagation_distance_plane(beam_settings, sim_parameters):
+
+    test_distance = 10.e-3
+    beam_settings.distance_mode = DistanceMode.Focal
+    beam_settings.beam_spread = BeamSpread.Plane
+    beam_settings.source_distance = test_distance 
+    beam = Beam(beam_settings)
+    beam.generate_profile(sim_parameters)
+
+    sd, fd = beam.calculate_propagation_distance()
+
+    assert sd == 0
+    assert fd == test_distance, "finish distance for BeamSpread.Plane should be the same as source_distance"
+
+
+def test_beam_propagation_distance_focal(beam_settings, sim_parameters):
+
+    test_distance = 10.e-3
+    beam_settings.distance_mode = DistanceMode.Focal
+    beam_settings.beam_spread = BeamSpread.Converging
+    beam_settings.source_distance = test_distance 
+    beam = Beam(beam_settings)
+    beam.generate_profile(sim_parameters)
+
+    sd, fd = beam.calculate_propagation_distance()
+
+    # TODO: use this
+    # focal_distance = focal_distance_from_theta(beam=beam.lens, theta=beam_settings.theta)
+
+    assert beam.distance_mode == DistanceMode.Focal
+    assert sd == 0
+    assert fd == beam.focal_distance, "finish distance for DistanceMode.Focal should be the same as focal_distance"
+
+def test_beam_propagation_distance_width(beam_settings, sim_parameters):
+
+    test_distance = 10.e-3
+    beam_settings.distance_mode = DistanceMode.Width
+    beam_settings.beam_spread = BeamSpread.Converging
+    beam_settings.final_width = 5e-6
+    beam_settings.source_distance = test_distance 
+    beam = Beam(beam_settings)
+    beam.generate_profile(sim_parameters)
+
+    sd, fd = beam.calculate_propagation_distance()
+
+    assert beam.distance_mode == DistanceMode.Width
+    assert sd == 0
+    assert fd == beam.focal_distance, "finish distance for DistanceMode.Focal should be the same as focal_distance"
