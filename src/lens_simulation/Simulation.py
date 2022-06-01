@@ -592,7 +592,12 @@ def _pad_lens_profile_to_sim_width(lens: Lens, width: float, pixel_size: float):
     # if the lens is smaller than the simulation, pad the lens to the width.
     sim_n_pixels = utils._calculate_num_of_pixels(width, pixel_size)
    
-    if sim_n_pixels != lens.n_pixels:
+    print(f"sim_n_pixels: {sim_n_pixels}")
+    print(f"lens_n_pixels: {lens.n_pixels}")
+    print(f"lens shape: {lens.profile.shape}")
+
+    # TODO: this will break for asymmetric sims
+    if sim_n_pixels != lens.n_pixels and sim_n_pixels != lens.profile.shape[-1]:
         diff = sim_n_pixels - lens.n_pixels
         lens_profile_padded = np.pad(lens.profile, pad_width=diff // 2, mode="constant")
 
