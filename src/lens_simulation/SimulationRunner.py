@@ -123,6 +123,7 @@ class SimulationRunner:
                     "run_petname": self.petname, 
                     "log_dir": self.data_path, 
                     "sim_parameters": self.config["sim_parameters"],
+                    "beam": self.config["beam"],
                     "options": self.config["options"],
                     "mediums": self.config["mediums"], 
                     "lenses": lens_combination,

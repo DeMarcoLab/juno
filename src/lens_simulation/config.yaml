@@ -8,22 +8,22 @@ sim_parameters:
 options:
   log_dir: "log"
   verbose: false
-  save: true
+  save: false
   save_plot: true
   debug: false
 beam:
-    distance_mode: "direct"   # "Direct", "Width", "Focal"
-    beam_spread: "plane"      # "Plane", "Converging", "Diverging"
-    beam_shape: "square"      # "Square", "Circular", "Rectangular"
-    width: 500.e-6
-    height: 150.e-6
-    position: [0.e-6, 0.e-6] 
-    theta: 0.0
-    # numerical_aperture: null
-    tilt: [45.0, 45.0]
-    source_distance: 20.0e-3
-    # final_width: 10.0e-6
-    # focal_multiple: null
+  distance_mode: "direct"   # "Direct", "Width", "Focal"
+  beam_spread: "plane"      # "Plane", "Converging", "Diverging"
+  beam_shape: "square"      # "Square", "Circular", "Rectangular"
+  width: 500.e-6
+  height: 150.e-6
+  position: [0.e-6, 0.e-6] 
+  theta: 0.0
+  # numerical_aperture: null
+  tilt: [45.0, 45.0]
+  source_distance: 20.0e-3
+  # final_width: 10.0e-6
+  # focal_multiple: null
 lenses:
   - name: lens_1
     diameter: 500.e-6
@@ -49,15 +49,15 @@ mediums:
   - name: medium_2
     refractive_index: 1.33
 stages:
-  - lens: lens_1
-    output: medium_1
-    n_slices: 10
-    start_distance: 0
-    finish_distance: 0.1e-3
-    options:
-      use_equivalent_focal_distance: False
-      focal_distance_start_multiple: 0.0
-      focal_distance_multiple: 2.0
+  # - lens: lens_1
+  #   output: medium_1
+  #   n_slices: 10
+  #   start_distance: 0
+  #   finish_distance: 0.1e-3
+  #   options:
+  #     use_equivalent_focal_distance: False
+  #     focal_distance_start_multiple: 0.0
+  #     focal_distance_multiple: 2.0
   - lens: lens_2
     output: medium_2
     n_slices: 100
