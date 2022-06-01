@@ -1,4 +1,3 @@
-from lib2to3.pgen2.literals import simple_escapes
 import os
 from pathlib import Path
 import uuid
@@ -8,7 +7,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 from pprint import pprint
-from pytest import param
 from scipy import fftpack
 from tqdm import tqdm
 
@@ -26,28 +24,13 @@ from lens_simulation.structures import (
 # sweepable parameters
 # database management
 # visualisation, analytics, comparison
+# initial beam definition (tilt, convergence, divergence)
 
 # TODO:
-# TODO: initial beam definition (tilt, convergence, divergence)
 # TODO: user interface
 # TODO: tools (cleaning, sheet measurement, validation, lens creation)
 # total internal reflection check (exponential profile)
 # TODO: performance (cached results, gpu, parallelism)
-
-
-#### 2D Simulations ####
-# Add support for 2D lens simulations.
-# 2D refers to the lens profile, which creates a 3D simulation (volume).
-#
-# DONE
-# convert sim to 2d (1, n)
-# update visualisation for 3d volumes (slice through, default to midpoint horizontally)
-# convert sim to work for 2d (n, n)
-# refactor lens profile to support 2D
-
-# TODO:
-# update viz for vertical slicing, and user defined slice plane
-# refactor names for 3-d axes
 
 
 
@@ -135,20 +118,20 @@ class Simulation:
         self.sim_stages = []
 
 
-        # first stage is a beam
-        from lens_simulation.beam import generate_beam
-        beam = generate_beam(self.config["beam"], self.parameters)
+        # # first stage is a beam
+        # from lens_simulation.beam import generate_beam
+        # beam = generate_beam(self.config["beam"], self.parameters)
         
-        utils.plot_lens_profile_2D(beam.lens)
-        plt.show()
+        # utils.plot_lens_profile_2D(beam.lens)
+        # plt.show()
 
-        beam_stage = SimulationStage(
-            lens = beam.lens,
-            output=Medium(1.33),
-            n_slices = 10, 
-            start_distance=beam.start_distance,
-            finish_distance=beam.finish_distance
-        )
+        # beam_stage = SimulationStage(
+        #     lens = beam.lens,
+        #     output=Medium(1.33),
+        #     n_slices = 10, 
+        #     start_distance=beam.start_distance,
+        #     finish_distance=beam.finish_distance
+        # )
 
         # self.sim_stages.append(beam_stage)
 
@@ -360,7 +343,7 @@ def propagate_wavefront(stage: SimulationStage,
     n_slices = stage.n_slices
     start_distance = stage.start_distance
     finish_distance = stage.finish_distance
-    print(f"lens shape before pad: {lens.profile.shape}")
+    amplitude = parameters.A if passed_wavefront is None else 1.0
 
     # TODO: move to lens creation??
     if lens.diameter > parameters.sim_width:
@@ -378,32 +361,17 @@ def propagate_wavefront(stage: SimulationStage,
         sim_profile, pixel_size=parameters.pixel_size
     )
 
-    # calculate delta and phase profiles
-    # delta = calculate_delta_profile(
-    #     sim_profile=sim_profile, lens=lens, output_medium=output_medium
-    # )
-    # plt.imshow(delta)
-    # plt.title("delta")
-    # plt.show()
-
     delta = calculate_tilted_delta_profile(sim_profile, lens, output_medium, stage.tilt)
 
-    phase = calculate_phase_profile(
-        delta=delta, wavelength=parameters.sim_wavelength
-    )
+    phase = calculate_phase_profile(delta=delta, wavelength=parameters.sim_wavelength)
 
-    A = parameters.A if passed_wavefront is None else 1.0
     wavefront = calculate_wavefront(
-        phase=phase, passed_wavefront=passed_wavefront, A=A, pad_px=pad_px
+        phase=phase, 
+        passed_wavefront=passed_wavefront, 
+        A=amplitude, 
+        pad_px=pad_px,
+        aperture_mask=lens.aperture_mask_2
     )
-
-    # apply beam apeture mask... wavefront is only the same shape as beam before padding...
-    print(f"wavefront shape: {wavefront.shape}")
-    print(f"beam shape: {lens.profile.shape}")
-    # print(f"non-lens-profile: {lens.non_lens_profile.shape}")
-    print(f"non-lens-profile2: {lens.non_lens_profile2.shape}")
-
-    # wavefront[lens.non_]
 
     # fourier transform of wavefront
     fft_wavefront = fftpack.fft2(wavefront)
@@ -416,23 +384,6 @@ def propagate_wavefront(stage: SimulationStage,
     side_on_view = np.zeros(
         shape=(n_slices, sim_profile.shape[0]), dtype=np.float32
     )
-
-    if DEBUG:
-        print(f"sim_profile.shape={sim_profile.shape}")
-        print(f"freq_arr.shape={freq_arr.shape}")
-        print(f"delta.shape={delta.shape}")
-        print(f"phase.shape={phase.shape}")
-        print(f"wavefront.shape={wavefront.shape}")
-        print(f"fft_wavefront.shape={fft_wavefront.shape}")
-        print(f"top_down_view.shape={top_down_view.shape}")
-        print(f"side_on_view.shape={side_on_view.shape}")
-
-        # check the freq arr was created correctly
-        assert freq_arr.shape[-1] == wavefront.shape[-1]
-        if passed_wavefront is not None:
-            assert not np.array_equal(
-                np.unique(wavefront), [0 + 0j]
-            )  # non empty sim
 
     # propagate the wavefront over distance
     distances = np.linspace(start_distance, finish_distance, n_slices)
@@ -453,8 +404,8 @@ def propagate_wavefront(stage: SimulationStage,
                 fname=os.path.join(save_path, f"{distance*1000:.8f}mm.npy")
                 )
 
+        # calculate views
         if lens.profile.ndim == 2:
-            # calculate views
             centre_px_h = rounded_output.shape[0] // 2
             centre_px_v = rounded_output.shape[1] // 2
             top_down_slice = rounded_output[centre_px_v, :]
@@ -468,9 +419,7 @@ def propagate_wavefront(stage: SimulationStage,
             sim[i, :, :] = rounded_output
             top_down_view[i, :] = rounded_output
 
-    # TODO: separate plotting / save from simulating
-    ################## SAVE ##################
-
+    # TODO: remove info from non-debug
     if DEBUG:
         result = SimulationResult(
             propagation=propagation,
@@ -574,10 +523,11 @@ def pad_simulation(lens: Lens, parameters: SimulationParameters = None,  pad_px:
             f"Padding is only supported for 1D and 2D lens. Lens shape was: {lens.profile.shape}."
         )
 
+    # pad the lens profile to the simulation width
     if parameters is not None:
         lens = _pad_lens_profile_to_sim_width(lens, parameters.sim_width, parameters.pixel_size)
 
-    # two different types of padding?
+    # add additional user defined padding... (TODO: consolidate)
     sim_profile = np.pad(lens.profile, pad_px, mode="constant")
 
     if lens.profile.ndim == 1:
@@ -587,16 +537,13 @@ def pad_simulation(lens: Lens, parameters: SimulationParameters = None,  pad_px:
 
     return sim_profile
 
-def _pad_lens_profile_to_sim_width(lens: Lens, width: float, pixel_size: float):
+def _pad_lens_profile_to_sim_width(lens: Lens, width: float, pixel_size: float) -> Lens:
 
     # if the lens is smaller than the simulation, pad the lens to the width.
     sim_n_pixels = utils._calculate_num_of_pixels(width, pixel_size)
-   
-    print(f"sim_n_pixels: {sim_n_pixels}")
-    print(f"lens_n_pixels: {lens.n_pixels}")
-    print(f"lens shape: {lens.profile.shape}")
-
+    
     # TODO: this will break for asymmetric sims
+    # pad the lens profile with zeros to match the simulation width
     if sim_n_pixels != lens.n_pixels and sim_n_pixels != lens.profile.shape[-1]:
         diff = sim_n_pixels - lens.n_pixels
         lens_profile_padded = np.pad(lens.profile, pad_width=diff // 2, mode="constant")
@@ -636,9 +583,14 @@ def calculate_tilted_delta_profile(sim_profile: np.ndarray, lens: Lens, output_m
         x = np.arange(len(sim_profile))*lens.pixel_size
         y = np.arange(len(sim_profile))*lens.pixel_size
 
+        y_tilt_rad = np.deg2rad(tilt["y"])
+        x_tilt_rad = np.deg2rad(tilt["x"])
+
+
         # modify the optical path of the light based on tilt
-        delta = delta + np.add.outer(y * np.tan(np.deg2rad(tilt["y"])), -x * np.tan(np.deg2rad(tilt["y"])))
+        delta = delta + np.add.outer(y * np.tan(y_tilt_rad), -x * np.tan(x_tilt_rad))
         print(f"TITLED: y={tilt['y']}deg, x={tilt['x']}deg")
+        print(f"TITLED: y={y_tilt_rad}deg, x={x_tilt_rad}rad")
 
     return delta
 
@@ -652,7 +604,7 @@ def calculate_phase_profile(delta: np.ndarray, wavelength: float) -> np.ndarray:
 
 
 def calculate_wavefront(
-    phase: np.ndarray, passed_wavefront: np.ndarray, A: float, pad_px: int = 0
+    phase: np.ndarray, passed_wavefront: np.ndarray, A: float, pad_px: int = 0, aperture_mask: np.ndarray = None
 ) -> np.ndarray:
     """Calculate the wavefront of light"""
 
@@ -666,6 +618,10 @@ def calculate_wavefront(
     # padded area should be 0+0j
     if passed_wavefront is not None:
         wavefront[phase == 0] = 0 + 0j
+
+    # mask out apertured area
+    if aperture_mask is not None:
+        wavefront[aperture_mask] = 0 + 0j
 
     # zero out padded area (TODO: replace with aperture mask)
     if pad_px:
@@ -690,7 +646,8 @@ def propagate_over_distance(
 
 
 
-def save_result_plots(result: SimulationResult, 
+def save_result_plots(
+        result: SimulationResult, 
         stage: SimulationStage, 
         parameters: SimulationParameters, 
         save_path: Path):

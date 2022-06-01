@@ -40,8 +40,8 @@ class BeamSettings:
     height: float
     position: list = field(default_factory=[0, 0])
     theta: float = 0.0                      # degrees
-    numerical_aperture: float = None        # QUERY units
-    tilt: float = 0.0                       # degrees
+    numerical_aperture: float = None        
+    tilt: list = None                       # degrees
     source_distance: float = None
     final_width: float = None
     focal_multiple: float = None
@@ -65,6 +65,8 @@ class Beam:
         self.theta: float  = np.deg2rad(settings.theta) # degrees -> rad
         self.source_distance: float = settings.source_distance
         self.final_width: float = settings.final_width
+
+        self.tilt: list[float] = settings.tilt
 
         self.output_medium = Medium(1.33)
 
@@ -139,7 +141,7 @@ class Beam:
         # set up the part of the lens square that isn't the lens for aperturing
         non_lens_profile = lens.profile == 0 
         aperturing_value = -1e-9 # QUERY why not zero, parts of lens at zero might not be apertures e.g. escape path...
-        lens.profile[non_lens_profile] = aperturing_value
+        lens.profile[non_lens_profile] = aperturing_value # the non-lens-profile is the size of the lens before padding...
 
         # apeturing profile
         self.non_lens_profile = non_lens_profile
@@ -156,6 +158,7 @@ class Beam:
                                                     mode="constant", constant_values=aperturing_value)
         # assign lens
         self.lens = lens
+        self.lens.aperture_mask_2 = lens.profile == aperturing_value
 
         # calculate propagation distance
         self.start_distance, self.finish_distance = self.calculate_propagation_distance()
@@ -206,9 +209,10 @@ def validate_beam_configuration(settings: BeamSettings):
         settings.final_width = settings.width
         print(f"The plane wave if constant along the optical axis. The beam final_width has been set to the initial width: {settings.width:.2e}m")
 
-        # plane waves only enabled for direct mode
-        settings.distance_mode = DistanceMode.Direct
-        print(f"Only DistanceMode.Direct is supported for BeamSpread.Plane. The distance_mode has been set to {settings.distance_mode}.")
+        if settings.distance_mode != DistanceMode.Direct:
+            # plane waves only enabled for direct mode
+            settings.distance_mode = DistanceMode.Direct
+            print(f"Only DistanceMode.Direct is supported for BeamSpread.Plane. The distance_mode has been set to {settings.distance_mode}.")
 
     # can't do converging/divering square beams
     if settings.beam_spread in [BeamSpread.Converging, BeamSpread.Diverging]:
@@ -273,7 +277,7 @@ def load_beam_config(config: dict) -> BeamSettings:
     position = config["position"] if "position" in config else [0.0, 0.0]
     theta = config["theta"] if "theta" in config else 0.0
     numerical_aperture = config["numerical_aperture"] if "numerical_aperture" in config else None 
-    tilt = config["tilt"] if "tilt" in config else 0.0
+    tilt = config["tilt"] if "tilt" in config else [0.0, 0.0]
     source_distance = config["source_distance"] if "source_distance" in config else None
     final_width = config["final_width"] if "final_width" in config else None
     focal_multiple = config["focal_multiple"] if "focal_multiple" in config else None
