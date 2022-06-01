@@ -250,3 +250,23 @@ def load_simulation_config(config_filename: str = "config.yaml") -> dict:
                 "stages": conf["stages"]}
     
     return config
+
+
+def _calculate_num_of_pixels(width: float, pixel_size: float, odd: bool = True) -> int:
+    """Calculate the number of pixels for a given width and pixel size
+
+    Args:
+        width (float): the width of the image (metres)
+        pixel_size (float): the size of the pixels (metres)
+        odd (bool, optional): force the n_pixels to be odd. Defaults to True.
+
+    Returns:
+        int: the number of pixels in the image distance
+    """
+    n_pixels = int(width / pixel_size)
+
+    # n_pixels must be odd (symmetry).
+    if odd and n_pixels % 2 == 0:
+        n_pixels += 1
+
+    return n_pixels

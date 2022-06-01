@@ -8,6 +8,7 @@ from enum import Enum
 
 from lens_simulation.Medium import Medium
 
+
 @dataclass
 class GratingSettings:
     width: float                # metres
@@ -47,13 +48,10 @@ class Lens:
         Returns:
             np.ndarray: [description]
         """
+        from lens_simulation.utils import _calculate_num_of_pixels
         # TODO: someone might define using the n_pixels
 
-        radius = self.diameter / 2
-        n_pixels = int(radius / pixel_size)  # n_pixels in radius
-        # n_pixels must be odd (symmetry).
-        if n_pixels % 2 == 0:
-            n_pixels += 1
+        n_pixels = _calculate_num_of_pixels(self.diameter, pixel_size, odd = True)
 
         self.pixel_size = pixel_size
         self.n_pixels = n_pixels
@@ -61,7 +59,7 @@ class Lens:
 
         if self.lens_type == LensType.Cylindrical:
 
-            self.profile = self.create_profile_1d(radius, n_pixels)
+            self.profile = self.create_profile_1d(self.diameter, n_pixels)
 
         if self.lens_type == LensType.Spherical:
 
@@ -69,10 +67,13 @@ class Lens:
 
         return self.profile
 
-    def create_profile_1d(self, radius, n_pixels):
+    def create_profile_1d(self, diameter: float, n_pixels: int):
+
+        radius = diameter / 2
+        n_pixels_in_radius = n_pixels // 2 + 1
 
         # x coordinate of pixels
-        radius_px = np.linspace(0, radius, n_pixels)
+        radius_px = np.linspace(0, radius, n_pixels_in_radius)
         self.radius_px = radius_px
 
         # determine coefficent at boundary conditions
@@ -147,8 +148,8 @@ class Lens:
         # len/sim parameters
         lens_width = self.diameter
         lens_length = self.diameter
-        n_pixels_x = self.n_pixels * 2 - 1 # odd
-        n_pixels_y = self.n_pixels * 2 - 1 # odd
+        n_pixels_x = self.n_pixels  # odd
+        n_pixels_y = self.n_pixels  # odd
 
         # revolve the profile around the centre (distance)
         x = np.linspace(0, lens_width, n_pixels_x)

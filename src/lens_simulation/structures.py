@@ -34,6 +34,7 @@ class SimulationStage:
     options: dict = None
     lens_inverted: bool = False
     _id: int = 0
+    tilt: dict = None
 
 
 @dataclass

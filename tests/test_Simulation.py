@@ -3,6 +3,7 @@ import pytest
 from lens_simulation import Simulation, Lens
 from lens_simulation.Lens import LensType
 from lens_simulation.structures import SimulationParameters
+from lens_simulation import utils
 
 
 @pytest.mark.parametrize(
@@ -125,12 +126,12 @@ def test_pad_simulation_lens_width():
 
     lens.generate_profile(sim_parameters.pixel_size, LensType.Cylindrical)
     sim_profile = Simulation.pad_simulation(lens, sim_parameters, pad_px=0)
-    sim_n_pixels = Simulation.calculate_num_of_pixels(sim_parameters.sim_width, sim_parameters.pixel_size) 
+    sim_n_pixels = utils._calculate_num_of_pixels(sim_parameters.sim_width, sim_parameters.pixel_size) 
     assert sim_profile.shape == (1, sim_n_pixels)
 
     lens.generate_profile(sim_parameters.pixel_size, LensType.Spherical)
     sim_profile = Simulation.pad_simulation(lens, sim_parameters, pad_px=0)
-    sim_n_pixels = Simulation.calculate_num_of_pixels(sim_parameters.sim_width, sim_parameters.pixel_size) 
+    sim_n_pixels = utils._calculate_num_of_pixels(sim_parameters.sim_width, sim_parameters.pixel_size) 
     assert sim_profile.shape == (sim_n_pixels, sim_n_pixels)
 
 

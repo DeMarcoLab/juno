@@ -360,6 +360,7 @@ def propagate_wavefront(stage: SimulationStage,
     n_slices = stage.n_slices
     start_distance = stage.start_distance
     finish_distance = stage.finish_distance
+    print(f"lens shape before pad: {lens.profile.shape}")
 
     # TODO: move to lens creation??
     if lens.diameter > parameters.sim_width:
@@ -378,9 +379,15 @@ def propagate_wavefront(stage: SimulationStage,
     )
 
     # calculate delta and phase profiles
-    delta = calculate_delta_profile(
-        sim_profile=sim_profile, lens=lens, output_medium=output_medium
-    )
+    # delta = calculate_delta_profile(
+    #     sim_profile=sim_profile, lens=lens, output_medium=output_medium
+    # )
+    # plt.imshow(delta)
+    # plt.title("delta")
+    # plt.show()
+
+    delta = calculate_tilted_delta_profile(sim_profile, lens, output_medium, stage.tilt)
+
     phase = calculate_phase_profile(
         delta=delta, wavelength=parameters.sim_wavelength
     )
@@ -389,6 +396,14 @@ def propagate_wavefront(stage: SimulationStage,
     wavefront = calculate_wavefront(
         phase=phase, passed_wavefront=passed_wavefront, A=A, pad_px=pad_px
     )
+
+    # apply beam apeture mask... wavefront is only the same shape as beam before padding...
+    print(f"wavefront shape: {wavefront.shape}")
+    print(f"beam shape: {lens.profile.shape}")
+    # print(f"non-lens-profile: {lens.non_lens_profile.shape}")
+    print(f"non-lens-profile2: {lens.non_lens_profile2.shape}")
+
+    # wavefront[lens.non_]
 
     # fourier transform of wavefront
     fft_wavefront = fftpack.fft2(wavefront)
@@ -547,16 +562,10 @@ def calculate_equivalent_focal_distance(lens: Lens, medium: Medium) -> float:
 
     return equivalent_focal_distance
 
-def calculate_num_of_pixels(width, pixel_size, odd=True):
-    n_pixels = int(width / pixel_size)
-    # n_pixels must be odd (symmetry).
-    if odd and n_pixels % 2 == 0:
-        n_pixels += 1
-
-    return n_pixels
 
 
-def pad_simulation(lens: Lens, parameters: SimulationParameters = None,  pad_px: int = None) -> np.ndarray:
+
+def pad_simulation(lens: Lens, parameters: SimulationParameters = None,  pad_px: int = 0) -> np.ndarray:
     """Pad the area around the lens profile to prevent reflection. Pad the lens profile to match the simulation width"""
 
     # TODO: make this work for assymmetric shape
@@ -564,9 +573,6 @@ def pad_simulation(lens: Lens, parameters: SimulationParameters = None,  pad_px:
         raise TypeError(
             f"Padding is only supported for 1D and 2D lens. Lens shape was: {lens.profile.shape}."
         )
-
-    if pad_px is None:
-        pad_px = lens.profile.shape[-1]
 
     if parameters is not None:
         lens = _pad_lens_profile_to_sim_width(lens, parameters.sim_width, parameters.pixel_size)
@@ -584,13 +590,10 @@ def pad_simulation(lens: Lens, parameters: SimulationParameters = None,  pad_px:
 def _pad_lens_profile_to_sim_width(lens: Lens, width: float, pixel_size: float):
 
     # if the lens is smaller than the simulation, pad the lens to the width.
-    sim_n_pixels = calculate_num_of_pixels(width, pixel_size)
-    lens_n_pixels = 2 * lens.n_pixels #TODO: change lens.n_pixels so that it is the total n_pixels not in the radisu.....
-    if lens_n_pixels % 2 == 0:
-        lens_n_pixels -= 1 # n_pixels should be odd
-
+    sim_n_pixels = utils._calculate_num_of_pixels(width, pixel_size)
+   
     if sim_n_pixels != lens.n_pixels:
-        diff = sim_n_pixels - lens_n_pixels
+        diff = sim_n_pixels - lens.n_pixels
         lens_profile_padded = np.pad(lens.profile, pad_width=diff // 2, mode="constant")
 
         lens.profile = lens_profile_padded
@@ -608,15 +611,13 @@ def calculate_delta_profile(
     return delta
 
 
-def calculate_tilted_delta_profile(sim_profile: np.ndarray, lens: Lens, output_medium: Medium, tilt_enabled: bool = False, xtilt: float = 0, ytilt: float = 0) -> np.ndarray:
-    """_summary_
+def calculate_tilted_delta_profile(sim_profile: np.ndarray, lens: Lens, output_medium: Medium, tilt: dict = None) -> np.ndarray:
+    """Calculate the delta profile of the wave, and tilt if required.
 
     Args:
         lens (Lens): lens
         output_medium (Medium): output medium
-        tilt_enabled (bool, optional): delta profile is tilted. Defaults to False.
-        xtilt (float, optional): tilt in x-axis (degrees). Defaults to 0.
-        ytilt (float, optional): tilt in y-axis (degrees). Defaults to 0.
+        tilt: (dict): dictionary containing the titlt values
 
     Returns:
         np.ndarray: delta profile
@@ -626,12 +627,13 @@ def calculate_tilted_delta_profile(sim_profile: np.ndarray, lens: Lens, output_m
     delta = calculate_delta_profile(sim_profile, lens, output_medium)
 
     # tilt the beam
-    if tilt_enabled:
-        x = np.arange(len(lens.profile))*lens.pixel_size
-        y = np.arange(len(lens.profile))*lens.pixel_size
+    if tilt is not None:
+        x = np.arange(len(sim_profile))*lens.pixel_size
+        y = np.arange(len(sim_profile))*lens.pixel_size
 
         # modify the optical path of the light based on tilt
-        delta = delta + np.add.outer(y * np.tan(np.deg2rad(ytilt)), -x * np.tan(np.deg2rad(xtilt)))
+        delta = delta + np.add.outer(y * np.tan(np.deg2rad(tilt["y"])), -x * np.tan(np.deg2rad(tilt["y"])))
+        print(f"TITLED: y={tilt['y']}deg, x={tilt['x']}deg")
 
     return delta
 
