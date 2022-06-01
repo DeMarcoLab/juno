@@ -37,6 +37,7 @@ def test_axicon_lens():
     assert np.isclose(np.round(np.min(profile), 7), 0)  # TODO: broken
     assert np.isclose(np.max(profile), lens.height)
     assert profile[int(len(profile) * 0.75)] == lens.height / 2
+    assert profile.shape[-1] == lens.n_pixels
 
 
 def test_focusing_lens():
@@ -96,6 +97,7 @@ def test_revolve_lens():
     # maximum at midpoint
     midx, midy = profile_2D.shape[0] // 2, profile_2D.shape[1] // 2
     assert profile_2D[midx, midy] == np.max(profile_2D), "Maximum should be at the midpoint"
+    assert profile_2D.shape[-1] == lens.n_pixels
 
 
 
