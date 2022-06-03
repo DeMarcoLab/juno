@@ -126,9 +126,6 @@ def main():
     application = QtWidgets.QApplication([])
     window = GUILensCreator()
     application.aboutToQuit.connect(window.disconnect)  # cleanup & teardown
-    window.showNormal()
-    window.center_window()
-
     sys.exit(application.exec_())
 
 
