@@ -14,36 +14,29 @@ class GUILensCreator(LensCreator.Ui_LensCreator, QtWidgets.QMainWindow):
     def __init__(self, parent_gui=None):
         super().__init__(parent=parent_gui)
         self.setupUi(LensCreator=self)
-
         self.setup_connections()
+        self.setup_image_frames()
 
-        self.wp_CrossSection = None
-        self.pc_Profile = None
-
-        self.showNormal()
         self.center_window()
+        self.showNormal()
+
 
     def setup_connections(self):
         self.pushButton_LoadProfile.clicked.connect(self.load_profile)
         self.pushButton_GenerateProfile.clicked.connect(self.generate_profile)
 
+    def setup_image_frames(self):
+        self.pc_CrossSection = None
+        self.pc_Profile = None
+
     def generate_profile(self):
         """Generates a profile based on the inputs to the GUI"""
-        self.lens = Lens(diameter=1,
-                              height=1,
-                              exponent=1,
-                              medium=1
-                              )
-
-        pixel_size = 5e-2
-
-        self.lens.generate_profile(pixel_size=pixel_size, lens_type=LensType.Cylindrical)
+        self.generate_base_lens()
+        self.lens.generate_profile(pixel_size=self.doubleSpinBox_PixelSize.value(), lens_type=LensType.Cylindrical)
 
         if self.lens.lens_type is LensType.Cylindrical:
-            self.lens.extrude_profile(pixel_size)
+            self.lens.extrude_profile(self.doubleSpinBox_PixelSize.value())
 
-        self.array_Profile = self.lens.profile
-        self.array_CrossSection = self.lens.profile[self.lens.profile.shape[0]//2, :]
         self.update_image_frames()
 
 
@@ -58,24 +51,39 @@ class GUILensCreator(LensCreator.Ui_LensCreator, QtWidgets.QMainWindow):
             return
 
         array = np.load(filename)
-        self.array_Profile = array
-        self.array_CrossSection = array[:, array.shape[-1]//2]
+        # TODO: Add default pixel size here
+        pixel_size = 5e-3
+        # TODO: self.lens = generate lens with
+        self.generate_base_lens()
+        self.lens.load_profile(fname=filename, pixel_size=pixel_size)
+
+        self.update_profile_values()
         self.update_image_frames()
+
+    def generate_base_lens(self):
+        self.lens = Lens(diameter=self.doubleSpinBox_LensDiameter.value(),
+                         height=self.doubleSpinBox_LensHeight.value(),
+                         exponent=self.doubleSpinBox_LensExponent.value(),
+                         medium=self.doubleSpinBox_LensMedium.value())
+
+    def update_profile_values(self):
+        # TODO: read in the profile values from
+        pass
 
     def update_image_frames(self):
         # Cross section initialisation
-        if self.wp_CrossSection is not None:
-            self.label_CrossSection.layout().removeWidget(self.wp_CrossSection)
-            self.wp_CrossSection.deleteLater()
-        self.wp_CrossSection = _ImageCanvas(parent=self.label_CrossSection, image=self.array_CrossSection)
+        if self.pc_CrossSection is not None:
+            self.label_CrossSection.layout().removeWidget(self.pc_CrossSection)
+            self.pc_CrossSection.deleteLater()
+        self.pc_CrossSection = _ImageCanvas(parent=self.label_CrossSection, image=self.lens.profile[self.lens.profile.shape[0]//2, :])
         self.label_CrossSection.setLayout(QtWidgets.QVBoxLayout())
-        self.label_CrossSection.layout().addWidget(self.wp_CrossSection)
+        self.label_CrossSection.layout().addWidget(self.pc_CrossSection)
 
         # Cross section initialisation
         if self.pc_Profile is not None:
             self.label_Profile.layout().removeWidget(self.pc_Profile)
             self.pc_Profile.deleteLater()
-        self.pc_Profile = _ImageCanvas(parent=self.label_Profile, image=self.array_Profile)
+        self.pc_Profile = _ImageCanvas(parent=self.label_Profile, image=self.lens.profile)
         if self.label_Profile.layout() is None:
             self.label_Profile.setLayout(QtWidgets.QVBoxLayout())
         self.label_Profile.layout().addWidget(self.pc_Profile)
@@ -108,7 +116,7 @@ class _ImageCanvas(FigureCanvasQTAgg):
 
         # Display image
         if image.ndim == 2:
-            self.axes.imshow(image, aspect='auto')
+            self.axes.imshow(image, aspect='auto')#, extent=[0, self.lens.diameter, ])
         else:
             self.axes.plot(image)
 
