@@ -355,6 +355,11 @@ class Lens:
     ):
         """Calculate the grating mask for the specified settings"""
 
+        if self.profile.shape[0] == 1:
+            y_axis = False
+        if self.profile.shape[1] == 1:
+            raise ValueError('Lens must have width > 1 pixel in horizontal axis.')
+
         if settings.width == 0.0:
             self.grating_mask = np.zeros_like(self.profile, dtype=np.uint8)
             self.grating_depth = 0
@@ -407,7 +412,7 @@ class Lens:
             start_coord_2 = start_coord + settings.distance_px // 2
 
         # coordinates of grating centres (starting from centre to both edges)
-        grating_centre_coords_x1 = np.arange(start_coord_1, 0, -settings.distance_px)
+        grating_centre_coords_x1 = np.arange(start_coord_1, 0-self.pixel_size, -settings.distance_px)
         grating_centre_coords_x2 = np.arange(start_coord_2, profile.shape[axis], settings.distance_px)
         grating_centre_coords = sorted(np.append(grating_centre_coords_x1, grating_centre_coords_x2))
 
