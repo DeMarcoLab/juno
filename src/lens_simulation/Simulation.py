@@ -271,6 +271,12 @@ class Simulation:
                 medium=self.medium_dict[lens_config["medium"]],
             )
 
+            # check lens fits in the simulation
+            if lens.diameter > self.parameters.sim_width:
+                raise ValueError(
+                    f"Lens diameter must be smaller than the simulation width: lens: {lens.diameter:.2e}, sim: {self.parameters.sim_width:.2e}"
+                )
+
             # load a custom lens profile
             if lens_config["custom"]:
                 lens.load_profile(fname=lens_config["custom"])
@@ -357,11 +363,7 @@ def propagate_wavefront(
     finish_distance = stage.finish_distance
     amplitude = parameters.A if passed_wavefront is None else 1.0
 
-    # TODO: move to lens creation??
-    if lens.diameter > parameters.sim_width:
-        raise ValueError(
-            f"Lens diameter must be smaller than the simulation width: lens: {lens.diameter:.2e}, sim: {parameters.sim_width:.2e}"
-        )
+
 
     DEBUG = options.debug
     save_path = os.path.join(options.log_dir, str(stage._id))
@@ -412,44 +414,30 @@ def propagate_wavefront(
             )
 
         # calculate views
-        if lens.profile.ndim == 2:
-            centre_px_h = rounded_output.shape[0] // 2
-            centre_px_v = rounded_output.shape[1] // 2
-            top_down_slice = rounded_output[centre_px_v, :]
-            side_on_slice = rounded_output[:, centre_px_h]
+        centre_px_h = rounded_output.shape[0] // 2
+        centre_px_v = rounded_output.shape[1] // 2
+        top_down_slice = rounded_output[centre_px_h, :]
+        side_on_slice = rounded_output[:, centre_px_v]
 
-            # append views
-            top_down_view[i, :] = top_down_slice
-            side_on_view[i, :] = side_on_slice
-            sim[i, :, :] = rounded_output
-        else:
-            sim[i, :, :] = rounded_output
-            top_down_view[i, :] = rounded_output
+        # append views
+        top_down_view[i, :] = top_down_slice
+        side_on_view[i, :] = side_on_slice
+        sim[i, :, :] = rounded_output
 
-    if DEBUG:
-        result = SimulationResult(
-            propagation=propagation,
-            top_down=top_down_view,
-            side_on=side_on_view,
-            sim=sim,
-            sim_profile=sim_profile,
-            lens=lens,
-            freq_arr=freq_arr,
-            delta=delta,
-            phase=phase,
-        )
-    else:
-        result = SimulationResult(
-            propagation=propagation,
-            top_down=top_down_view,
-            side_on=side_on_view,
-            sim=sim,
-            sim_profile=sim_profile,
-            lens=lens,
-            freq_arr=freq_arr,
-            delta=delta,
-            phase=phase,
-        )  # TODO: reduce
+
+    # return results (TODO: reduce in non-debug mode)
+    result = SimulationResult(
+        propagation=propagation,
+        top_down=top_down_view,
+        side_on=side_on_view,
+        sim=sim,
+        sim_profile=sim_profile,
+        lens=lens,
+        freq_arr=freq_arr,
+        delta=delta,
+        phase=phase,
+    )
+
 
     return result
 
@@ -480,15 +468,10 @@ def generate_sq_freq_arr(sim_profile: np.ndarray, pixel_size: float) -> np.ndarr
             f"Only 2D Simulation Profile is supported. Simulation profile of shape {sim_profile.shape} not supported."
         )
 
-    if sim_profile.shape[0] == 1:  # 1D lens
-        freq_arr = generate_squared_frequency_array(
-            n_pixels=sim_profile.shape[1], pixel_size=pixel_size
-        )
-    else:  # 2D lens
-        x = generate_squared_frequency_array(sim_profile.shape[1], pixel_size)
-        y = generate_squared_frequency_array(sim_profile.shape[0], pixel_size)
-        X, Y = np.meshgrid(x, y)
-        freq_arr = X + Y
+    x = generate_squared_frequency_array(sim_profile.shape[1], pixel_size)
+    y = generate_squared_frequency_array(sim_profile.shape[0], pixel_size)
+    X, Y = np.meshgrid(x, y)
+    freq_arr = X + Y
 
     return freq_arr.astype(np.float32)
 

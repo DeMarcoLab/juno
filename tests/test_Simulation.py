@@ -39,6 +39,10 @@ def test_generate_squared_frequency_array_odd(pixel_size, expected):
     assert np.allclose(frequency_array_new, expected)
 
 
+# TODO: test_gen_sq_freq_arr
+# for 1d, and 2d cases, and error
+
+
 def test_calculate_equivalent_focal_distance_large():
     medium = Lens.Medium(1.0)
     lens = Lens.Lens(200, 20, 2.0, Lens.Medium(1.5))
@@ -106,15 +110,7 @@ def sim_parameters():
 
 def test_pad_simulation_lens_width_for_same_size(spherical_lens, sim_parameters):
 
-    # lens = Lens.Lens(diameter=700.e-6, 
-    #         height=20e-6, 
-    #         exponent=2.0, 
-    #         medium=Lens.Medium(1))
-
     lens = spherical_lens
-
-    # check profile shape before / after
-    # check for both lens types
 
     lens.generate_profile(sim_parameters.pixel_size, LensType.Cylindrical)
     pre_shape = lens.profile.shape
@@ -128,17 +124,16 @@ def test_pad_simulation_lens_width_for_same_size(spherical_lens, sim_parameters)
 
 
 def test_pad_simulation_asymmetric(sim_parameters):
-   
+    """Only pad along the second axis for asymmetric simulation"""
     lens = Lens.Lens(diameter=LENS_DIAMETER / 2, 
         height=20e-6, 
         exponent=2.0, 
         medium=Lens.Medium(1))
 
     lens.generate_profile(sim_parameters.pixel_size, LensType.Cylindrical)
-    print("lens_shape: ", lens.profile.shape)
     sim_profile = Simulation.pad_simulation(lens, sim_parameters)
     sim_n_pixels = utils._calculate_num_of_pixels(sim_parameters.sim_width, sim_parameters.pixel_size) 
-    assert sim_profile.shape == (1, sim_n_pixels)
+    assert sim_profile.shape == (lens.profile.shape[0], sim_n_pixels)
 
 def test_pad_simulation_symmetric(sim_parameters):
     
@@ -152,5 +147,24 @@ def test_pad_simulation_symmetric(sim_parameters):
     sim_n_pixels = utils._calculate_num_of_pixels(sim_parameters.sim_width, sim_parameters.pixel_size) 
     assert sim_profile.shape == (sim_n_pixels, sim_n_pixels)
 
+
+def test_calculate_number_of_pixels(sim_parameters):
+
+    sim_width = sim_parameters.sim_width
+    pixel_size = sim_parameters.pixel_size
+
+    # odd
+    sim_n_pixels = utils._calculate_num_of_pixels(sim_width, pixel_size, odd=True)
+
+    n_pixels = sim_width // pixel_size
+    if n_pixels % 2 == 0:
+        n_pixels += 1
+
+    assert sim_n_pixels == n_pixels
+
+    # even
+    sim_n_pixels_even = utils._calculate_num_of_pixels(sim_width, pixel_size, odd=False)
+
+    assert sim_n_pixels_even == sim_width // pixel_size
 
 

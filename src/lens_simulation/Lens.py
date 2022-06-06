@@ -127,13 +127,6 @@ class Lens:
             length: (int) the length of the extruded lens (metres)
 
         """
-        # if self.profile is None:
-        #     raise RuntimeError(
-        #         "This lens has no profile. Please generate the lens profile before extruding"
-        #     )
-
-        # regenerate the profile
-        # self.generate_profile(self.pixel_size)
 
         # generate 1d profile
         self.profile = self.create_profile_1d(self.diameter, self.n_pixels)
@@ -143,7 +136,7 @@ class Lens:
 
         # extrude profile
         self.profile = np.ones((length_px, *self.profile.shape)) * self.profile
-        print(f"extrude shape: {self.profile.shape}")
+
         return self.profile
 
     def revolve_profile(self):
