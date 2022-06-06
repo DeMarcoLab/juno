@@ -73,7 +73,6 @@ class Simulation:
             sim_width=self.config["sim_parameters"]["sim_width"],
             sim_wavelength=self.config["sim_parameters"]["sim_wavelength"],
             lens_type=LensType[self.config["sim_parameters"]["lens_type"]],
-            padding=self.config["sim_parameters"]["padding"],
         )
 
         # generate all mediums for simulation
@@ -367,9 +366,8 @@ def propagate_wavefront(
     DEBUG = options.debug
     save_path = os.path.join(options.log_dir, str(stage._id))
 
-    # pad the lens profile to be the same size as the simulation, add user defined padding.
-    pad_px = parameters.padding
-    sim_profile = pad_simulation(lens, parameters=parameters, pad_px=pad_px)
+    # pad the lens profile to be the same size as the simulation
+    sim_profile = pad_simulation(lens, parameters=parameters)
 
     # generate frequency array
     freq_arr = generate_sq_freq_arr(sim_profile, pixel_size=parameters.pixel_size)
@@ -382,7 +380,6 @@ def propagate_wavefront(
         phase=phase,
         passed_wavefront=passed_wavefront,
         A=amplitude,
-        pad_px=pad_px,
         aperture_mask=lens.aperture_mask_2,
     )
 
@@ -429,7 +426,6 @@ def propagate_wavefront(
             sim[i, :, :] = rounded_output
             top_down_view[i, :] = rounded_output
 
-    # TODO: remove info from non-debug
     if DEBUG:
         result = SimulationResult(
             propagation=propagation,
@@ -524,7 +520,7 @@ def calculate_equivalent_focal_distance(lens: Lens, medium: Medium) -> float:
 
 
 def pad_simulation(
-    lens: Lens, parameters: SimulationParameters = None, pad_px: int = 0
+    lens: Lens, parameters: SimulationParameters = None
 ) -> np.ndarray:
     """Pad the area around the lens profile to prevent reflection. Pad the lens profile to match the simulation width"""
 
@@ -540,9 +536,9 @@ def pad_simulation(
             lens, parameters.sim_width, parameters.pixel_size
         )
 
-    # add additional user defined padding... (TODO: consolidate)
-    sim_profile = np.pad(lens.profile, pad_px, mode="constant")
+    sim_profile = lens.profile
 
+    # TODO: move to lens 1d generate profile 
     if lens.profile.ndim == 1:
         sim_profile = np.expand_dims(
             sim_profile, axis=0
@@ -620,7 +616,6 @@ def calculate_wavefront(
     phase: np.ndarray,
     passed_wavefront: np.ndarray,
     A: float,
-    pad_px: int = 0,
     aperture_mask: np.ndarray = None,
 ) -> np.ndarray:
     """Calculate the wavefront of light"""
@@ -639,11 +634,6 @@ def calculate_wavefront(
     # mask out apertured area
     if aperture_mask is not None:
         wavefront[aperture_mask] = 0 + 0j
-
-    # zero out padded area (TODO: replace with aperture mask)
-    if pad_px:
-        wavefront[:, :pad_px] = 0 + 0j
-        wavefront[:, -pad_px:] = 0 + 0j
 
     return wavefront
 
