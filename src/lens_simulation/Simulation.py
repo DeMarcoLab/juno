@@ -519,9 +519,7 @@ def calculate_equivalent_focal_distance(lens: Lens, medium: Medium) -> float:
     return equivalent_focal_distance
 
 
-def pad_simulation(
-    lens: Lens, parameters: SimulationParameters = None
-) -> np.ndarray:
+def pad_simulation(lens: Lens, parameters: SimulationParameters) -> np.ndarray:
     """Pad the area around the lens profile to prevent reflection. Pad the lens profile to match the simulation width"""
 
     # TODO: make this work for assymmetric shape
@@ -531,33 +529,28 @@ def pad_simulation(
         )
 
     # pad the lens profile to the simulation width
-    if parameters is not None:
-        lens = _pad_lens_profile_to_sim_width(
-            lens, parameters.sim_width, parameters.pixel_size
-        )
+    lens = _pad_lens_profile_to_sim_width(lens, parameters.sim_width, parameters.pixel_size)
 
-    sim_profile = lens.profile
-
-    # TODO: move to lens 1d generate profile 
-    if lens.profile.ndim == 1:
-        sim_profile = np.expand_dims(
-            sim_profile, axis=0
-        )  # expand 1D lens to 2D sim shape
-
-    return sim_profile
-
+    return lens.profile
 
 def _pad_lens_profile_to_sim_width(lens: Lens, width: float, pixel_size: float) -> Lens:
 
     # if the lens is smaller than the simulation, pad the lens to the width.
     sim_n_pixels = utils._calculate_num_of_pixels(width, pixel_size)
 
-    # TODO: this will break for asymmetric sims
     # pad the lens profile with zeros to match the simulation width
     if sim_n_pixels != lens.n_pixels and sim_n_pixels != lens.profile.shape[-1]:
+        
         diff = sim_n_pixels - lens.n_pixels
-        lens_profile_padded = np.pad(lens.profile, pad_width=diff // 2, mode="constant")
 
+        # check for asymmetry
+        if lens.profile.shape[0] == lens.profile.shape[1]:
+            lens_profile_padded = np.pad(lens.profile, pad_width=diff // 2, mode="constant")
+        else:
+            # only pad in one axis
+            # TODO: confirm this is expected behaviour for asymetric simulation?
+            lens_profile_padded = np.pad(lens.profile, pad_width=((0, 0), (diff // 2, diff //2)), mode="constant")
+    
         lens.profile = lens_profile_padded
 
     return lens

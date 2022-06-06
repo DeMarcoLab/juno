@@ -60,7 +60,7 @@ class Lens:
 
         if self.lens_type == LensType.Cylindrical:
 
-            self.profile = self.create_profile_1d(self.diameter, n_pixels)
+            self.profile = self.extrude_profile(pixel_size)
 
         if self.lens_type == LensType.Spherical:
 
@@ -68,8 +68,8 @@ class Lens:
 
         return self.profile
 
-    def create_profile_1d(self, diameter: float, n_pixels: int):
-
+    def create_profile_1d(self, diameter: float, n_pixels: int) -> np.ndarray:
+        """Create 1 dimensional lens profile"""
         radius = diameter / 2
         n_pixels_in_radius = n_pixels // 2 + 1
 
@@ -127,20 +127,23 @@ class Lens:
             length: (int) the length of the extruded lens (metres)
 
         """
-        if self.profile is None:
-            raise RuntimeError(
-                "This lens has no profile. Please generate the lens profile before extruding"
-            )
+        # if self.profile is None:
+        #     raise RuntimeError(
+        #         "This lens has no profile. Please generate the lens profile before extruding"
+        #     )
 
         # regenerate the profile
-        self.generate_profile(self.pixel_size)
+        # self.generate_profile(self.pixel_size)
+
+        # generate 1d profile
+        self.profile = self.create_profile_1d(self.diameter, self.n_pixels)
 
         # length in pixels
         length_px = int(length // self.pixel_size)
 
         # extrude profile
         self.profile = np.ones((length_px, *self.profile.shape)) * self.profile
-
+        print(f"extrude shape: {self.profile.shape}")
         return self.profile
 
     def revolve_profile(self):
