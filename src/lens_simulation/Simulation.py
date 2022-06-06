@@ -71,6 +71,7 @@ class Simulation:
             A=self.config["sim_parameters"]["A"],
             pixel_size=self.config["sim_parameters"]["pixel_size"],
             sim_width=self.config["sim_parameters"]["sim_width"],
+            sim_height=self.config["sim_parameters"]["sim_height"], 
             sim_wavelength=self.config["sim_parameters"]["sim_wavelength"],
             lens_type=LensType[self.config["sim_parameters"]["lens_type"]],
         )
@@ -363,8 +364,6 @@ def propagate_wavefront(
     finish_distance = stage.finish_distance
     amplitude = parameters.A if passed_wavefront is None else 1.0
 
-
-
     DEBUG = options.debug
     save_path = os.path.join(options.log_dir, str(stage._id))
 
@@ -503,40 +502,53 @@ def calculate_equivalent_focal_distance(lens: Lens, medium: Medium) -> float:
 
 
 def pad_simulation(lens: Lens, parameters: SimulationParameters) -> np.ndarray:
-    """Pad the area around the lens profile to prevent reflection. Pad the lens profile to match the simulation width"""
+    """Pad the lens profile to match the simulation dimensions. Padding is used to 
+        prevent reflection in the simulation
 
-    # TODO: make this work for assymmetric shape
-    if lens.profile.ndim not in (1, 2):
+    Args:
+        lens (Lens): simulation lens
+        parameters (SimulationParameters): simulation parameters
+
+    Raises:
+        TypeError: Lens profile is the wrong shape. Only 2D lens are supported.
+
+    Returns:
+        np.ndarray: padded lens profile
+    """
+    if lens.profile.ndim != 2:
         raise TypeError(
-            f"Padding is only supported for 1D and 2D lens. Lens shape was: {lens.profile.shape}."
+            f"Padding is only supported for 2D lens. Lens shape was: {lens.profile.shape}."
         )
 
-    # pad the lens profile to the simulation width
-    lens = _pad_lens_profile_to_sim_width(lens, parameters.sim_width, parameters.pixel_size)
+    # calculate the number of pixels in the simulation
+    sim_n_pixels_height = utils._calculate_num_of_pixels(parameters.sim_height, parameters.pixel_size)
+    sim_n_pixels_width = utils._calculate_num_of_pixels(parameters.sim_width, parameters.pixel_size)
 
+    # calculate different in size
+    diff_h = (sim_n_pixels_height - lens.profile.shape[0]) // 2
+    diff_w = (sim_n_pixels_width - lens.profile.shape[1]) // 2
+
+    # pad the lens profile
+    lens.profile = np.pad(lens.profile, pad_width=((diff_h, diff_h), (diff_w, diff_w)), mode="constant")
+   
     return lens.profile
 
-def _pad_lens_profile_to_sim_width(lens: Lens, width: float, pixel_size: float) -> Lens:
+# def _pad_lens_profile_to_sim_dimensions(lens: Lens, width: float, height: float, pixel_size: float) -> Lens:
+#     """Pad the lens profile to match the specified simulation dimensions
 
-    # if the lens is smaller than the simulation, pad the lens to the width.
-    sim_n_pixels = utils._calculate_num_of_pixels(width, pixel_size)
+#     Args:
+#         lens (Lens): Lens
+#         width (float): simulation width
+#         height (float): simulation height
+#         pixel_size (float): _description_
 
-    # pad the lens profile with zeros to match the simulation width
-    if sim_n_pixels != lens.n_pixels and sim_n_pixels != lens.profile.shape[-1]:
-        
-        diff = sim_n_pixels - lens.n_pixels
+#     Returns:
+#         Lens: _description_
+#     """
 
-        # check for asymmetry
-        if lens.profile.shape[0] == lens.profile.shape[1]:
-            lens_profile_padded = np.pad(lens.profile, pad_width=diff // 2, mode="constant")
-        else:
-            # only pad in one axis
-            # TODO: confirm this is expected behaviour for asymetric simulation?
-            lens_profile_padded = np.pad(lens.profile, pad_width=((0, 0), (diff // 2, diff //2)), mode="constant")
-    
-        lens.profile = lens_profile_padded
 
-    return lens
+
+#     return lens
 
 
 def calculate_delta_profile(

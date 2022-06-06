@@ -12,6 +12,7 @@ class SimulationParameters:
     A: float
     pixel_size: float 
     sim_width: float
+    sim_height: float
     sim_wavelength: float
     lens_type: LensType
 

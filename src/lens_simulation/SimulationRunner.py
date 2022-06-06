@@ -143,7 +143,7 @@ class SimulationRunner:
 
         print("----------- Simulation Summary -----------")
         print(f"Pixel Size: {self.config['sim_parameters']['pixel_size']:.1e}m")
-        print(f"Simulation Width: {self.config['sim_parameters']['sim_width']:.1e}m")
+        print(f"Simulation Size: {self.config['sim_parameters']['sim_height']:.1e}m x {self.config['sim_parameters']['sim_width']:.1e}m")
         print(f"No. Stages: {len(self.config['stages'])}")
         print("------------------------------------------")
 
