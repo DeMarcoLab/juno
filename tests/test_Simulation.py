@@ -1,13 +1,41 @@
 import numpy as np
 import pytest
-from lens_simulation import Simulation, Lens
-from lens_simulation.Lens import LensType
+from lens_simulation import Simulation
+from lens_simulation.Lens import Lens, LensType
+from lens_simulation.Medium import Medium
 from lens_simulation.structures import SimulationParameters
 from lens_simulation import utils
 
-from tests.test_Lens import LENS_DIAMETER, spherical_lens
+# TODO: deduplicate this bit
+LENS_DIAMETER = 100e-6
+LENS_HEIGHT = 20e-6
+LENS_FOCUS_EXPONENT = 2.0
+LENS_AXICON_EXPONENT = 1.0
+LENS_PIXEL_SIZE = 1e-6
 
+@pytest.fixture
+def spherical_lens():
+    # create lens
+    lens = Lens(diameter=LENS_DIAMETER,
+                height=LENS_HEIGHT,
+                exponent=LENS_FOCUS_EXPONENT,
+                medium=Medium(2.348))
 
+    lens.generate_profile(LENS_PIXEL_SIZE, lens_type=LensType.Spherical)
+
+    return lens
+
+@pytest.fixture
+def cylindrical_lens():
+    # create lens
+    lens = Lens(diameter=LENS_DIAMETER,
+                height=LENS_HEIGHT,
+                exponent=LENS_FOCUS_EXPONENT,
+                medium=Medium(2.348))
+
+    lens.generate_profile(LENS_PIXEL_SIZE, lens_type=LensType.Cylindrical)
+
+    return lens
 
 @pytest.mark.parametrize(
     "pixel_size, expected",
@@ -44,8 +72,8 @@ def test_generate_squared_frequency_array_odd(pixel_size, expected):
 
 
 def test_calculate_equivalent_focal_distance_large():
-    medium = Lens.Medium(1.0)
-    lens = Lens.Lens(200, 20, 2.0, Lens.Medium(1.5))
+    medium = Medium(1.0)
+    lens = Lens(200, 20, 2.0, Medium(1.5))
 
     focal_distance = Simulation.calculate_equivalent_focal_distance(lens, medium)
     assert np.isclose(focal_distance, 520, rtol=1e-6)
@@ -54,8 +82,8 @@ def test_calculate_equivalent_focal_distance_large():
 @pytest.mark.parametrize("lens_exponent", [1.0, 1.5, 2.0, 2.1])
 def test_calculate_equivalent_focal_distance(lens_exponent):
     # all exponents should result in equivalent focal distance
-    medium = Lens.Medium(1.0)
-    lens = Lens.Lens(4500e-6, 70e-6, lens_exponent, Lens.Medium(2.348))
+    medium = Medium(1.0)
+    lens = Lens(4500e-6, 70e-6, lens_exponent, Medium(2.348))
 
     focal_distance = Simulation.calculate_equivalent_focal_distance(lens, medium)
     assert np.isclose(focal_distance, 0.0268514, rtol=1e-6)
@@ -64,8 +92,8 @@ def test_calculate_equivalent_focal_distance(lens_exponent):
 @pytest.mark.parametrize("lens_exponent", [1.0, 1.5, 2.0, 2.1])
 def test_calculate_equivalent_focal_distance_fail_due_to_height(lens_exponent):
     # changing height changes equivalent focal distance for all exponents
-    medium = Lens.Medium(1.0)
-    lens = Lens.Lens(4500e-6, 80e-6, lens_exponent, Lens.Medium(2.348))
+    medium = Medium(1.0)
+    lens = Lens(4500e-6, 80e-6, lens_exponent, Medium(2.348))
 
     focal_distance = Simulation.calculate_equivalent_focal_distance(lens, medium)
     assert not np.isclose(focal_distance, 0.0268514, rtol=1e-6)
@@ -73,10 +101,10 @@ def test_calculate_equivalent_focal_distance_fail_due_to_height(lens_exponent):
 # def test_pad_simulation():
 
 #     # create lens
-#     lens = Lens.Lens(diameter=4500e-6, 
+#     lens = Lens(diameter=4500e-6, 
 #                 height=20e-6, 
 #                 exponent=2.0, 
-#                 medium=Lens.Medium(1))
+#                 medium=Medium(1))
 
 #     # default horizontal padding for extrude
 #     lens.generate_profile(1e-6, LensType.Cylindrical)
@@ -125,10 +153,10 @@ def test_pad_simulation_lens_width_for_same_size(spherical_lens, sim_parameters)
 
 def test_pad_simulation_asymmetric(sim_parameters):
     """Only pad along the second axis for asymmetric simulation"""
-    lens = Lens.Lens(diameter=LENS_DIAMETER / 2, 
+    lens = Lens(diameter=LENS_DIAMETER / 2, 
         height=20e-6, 
         exponent=2.0, 
-        medium=Lens.Medium(1))
+        medium=Medium(1))
 
     lens.generate_profile(sim_parameters.pixel_size, LensType.Cylindrical)
     sim_profile = Simulation.pad_simulation(lens, sim_parameters)
@@ -137,10 +165,10 @@ def test_pad_simulation_asymmetric(sim_parameters):
 
 def test_pad_simulation_symmetric(sim_parameters):
     
-    lens = Lens.Lens(diameter=LENS_DIAMETER / 2, 
+    lens = Lens(diameter=LENS_DIAMETER / 2, 
     height=20e-6, 
     exponent=2.0, 
-    medium=Lens.Medium(1))
+    medium=Medium(1))
     
     lens.generate_profile(sim_parameters.pixel_size, LensType.Spherical)
     sim_profile = Simulation.pad_simulation(lens, sim_parameters)
