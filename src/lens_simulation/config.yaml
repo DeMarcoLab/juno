@@ -4,7 +4,7 @@ sim_parameters:
   sim_height: 700.e-6
   sim_width: 700.e-6
   sim_wavelength: 488.e-9
-  lens_type:  "Cylindrical"     # "Cylindrical" or "Spherical
+  lens_type:  "Spherical"     # "Cylindrical" or "Spherical
 options:
   log_dir: "log"
   verbose: false
@@ -63,7 +63,7 @@ stages:
   #     focal_distance_multiple: 2.0
   - lens: lens_2
     output: medium_2
-    n_slices: 100
+    step_size: 0.1e-3
     start_distance: 0
     finish_distance: 10.e-3
     options:

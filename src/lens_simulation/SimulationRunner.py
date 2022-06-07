@@ -107,12 +107,17 @@ class SimulationRunner:
                 # create stage combination
                 stage_combination = []
                 for j, stage in enumerate(self.config["stages"]):
+                    from lens_simulation.Simulation import _validate_simulation_stage
+
+                    stage = _validate_simulation_stage(stage)
+
                     stage_dict = {
                         "lens": stage["lens"], # TODO: replace with combo
                         "output": stage["output"], # TODO: replace with combo
                         "start_distance": stage_combo[j][0],  
                         "finish_distance": stage_combo[j][1],
                         "n_slices": stage["n_slices"],
+                        "step_size": stage["step_size"],
                         "options": stage["options"],
                     }
                     stage_combination.append(stage_dict)

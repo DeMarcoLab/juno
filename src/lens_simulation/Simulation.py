@@ -176,6 +176,7 @@ def generate_simulation_stages(stages: list, medium_dict: dict, lens_dict: dict,
             lens=lens_dict[stage["lens"]],
             output=medium_dict[stage["output"]],
             n_slices=stage["n_slices"],
+            step_size=stage["step_size"],
             start_distance=stage["start_distance"],
             finish_distance=stage["finish_distance"],
             options=stage["options"],
@@ -213,12 +214,26 @@ def validate_simulation_stage_config(stages: list, medium_dict: dict, lens_dict:
         assert (stage["output"] in medium_dict), f"{stage['output']} has not been defined in the configuration"
         assert (stage["lens"] in lens_dict), f"{stage['lens']} has not been defined in the configuration"
 
-        # validate simulation settings
-        assert "n_slices" in stage, f"Stage requires n_slices"
-        assert "start_distance" in stage, f"Stage requires start_distance"
-        assert "finish_distance" in stage, f"Stage requires finish_distance"
+        stage = _validate_simulation_stage(stage)
+
 
     return stages
+
+def _validate_simulation_stage(stage: dict) -> dict:
+   
+    # validate simulation settings
+    if "n_slices" not in stage and "step_size" not in stage:
+        raise ValueError(f"Stage config requires n_slices or step_size")
+    if "start_distance" not in stage:
+        raise ValueError(f"Stage config requires start_distance")
+    if "finish_distance" not in stage:
+        raise ValueError(f"Stage config requires finish_distance")
+
+    # default settings
+    stage["n_slices"] = None if "n_slices" not in stage else stage["n_slices"]
+    stage["step_size"] = None if "step_size" not in stage else stage["step_size"]
+
+    return stage
 
 
 def calculate_start_and_finish_distance(stage: SimulationStage):
@@ -315,11 +330,12 @@ def propagate_wavefront(
     """
 
     lens: Lens = stage.lens
-    output_medium = stage.output
-    n_slices = stage.n_slices
-    start_distance = stage.start_distance
-    finish_distance = stage.finish_distance
-    amplitude = parameters.A if passed_wavefront is None else 1.0
+    output_medium: Medium = stage.output
+    n_slices: int = stage.n_slices
+    step_size: float = stage.step_size    
+    start_distance: float = stage.start_distance
+    finish_distance: float = stage.finish_distance
+    amplitude: float = parameters.A if passed_wavefront is None else 1.0
 
     DEBUG = options.debug
     save_path = os.path.join(options.log_dir, str(stage._id))
@@ -344,14 +360,17 @@ def propagate_wavefront(
     # fourier transform of wavefront
     fft_wavefront = fftpack.fft2(wavefront)
 
+    # calculate propagation distances
+    if n_slices is None:
+        n_slices = int((finish_distance - start_distance) / step_size)
+    distances = np.linspace(start_distance, finish_distance, n_slices)
+
     # pre-allocate view arrays
     sim = np.zeros(shape=(n_slices, *sim_profile.shape), dtype=np.float32)
     top_down_view = np.zeros(shape=(n_slices, sim_profile.shape[1]), dtype=np.float32)
     side_on_view = np.zeros(shape=(n_slices, sim_profile.shape[0]), dtype=np.float32)
 
     # propagate the wavefront over distance
-    distances = np.linspace(start_distance, finish_distance, n_slices)
-
     prop_progress_bar = tqdm(distances, leave=False)
     for i, distance in enumerate(prop_progress_bar):
         prop_progress_bar.set_description(

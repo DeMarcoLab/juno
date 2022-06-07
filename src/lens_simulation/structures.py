@@ -35,6 +35,7 @@ class SimulationStage:
     lens_inverted: bool = False
     _id: int = 0
     tilt: dict = None
+    step_size: float = None
 
 
 @dataclass
