@@ -35,7 +35,7 @@ class Lens:
         self.medium = medium
         self.escape_path = None
         self.profile = None
-        self.aperture_mask_2 = None # area of lens that is apertured # TODO: do this better
+        self.aperture = None # area of lens that is apertured
 
     def __repr__(self):
 
@@ -174,7 +174,7 @@ class Lens:
 
         # aperture
         if aperture:
-            self.profile[self.aperture_mask] = 0
+            self.profile[self.custom_aperture_mask] = 0
 
         # if escape_path:
         #     self.profile = self.calculate_escape_path(ratio=0.2)
@@ -272,7 +272,7 @@ class Lens:
             )
 
         if inner_m == 0.0 and outer_m == 0.0:
-            self.aperture_mask = np.zeros_like(self.profile, dtype=np.uint8)
+            self.custom_aperture_mask = np.zeros_like(self.profile, dtype=np.uint8)
             return self.profile
 
         inner_px = int(inner_m / self.pixel_size)
@@ -310,7 +310,7 @@ class Lens:
 
             mask[inner_mask * outer_mask] = not inverted
 
-        self.aperture_mask = mask == 1
+        self.custom_aperture_mask = mask == 1
 
         return self.profile
 

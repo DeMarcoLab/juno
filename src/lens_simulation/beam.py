@@ -155,10 +155,10 @@ class Beam:
                                                     mode="constant", constant_values=aperturing_value)
         # assign lens
         self.lens = lens
-        self.lens.aperture_mask_2 = (lens.profile == aperturing_value)
+        self.lens.aperture = (lens.profile == aperturing_value)
         
         # reset apertures back to zero height
-        self.lens.profile[self.lens.aperture_mask_2] = 0
+        self.lens.profile[self.lens.aperture]= 0
 
         # calculate propagation distance
         self.start_distance, self.finish_distance = self.calculate_propagation_distance()

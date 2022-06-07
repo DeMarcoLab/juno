@@ -369,7 +369,7 @@ def propagate_wavefront(
         phase=phase,
         passed_wavefront=passed_wavefront,
         A=amplitude,
-        aperture_mask=lens.aperture_mask_2,
+        aperture=lens.aperture,
     )
 
     # fourier transform of wavefront
@@ -575,7 +575,7 @@ def calculate_wavefront(
     phase: np.ndarray,
     passed_wavefront: np.ndarray,
     A: float,
-    aperture_mask: np.ndarray = None,
+    aperture: np.ndarray = None,
 ) -> np.ndarray:
     """Calculate the wavefront of light"""
 
@@ -591,8 +591,8 @@ def calculate_wavefront(
         wavefront[phase == 0] = 0 + 0j
 
     # mask out apertured area
-    if aperture_mask is not None:
-        wavefront[aperture_mask] = 0 + 0j
+    if aperture is not None:
+        wavefront[aperture] = 0 + 0j
 
     return wavefront
 
