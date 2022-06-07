@@ -119,8 +119,8 @@ class Simulation:
 
         beam = generate_beam(self.config["beam"], self.parameters)
 
-        utils.plot_lens_profile_2D(beam.lens)
-        plt.show()
+        # utils.plot_lens_profile_2D(beam.lens)
+        # plt.show()
 
         beam_stage = SimulationStage(
             lens=beam.lens,
@@ -211,40 +211,50 @@ class Simulation:
     def run_simulation(self):
         """Run the simulation propagation over all simulation stages."""
 
+        # TODO: make functional
+        # stages: list, petname: str, sim_id: str, parameters: SimulationParameters, options: SimulationOptions, config: dict
+        sim_stages = self.sim_stages
+        petname = self.petname
+        sim_id = self.sim_id
+        parameters = self.parameters
+        options = self.options
+        config = self.config
+
+
         passed_wavefront = None
-        progress_bar = tqdm(self.sim_stages, leave=False)
+        progress_bar = tqdm(sim_stages, leave=False)
         for stage in progress_bar:
 
             progress_bar.set_description(
-                f"Sim: {self.petname} ({str(self.sim_id)[-10:]}) - Propagating Wavefront"
+                f"Sim: {petname} ({str(sim_id)[-10:]}) - Propagating Wavefront"
             )
             result = propagate_wavefront(
                 stage=stage,
-                parameters=self.parameters,
-                options=self.options,
+                parameters=parameters,
+                options=options,
                 passed_wavefront=passed_wavefront,
             )
 
             # save path
-            save_path = os.path.join(self.options.log_dir, str(stage._id))
+            save_path = os.path.join(options.log_dir, str(stage._id))
 
-            if self.options.save:
+            if options.save:
                 progress_bar.set_description(
-                    f"Sim: {self.petname} ({str(self.sim_id)[-10:]}) - Saving Simulation"
+                    f"Sim: {petname} ({str(sim_id)[-10:]}) - Saving Simulation"
                 )
                 utils.save_simulation(result.sim, os.path.join(save_path, "sim.npy"))
 
-            if self.options.save_plot:
+            if options.save_plot:
                 progress_bar.set_description(
-                    f"Sim: {self.petname} ({str(self.sim_id)[-10:]}) - Plotting Simulation"
+                    f"Sim: {petname} ({str(sim_id)[-10:]}) - Plotting Simulation"
                 )
 
-                save_result_plots(result, stage, self.parameters, save_path)
+                save_result_plots(result, stage, parameters, save_path)
 
             # pass the wavefront to the next stage
             passed_wavefront = result.propagation
 
-        utils.save_metadata(self.config, self.options.log_dir)
+        utils.save_metadata(config, options.log_dir)
 
     def generate_mediums(self):
         """Generate all the mediums for the simulation"""
@@ -273,9 +283,9 @@ class Simulation:
             )
 
             # check lens fits in the simulation
-            if lens.diameter > self.parameters.sim_width:
+            if lens.diameter > self.parameters.sim_width or lens.diameter > self.parameters.sim_height:
                 raise ValueError(
-                    f"Lens diameter must be smaller than the simulation width: lens: {lens.diameter:.2e}, sim: {self.parameters.sim_width:.2e}"
+                    f"Lens diameter must be smaller than the simulation size: lens: {lens.diameter:.2e}m, sim: {self.parameters.sim_width:.2e}mx{self.parameters.sim_height:.2e}m"
                 )
 
             # load a custom lens profile

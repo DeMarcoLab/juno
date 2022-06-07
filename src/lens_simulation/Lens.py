@@ -35,7 +35,7 @@ class Lens:
         self.medium = medium
         self.escape_path = None
         self.profile = None
-        self.aperture_mask_2 = None # area of lens that is apertured
+        self.aperture_mask_2 = None # area of lens that is apertured # TODO: do this better
 
     def __repr__(self):
 
@@ -68,30 +68,6 @@ class Lens:
 
         return self.profile
 
-    def create_profile_1d(self, diameter: float, n_pixels: int) -> np.ndarray:
-        """Create 1 dimensional lens profile"""
-        radius = diameter / 2
-        n_pixels_in_radius = n_pixels // 2 + 1
-
-        # x coordinate of pixels
-        radius_px = np.linspace(0, radius, n_pixels_in_radius)
-        self.radius_px = radius_px
-
-        # determine coefficent at boundary conditions
-        # TODO: will be different for Hershel, Paraxial approximation)
-        coefficient = self.height / (radius ** self.exponent)
-
-        # generic lens formula
-        # H = h - C*r ^ e
-        heights = self.height - coefficient * radius_px ** self.exponent
-
-        # generate symmetric height profile (NOTE: assumed symmetric lens).
-        profile = np.append(np.flip(heights[1:]), heights)
-
-        # always smooth
-        profile = ndimage.gaussian_filter(profile, sigma=3)
-
-        return profile
 
     def invert_profile(self):
         """Invert the lens profile"""
@@ -129,7 +105,7 @@ class Lens:
         """
 
         # generate 1d profile
-        self.profile = self.create_profile_1d(self.diameter, self.n_pixels)
+        self.profile = create_profile_1d(self.diameter, self.height, self.exponent, self.n_pixels)
 
         # length in pixels
         length_px = int(length // self.pixel_size)
@@ -243,8 +219,6 @@ class Lens:
         self.truncation = truncation
 
         return self.profile
-
-
 
     def calculate_escape_path(self, ratio=0.2):
 
@@ -365,8 +339,8 @@ class Lens:
         settings.width_px = int(settings.width / self.pixel_size)
         settings.distance_px = int(settings.distance / self.pixel_size)
 
-        grating_coords_x = self.calculate_grating_coords(self.profile, settings, axis=1)
-        grating_coords_y = self.calculate_grating_coords(self.profile, settings, axis=0)
+        grating_coords_x = calculate_grating_coords(self.profile, settings, axis=1)
+        grating_coords_y = calculate_grating_coords(self.profile, settings, axis=0)
 
         mask = np.zeros_like(self.profile, dtype=np.uint8)
 
@@ -381,46 +355,73 @@ class Lens:
 
         return self.profile
 
-    def calculate_grating_coords(
-        self,
-        profile: np.ndarray,
-        settings: GratingSettings,
-        axis: int = 1,
-    ):
-
-        """Calculate the positions of grating coordinates for the specified axis"""
-
-        start_coord = profile.shape[axis] // 2
-
-        if settings.centred:
-            # start at centre pixel then move out
-            start_coord_1 = profile.shape[axis] // 2
-            start_coord_2 = profile.shape[axis] // 2
-
-        else:
-            # start at centre pixel + half then move out
-            start_coord_1 = start_coord - settings.distance_px // 2
-            start_coord_2 = start_coord + settings.distance_px // 2
-
-        # coordinates of grating centres (starting from centre to both edges)
-        grating_centre_coords_x1 = np.arange(start_coord_1, 0, -settings.distance_px)
-        grating_centre_coords_x2 = np.arange(start_coord_2, profile.shape[axis], settings.distance_px)
-        grating_centre_coords = sorted(np.append(grating_centre_coords_x1, grating_centre_coords_x2))
-
-        # coordinates of full grating which is grating centre +/- width / 2
-        grating_coords = []
-
-        for px in grating_centre_coords:
-
-            min_px, max_px = px - settings.width_px / 2, px + settings.width_px / 2
-
-            grating = np.arange(min_px, max_px).astype(int)
-
-            grating = np.clip(grating, 0, profile.shape[axis] - 1)
-
-            grating_coords.append(grating)
-
-        return np.ravel(grating_coords)
 
 
 
+
+
+def create_profile_1d(diameter: float, height: float, exponent: float, n_pixels: int) -> np.ndarray:
+    """Create 1 dimensional lens profile"""
+    
+    # # make functional
+    # height = self.height
+    # exponent = self.exponent
+
+    radius = diameter / 2
+    n_pixels_in_radius = n_pixels // 2 + 1
+
+    # x coordinate of pixels
+    radius_px = np.linspace(0, radius, n_pixels_in_radius)
+
+    # determine coefficent at boundary conditions
+    # TODO: will be different for Hershel, Paraxial approximation)
+    coefficient = height / (radius ** exponent)
+
+    # generic lens formula
+    # H = h - C*r ^ e
+    heights = height - coefficient * radius_px ** exponent
+
+    # generate symmetric height profile (NOTE: assumed symmetric lens).
+    profile = np.append(np.flip(heights[1:]), heights)
+
+    # always smooth
+    profile = ndimage.gaussian_filter(profile, sigma=3)
+
+    return profile
+
+def calculate_grating_coords(profile: np.ndarray, settings: GratingSettings, axis: int = 1,
+):
+
+    """Calculate the positions of grating coordinates for the specified axis"""
+
+    start_coord = profile.shape[axis] // 2
+
+    if settings.centred:
+        # start at centre pixel then move out
+        start_coord_1 = profile.shape[axis] // 2
+        start_coord_2 = profile.shape[axis] // 2
+
+    else:
+        # start at centre pixel + half then move out
+        start_coord_1 = start_coord - settings.distance_px // 2
+        start_coord_2 = start_coord + settings.distance_px // 2
+
+    # coordinates of grating centres (starting from centre to both edges)
+    grating_centre_coords_x1 = np.arange(start_coord_1, 0, -settings.distance_px)
+    grating_centre_coords_x2 = np.arange(start_coord_2, profile.shape[axis], settings.distance_px)
+    grating_centre_coords = sorted(np.append(grating_centre_coords_x1, grating_centre_coords_x2))
+
+    # coordinates of full grating which is grating centre +/- width / 2
+    grating_coords = []
+
+    for px in grating_centre_coords:
+
+        min_px, max_px = px - settings.width_px / 2, px + settings.width_px / 2
+
+        grating = np.arange(min_px, max_px).astype(int)
+
+        grating = np.clip(grating, 0, profile.shape[axis] - 1)
+
+        grating_coords.append(grating)
+
+    return np.ravel(grating_coords)
