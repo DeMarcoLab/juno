@@ -248,9 +248,8 @@ def generate_lenses(lenses: list, medium_dict: dict, parameters: SimulationParam
     lens_dict = {}
     for lens_config in lenses:
 
-        assert (
-            lens_config["medium"] in medium_dict
-        ), "Lens Medium not found in simulation mediums"
+
+        lens_config= validate_lens_config(lens_config, medium_dict)
 
         lens = Lens(
             diameter=lens_config["diameter"],
@@ -274,6 +273,7 @@ def generate_lenses(lenses: list, medium_dict: dict, parameters: SimulationParam
             lens.generate_profile(
                 pixel_size=parameters.pixel_size,
                 lens_type=parameters.lens_type,
+                length=lens_config["length"]
             )
 
         apply_modifications(lens, lens_config)
@@ -281,6 +281,16 @@ def generate_lenses(lenses: list, medium_dict: dict, parameters: SimulationParam
         lens_dict[lens_config["name"]] = lens
 
     return lens_dict
+
+
+def validate_lens_config(lens_config, medium_dict):
+    """Validate the lens configuration"""
+    
+    assert (lens_config["medium"] in medium_dict), "Lens Medium not found in simulation mediums"
+
+    lens_config["length"] = None if "length" not in lens_config else lens_config["length"]
+
+    return lens_config
 
 
 def propagate_wavefront(

@@ -42,12 +42,17 @@ class Lens:
         return f""" Lens (diameter: {self.diameter:.2e}, height: {self.height:.2e}, \nexponent: {self.exponent:.3f}, refractive_index: {self.medium.refractive_index:.3f}),"""
 
     def generate_profile(
-        self, pixel_size: float, lens_type: LensType = LensType.Cylindrical
+        self, pixel_size: float, lens_type: LensType = LensType.Cylindrical, length: int = None
     ) -> np.ndarray:
-        """[summary]
+        """_summary_
+
+        Args:
+            pixel_size (float): simulation pixel size
+            lens_type (LensType, optional): method to create the lens profile [Cylindrical or Spherical]. Defaults to LensType.Cylindrical.
+            length (int, optional): distance to extrude the profile. Defaults to None. (metres) 
 
         Returns:
-            np.ndarray: [description]
+            np.ndarray: lens profile
         """
         from lens_simulation.utils import _calculate_num_of_pixels
 
@@ -56,8 +61,11 @@ class Lens:
         self.pixel_size = pixel_size
 
         if lens_type == LensType.Cylindrical:
-
-            self.profile = self.extrude_profile(pixel_size, n_pixels)
+            
+            if length is None:
+                length = pixel_size
+            
+            self.profile = self.extrude_profile(length, n_pixels)
 
         if lens_type == LensType.Spherical:
 
@@ -95,15 +103,19 @@ class Lens:
             length: (int) the length of the extruded lens (metres)
 
         """
+        from lens_simulation.utils import _calculate_num_of_pixels
 
         # generate 1d profile
         profile = create_profile_1d(self.diameter, self.height, self.exponent, n_pixels)
 
         # length in pixels
-        length_px = int(length // self.pixel_size)
+        length_px = _calculate_num_of_pixels(length, self.pixel_size, odd=True)
 
         # extrude profile
         profile = np.ones((length_px, *profile.shape)) * profile
+
+        # filter profile
+        # profile = ndimage.gaussian_filter(profile, sigma=3)
 
         return profile
 
@@ -131,7 +143,7 @@ class Lens:
         # clip the profile to zero
         profile = np.clip(profile, 0, np.max(profile))
 
-        # override 1D profile
+        # filter profile
         # profile = ndimage.gaussian_filter(profile, sigma=3)
 
         return profile
