@@ -47,6 +47,8 @@ class Simulation:
         config["sim_id"] = self.sim_id
         config["petname"] = self.petname
 
+
+
         # create logging directory
         log_dir = os.path.join(config["log_dir"], str(self.petname))
         os.makedirs(log_dir, exist_ok=True)
@@ -231,7 +233,6 @@ def generate_lenses(lenses: list, medium_dict: dict, parameters: SimulationParam
     
     lens_dict = {}
     for lens_config in lenses:
-
 
         lens_config= validation._validate_lens_config(lens_config, medium_dict)
 
