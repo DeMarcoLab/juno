@@ -34,7 +34,7 @@ class GUILensCreator(LensCreator.Ui_LensCreator, QtWidgets.QMainWindow):
 
         # connect each of the lens parameter selectors to update profile in live view
         [value.valueChanged.connect(self.live_update_profile) for value in self.__dict__.values() if value.__class__ is QtWidgets.QDoubleSpinBox]
-        [value.toggled.connect(self.live_update_profile) for value in self.__dict__.values() if value.__class__ is QtWidgets.QCheckBox]
+        [value.toggled.connect(self.live_update_profile) for value in self.__dict__.values() if value.__class__ in [QtWidgets.QCheckBox, QtWidgets.QGroupBox]]
         [value.currentTextChanged.connect(self.live_update_profile) for value in self.__dict__.values() if value.__class__ is QtWidgets.QComboBox]
 
     ### Generation methods ###
@@ -42,6 +42,7 @@ class GUILensCreator(LensCreator.Ui_LensCreator, QtWidgets.QMainWindow):
     def generate_profile(self):
         """Generates a profile based on the inputs to the GUI"""
         # generate the lens based off the parameters selected in GUI
+        self.masks_applied = False
         try:
             self.generate_base_lens()
 
@@ -49,14 +50,18 @@ class GUILensCreator(LensCreator.Ui_LensCreator, QtWidgets.QMainWindow):
             self.lens.generate_profile(pixel_size=self.pixel_size, lens_type=self.lens_type)
 
             self.update_masks()
-            self.lens.apply_masks(grating=self.groupBox_Gratings.isChecked(),
-                                truncation=self.groupBox_Truncation.isChecked(),
-                                aperture=self.groupBox_Aperture.isChecked())
+
+            # this loop is here to avoid double applying masks in Live Mode
+            if self.masks_applied is False:
+                self.lens.apply_masks(grating=self.groupBox_Gratings.isChecked(),
+                                    truncation=self.groupBox_Truncation.isChecked(),
+                                    aperture=self.groupBox_Aperture.isChecked())
+                self.masks_applied = True
+
             self.update_image_frames()
 
         except Exception as e:
             self.display_error_message(traceback.format_exc())
-
 
     def generate_base_lens(self):
         self.lens = Lens(
@@ -119,18 +124,15 @@ class GUILensCreator(LensCreator.Ui_LensCreator, QtWidgets.QMainWindow):
             self.update_aperture_mask()
 
     def update_grating_mask(self):
+        # Update maximums to not give user ability to error out
+        self.doubleSpinBox_GratingWidth.setMaximum(self.doubleSpinBox_GratingDistance.value()-self.pixel_size)
+        self.doubleSpinBox_GratingDistance.setMaximum(self.lens.diameter-self.pixel_size)
+
         grating_width = self.doubleSpinBox_GratingWidth.value()
         grating_distance = self.doubleSpinBox_GratingDistance.value()
         grating_depth = self.doubleSpinBox_GratingDepth.value()
         grating_axis = self.comboBox_GratingAxis.currentText()
         grating_centered = self.checkBox_GratingCentered.isChecked()
-
-        if grating_distance >= self.lens.diameter:
-            grating_distance = self.lens.diameter - self.pixel_size
-
-        if grating_width >= grating_distance:
-            self.statusBar.showMessage("Grating width adjusted to be less than grating distance")
-            grating_width = grating_distance - self.pixel_size
 
         grating_settings = GratingSettings(
             width=grating_width,
@@ -176,8 +178,9 @@ class GUILensCreator(LensCreator.Ui_LensCreator, QtWidgets.QMainWindow):
         except Exception as e:
             self.display_error_message(traceback.format_exc())
 
-
     def update_aperture_mask(self):
+        self.doubleSpinBox_ApertureInner.setMaximum(self.doubleSpinBox_ApertureOuter.value()-self.pixel_size)
+
         aperture_mode = self.comboBox_ApertureMode.currentText()
         aperture_inner = self.doubleSpinBox_ApertureInner.value()
         aperture_outer = self.doubleSpinBox_ApertureOuter.value()
@@ -197,7 +200,6 @@ class GUILensCreator(LensCreator.Ui_LensCreator, QtWidgets.QMainWindow):
             )
         except Exception as e:
             self.display_error_message(traceback.format_exc())
-
 
     def update_image_frames(self):
         # Cross section initialisation

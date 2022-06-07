@@ -824,6 +824,9 @@
                       <property name="stepType">
                        <enum>QAbstractSpinBox::AdaptiveDecimalStepType</enum>
                       </property>
+                      <property name="value">
+                       <double>0.020000000000000</double>
+                      </property>
                      </widget>
                     </item>
                    </layout>
@@ -1207,7 +1210,7 @@
                        <enum>QAbstractSpinBox::AdaptiveDecimalStepType</enum>
                       </property>
                       <property name="value">
-                       <double>0.000000000000000</double>
+                       <double>0.150000000000000</double>
                       </property>
                      </widget>
                     </item>
@@ -1242,7 +1245,7 @@
                        <enum>QAbstractSpinBox::AdaptiveDecimalStepType</enum>
                       </property>
                       <property name="value">
-                       <double>1.000000000000000</double>
+                       <double>0.300000000000000</double>
                       </property>
                      </widget>
                     </item>
