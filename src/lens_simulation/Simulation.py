@@ -167,7 +167,7 @@ def generate_simulation_stages(stages: list, medium_dict: dict, lens_dict: dict,
         tilt={"x": beam.tilt[0], "y": beam.tilt[1]},
     )
 
-    sim_stages.append(beam_stage) #TODO: START_HERE beam integration in sim
+    sim_stages.append(beam_stage) 
 
     ################################ LENS STAGES ################################
 
@@ -204,9 +204,6 @@ def generate_simulation_stages(stages: list, medium_dict: dict, lens_dict: dict,
         sim_stages.append(sim_stage)
     
     return sim_stages
-
-
-
 
 
 def validate_simulation_stage_config(stages: list, medium_dict: dict, lens_dict: dict) -> None:

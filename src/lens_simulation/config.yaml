@@ -13,15 +13,15 @@ options:
   debug: false
 beam:
   distance_mode: "direct"   # "Direct", "Width", "Focal"
-  beam_spread: "plane"      # "Plane", "Converging", "Diverging"
+  beam_spread: "converging"      # "Plane", "Converging", "Diverging"
   beam_shape: "circular"      # "Square", "Circular", "Rectangular"
   width: 500.e-6
-  height: 150.e-6
+  height: 50.e-6
   position: [0.e-6, 0.e-6] 
-  theta: 0.0
+  theta: 45.0
   # numerical_aperture: null
   tilt: [0.0, 0.0]
-  source_distance: 20.0e-3
+  source_distance: 2.0e-3
   # final_width: 10.0e-6
   # focal_multiple: null
 lenses:
