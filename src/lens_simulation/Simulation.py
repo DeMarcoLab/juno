@@ -158,7 +158,7 @@ def generate_simulation_stages(stages: list, medium_dict: dict, lens_dict: dict,
     beam_stage = SimulationStage(
         lens=beam.lens,
         output=Medium(1.33),
-        n_slices=10,
+        n_slices=beam.settings.n_slices,
         start_distance=beam.start_distance,
         finish_distance=beam.finish_distance,
         tilt={"x": beam.tilt[0], "y": beam.tilt[1]},

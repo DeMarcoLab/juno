@@ -1,4 +1,5 @@
 from dataclasses import dataclass, field
+from multiprocessing.sharedctypes import Value
 import matplotlib.pyplot as plt
 import numpy as np
 from pytest import param
@@ -45,6 +46,7 @@ class BeamSettings:
     source_distance: float = None
     final_width: float = None
     focal_multiple: float = None
+    n_slices: int = 10
 
 
 
@@ -85,9 +87,12 @@ class Beam:
 
         # validation
         if self.width > sim_width:
-            raise ValueError(f"Beam width is larger than simulation width: beam={self.width:.2e}, sim={sim_width:.2e}")
+            raise ValueError(f"Beam width is larger than simulation width: beam={self.width:.2e}m, sim={sim_width:.2e}m")
         if self.height > sim_width:
-            raise ValueError(f"Beam height is larger than simulation width: beam={self.height:.2e}, sim={sim_width:.2e}")
+            raise ValueError(f"Beam height is larger than simulation width: beam={self.height:.2e}m, sim={sim_width:.2e}m")
+
+        if self.position[0] > sim_width or self.position[1] > sim_width:
+            raise ValueError(f"Beam position is outside simulation: position: x:{self.position[0]:.2e}m, y:{self.position[1]:.2e}m, sim_size: {sim_width:.2e}m")
 
         # Default beam specifications
         lens = Lens(
@@ -145,9 +150,10 @@ class Beam:
         
         # calculate padding parameters
         beam_position = self.position
-        pad_width = (int(sim_width/pixel_size)-lens.profile.shape[0])//2 + 1 
-        relative_position_x = int(beam_position[1]/pixel_size)
-        relative_position_y = int(beam_position[0]/pixel_size)
+        pad_width = (int(sim_width/pixel_size)-lens.profile.shape[0])//2 + 1    # px
+        relative_position_x = int(beam_position[1]/pixel_size)                  # px
+        relative_position_y = int(beam_position[0]/pixel_size)                  # px
+        # NOTE: ^ always symmetric
 
         # pad the profile to the sim width (Top - Bottom - Left - Right)
         lens.profile = np.pad(lens.profile, ((pad_width + relative_position_y, pad_width - relative_position_y),
@@ -281,6 +287,7 @@ def load_beam_config(config: dict) -> BeamSettings:
     source_distance = config["source_distance"] if "source_distance" in config else None
     final_width = config["final_width"] if "final_width" in config else None
     focal_multiple = config["focal_multiple"] if "focal_multiple" in config else None
+    n_slices = config["n_slices"] if "n_slices" in config else 10
 
     beam_settings = BeamSettings(
         distance_mode=DistanceMode[distance_mode],
@@ -294,7 +301,8 @@ def load_beam_config(config: dict) -> BeamSettings:
         tilt=tilt,
         source_distance=source_distance,
         final_width=final_width,
-        focal_multiple=focal_multiple
+        focal_multiple=focal_multiple,
+        n_slices=n_slices
     )
 
     return beam_settings

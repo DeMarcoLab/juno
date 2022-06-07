@@ -24,6 +24,7 @@ beam:
   source_distance: 2.0e-3
   # final_width: 10.0e-6
   # focal_multiple: null
+  n_slices: 10
 lenses:
   - name: lens_1
     diameter: 500.e-6
