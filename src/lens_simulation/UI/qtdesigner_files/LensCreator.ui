@@ -1252,7 +1252,7 @@
                  <item>
                   <widget class="QFrame" name="frame_ApertureInverted">
                    <property name="enabled">
-                    <bool>false</bool>
+                    <bool>true</bool>
                    </property>
                    <property name="maximumSize">
                     <size>
@@ -1277,13 +1277,13 @@
                     <item>
                      <widget class="QCheckBox" name="checkBox_ApertureInverted">
                       <property name="enabled">
-                       <bool>false</bool>
+                       <bool>true</bool>
                       </property>
                       <property name="text">
                        <string>Inverted</string>
                       </property>
                       <property name="checked">
-                       <bool>true</bool>
+                       <bool>false</bool>
                       </property>
                      </widget>
                     </item>
