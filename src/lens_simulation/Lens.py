@@ -42,7 +42,7 @@ class Lens:
         return f""" Lens (diameter: {self.diameter:.2e}, height: {self.height:.2e}, \nexponent: {self.exponent:.3f}, refractive_index: {self.medium.refractive_index:.3f}),"""
 
     def generate_profile(
-        self, pixel_size, lens_type: LensType = LensType.Cylindrical
+        self, pixel_size: float, lens_type: LensType = LensType.Cylindrical
     ) -> np.ndarray:
         """[summary]
 
@@ -55,16 +55,14 @@ class Lens:
         n_pixels = _calculate_num_of_pixels(self.diameter, pixel_size, odd = True)
 
         self.pixel_size = pixel_size
-        self.n_pixels = n_pixels
-        self.lens_type = lens_type
 
-        if self.lens_type == LensType.Cylindrical:
+        if lens_type == LensType.Cylindrical:
 
-            self.profile = self.extrude_profile(pixel_size)
+            self.profile = self.extrude_profile(pixel_size, n_pixels)
 
-        if self.lens_type == LensType.Spherical:
+        if lens_type == LensType.Spherical:
 
-            self.profile = self.revolve_profile()
+            self.profile = self.revolve_profile(n_pixels)
 
         return self.profile
 
@@ -96,7 +94,7 @@ class Lens:
 
         return self.profile
 
-    def extrude_profile(self, length: float) -> np.ndarray:
+    def extrude_profile(self, length: float, n_pixels: int) -> np.ndarray:
         """Extrude the lens profile to create a cylindrical lens profile.
 
         args:
@@ -105,24 +103,24 @@ class Lens:
         """
 
         # generate 1d profile
-        self.profile = create_profile_1d(self.diameter, self.height, self.exponent, self.n_pixels)
+        profile = create_profile_1d(self.diameter, self.height, self.exponent, n_pixels)
 
         # length in pixels
         length_px = int(length // self.pixel_size)
 
         # extrude profile
-        self.profile = np.ones((length_px, *self.profile.shape)) * self.profile
+        profile = np.ones((length_px, *profile.shape)) * profile
 
-        return self.profile
+        return profile
 
-    def revolve_profile(self):
+    def revolve_profile(self, n_pixels: int):
         """Revolve the lens profile around the centre of the lens"""
 
         # len/sim parameters
         lens_width = self.diameter
         lens_length = self.diameter
-        n_pixels_x = self.n_pixels  # odd
-        n_pixels_y = self.n_pixels  # odd
+        n_pixels_x = n_pixels  # odd
+        n_pixels_y = n_pixels  # odd
 
         # revolve the profile around the centre (distance)
         x = np.linspace(0, lens_width, n_pixels_x)
@@ -141,9 +139,8 @@ class Lens:
 
         # override 1D profile
         # profile = ndimage.gaussian_filter(profile, sigma=3)
-        self.profile = profile
 
-        return self.profile
+        return profile
 
     """
     x: zero, equal
