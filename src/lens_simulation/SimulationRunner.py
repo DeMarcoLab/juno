@@ -10,11 +10,12 @@ import numpy as np
 from tqdm import tqdm
 
 from lens_simulation import Simulation, utils
+from lens_simulation import validation
+
 
 # TODO: convert print to logging, and save log file
 # TODO: add datetime to sim metadata?
 # TODO: add time taken to logging
-# TODO: change n_slices to a common sim parameter
 
 class SimulationRunner:
 
@@ -26,8 +27,7 @@ class SimulationRunner:
         self.config = utils.load_config(config_filename)
 
         # create logging directory
-        log_dir = os.getcwd() # TODO: make user selectable
-        self.data_path: Path = os.path.join(log_dir , "log",  str(self.petname))
+        self.data_path: Path = os.path.join(self.config["options"]["log_dir"], str(self.petname))
         os.makedirs(self.data_path, exist_ok=True)
 
         # update metadata
@@ -107,9 +107,8 @@ class SimulationRunner:
                 # create stage combination
                 stage_combination = []
                 for j, stage in enumerate(self.config["stages"]):
-                    from lens_simulation.Simulation import _validate_simulation_stage
 
-                    stage = _validate_simulation_stage(stage)
+                    stage = validation._validate_simulation_stage(stage)
 
                     stage_dict = {
                         "lens": stage["lens"], # TODO: replace with combo

@@ -20,6 +20,7 @@ from lens_simulation.structures import (
     SimulationResult,
 )
 
+from lens_simulation import validation
 from lens_simulation.beam import generate_beam
 
 # DONE:
@@ -71,7 +72,7 @@ class Simulation:
 
         return config
 
-    def setup_simulation(self, config):
+    def setup_simulation(self, config: dict):
 
         # generate all mediums for simulation
         medium_dict = generate_mediums(config["mediums"])
@@ -80,7 +81,7 @@ class Simulation:
         lens_dict = generate_lenses(config["lenses"], medium_dict, self.parameters)
 
         # validate sim, lens and medium setup 
-        stages_config = validate_simulation_stage_config(config["stages"], medium_dict, lens_dict)
+        stages_config = validation._validate_simulation_stage_config(config["stages"], medium_dict, lens_dict)
 
         # generate all simulation stages
         self.sim_stages = generate_simulation_stages(stages_config, medium_dict, lens_dict, config, self.parameters)
@@ -204,38 +205,6 @@ def generate_simulation_stages(stages: list, medium_dict: dict, lens_dict: dict,
     return sim_stages
 
 
-def validate_simulation_stage_config(stages: list, medium_dict: dict, lens_dict: dict) -> None:
-    """Validate that all lenses and mediums have been defined, and all simulation stages have been
-    defined correctly.
-    """
-
-    for stage in stages:
-        # validate all lens, mediums exist, 
-        assert (stage["output"] in medium_dict), f"{stage['output']} has not been defined in the configuration"
-        assert (stage["lens"] in lens_dict), f"{stage['lens']} has not been defined in the configuration"
-
-        stage = _validate_simulation_stage(stage)
-
-
-    return stages
-
-def _validate_simulation_stage(stage: dict) -> dict:
-   
-    # validate simulation settings
-    if "n_slices" not in stage and "step_size" not in stage:
-        raise ValueError(f"Stage config requires n_slices or step_size")
-    if "start_distance" not in stage:
-        raise ValueError(f"Stage config requires start_distance")
-    if "finish_distance" not in stage:
-        raise ValueError(f"Stage config requires finish_distance")
-
-    # default settings
-    stage["n_slices"] = None if "n_slices" not in stage else stage["n_slices"]
-    stage["step_size"] = None if "step_size" not in stage else stage["step_size"]
-
-    return stage
-
-
 def calculate_start_and_finish_distance(stage: SimulationStage):
     
     eq_fd = calculate_equivalent_focal_distance(stage.lens, stage.output)
@@ -264,7 +233,7 @@ def generate_lenses(lenses: list, medium_dict: dict, parameters: SimulationParam
     for lens_config in lenses:
 
 
-        lens_config= validate_lens_config(lens_config, medium_dict)
+        lens_config= validation._validate_lens_config(lens_config, medium_dict)
 
         lens = Lens(
             diameter=lens_config["diameter"],
@@ -298,14 +267,7 @@ def generate_lenses(lenses: list, medium_dict: dict, parameters: SimulationParam
     return lens_dict
 
 
-def validate_lens_config(lens_config, medium_dict):
-    """Validate the lens configuration"""
-    
-    assert (lens_config["medium"] in medium_dict), "Lens Medium not found in simulation mediums"
 
-    lens_config["length"] = None if "length" not in lens_config else lens_config["length"]
-
-    return lens_config
 
 
 def propagate_wavefront(
