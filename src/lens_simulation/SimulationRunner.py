@@ -123,6 +123,7 @@ class SimulationRunner:
                     "run_petname": self.petname, 
                     "log_dir": self.data_path, 
                     "sim_parameters": self.config["sim_parameters"],
+                    "beam": self.config["beam"],
                     "options": self.config["options"],
                     "mediums": self.config["mediums"], 
                     "lenses": lens_combination,
@@ -142,8 +143,8 @@ class SimulationRunner:
 
         print("----------- Simulation Summary -----------")
         print(f"Pixel Size: {self.config['sim_parameters']['pixel_size']:.1e}m")
-        print(f"Simulation Width: {self.config['sim_parameters']['sim_width']:.1e}m")
-        print(f"No. Stages: {len(self.config['stages'])}")
+        print(f"Simulation Size: {self.config['sim_parameters']['sim_height']:.1e}m x {self.config['sim_parameters']['sim_width']:.1e}m")
+        print(f"No. Stages: {len(self.config['stages']) + 1}")
         print("------------------------------------------")
 
         for sim_config in tqdm(self.simulation_configurations):

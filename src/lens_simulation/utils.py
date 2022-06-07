@@ -5,8 +5,11 @@ import plotly.express as px
 import os 
 import json
 import yaml
+import petname
 
 from lens_simulation.Lens import Lens
+
+from pathlib import Path
 
 # TODO: visualisation
 # visualisation between lens and sim data is inconsistent, 
@@ -94,7 +97,6 @@ def plot_image(arr: np.ndarray, title: str = "Image Title", save: bool = False, 
     plt.colorbar()
     if save:
         save_figure(fig, fname)
-    # plt.close(fig)
 
     return fig  
 
@@ -209,7 +211,62 @@ def plot_lens_profile_slices(lens: Lens, max_height: float = None) -> plt.Figure
     
     return fig
 
-def save_simulation_slice(sim, fname):
+
+def save_simulation(sim: np.ndarray, fname: Path) -> None:
+    """Save the simulation array as a numpy array
+
+    Args:
+        sim (_type_): _description_
+        fname (_type_): _description_
+    """
     # TODO: use npz (compressed)
     os.makedirs(os.path.dirname(fname), exist_ok=True)
     np.save(fname, sim)
+
+
+def load_simulation_config(config_filename: str = "config.yaml") -> dict:
+    """Load the default configuration ready to simulate.
+
+    Args:
+        config_filename (str, optional): config filename. Defaults to "config.yaml".
+
+    Returns:
+        dict: configuration as dictionary formatted for simulation
+    """
+
+    with open(config_filename, "r") as f:
+        conf = yaml.full_load(f)
+
+    run_id = petname.generate(3)  # run_id is for when running a batch of sims, each sim has unique id
+    data_path = os.path.join(conf["options"]["log_dir"],  str(run_id))
+    config = {"run_id": run_id, 
+                "parameters": None, 
+                "log_dir": data_path, 
+                "sim_parameters": conf["sim_parameters"], 
+                "options": conf["options"],
+                "beam": conf["beam"],
+                "mediums": conf["mediums"], 
+                "lenses": conf["lenses"],
+                "stages": conf["stages"]}
+    
+    return config
+
+
+def _calculate_num_of_pixels(width: float, pixel_size: float, odd: bool = True) -> int:
+    """Calculate the number of pixels for a given width and pixel size
+
+    Args:
+        width (float): the width of the image (metres)
+        pixel_size (float): the size of the pixels (metres)
+        odd (bool, optional): force the n_pixels to be odd. Defaults to True.
+
+    Returns:
+        int: the number of pixels in the image distance
+    """
+    n_pixels = int(width / pixel_size)
+
+    # n_pixels must be odd (symmetry).
+    if odd and n_pixels % 2 == 0:
+        n_pixels += 1
+
+    return n_pixels
