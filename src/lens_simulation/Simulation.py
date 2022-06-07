@@ -20,6 +20,8 @@ from lens_simulation.structures import (
     SimulationResult,
 )
 
+from lens_simulation.beam import generate_beam
+
 # DONE:
 # sweepable parameters
 # database management
@@ -38,21 +40,17 @@ class Simulation:
 
         self.sim_id = str(uuid.uuid4())
         self.petname = petname.Generate(2)
-        self.read_configuration(config=config)
-        self.setup_simulation()
+        self.config = self.read_configuration(config=config)
+        self.setup_simulation(self.config)
 
     def read_configuration(self, config):
 
         # TODO: add a check to the config
-        self.config = config
-        self.config["sim_id"] = self.sim_id
-        self.config["petname"] = self.petname
-        self.mediums = config["mediums"]
-        self.lenses = config["lenses"]
-        self.stages = config["stages"]
+        config["sim_id"] = self.sim_id
+        config["petname"] = self.petname
 
-        # TODO: change to petname? careful of collisions
-        log_dir = os.path.join(self.config["log_dir"], str(self.petname))
+        # create logging directory
+        log_dir = os.path.join(config["log_dir"], str(self.petname))
         os.makedirs(log_dir, exist_ok=True)
 
         # options
@@ -63,40 +61,45 @@ class Simulation:
             verbose=config["options"]["verbose"],
             debug=config["options"]["debug"],
         )
-
-    def setup_simulation(self):
-
+        
         # common sim parameters
         self.parameters = SimulationParameters(
-            A=self.config["sim_parameters"]["A"],
-            pixel_size=self.config["sim_parameters"]["pixel_size"],
-            sim_width=self.config["sim_parameters"]["sim_width"],
-            sim_height=self.config["sim_parameters"]["sim_height"], 
-            sim_wavelength=self.config["sim_parameters"]["sim_wavelength"],
-            lens_type=LensType[self.config["sim_parameters"]["lens_type"]],
+            A=config["sim_parameters"]["A"],
+            pixel_size=config["sim_parameters"]["pixel_size"],
+            sim_width=config["sim_parameters"]["sim_width"],
+            sim_height=config["sim_parameters"]["sim_height"], 
+            sim_wavelength=config["sim_parameters"]["sim_wavelength"],
+            lens_type=LensType[config["sim_parameters"]["lens_type"]],
         )
 
+        return config
+
+    def setup_simulation(self, config):
+
         # generate all mediums for simulation
-        self.medium_dict = generate_mediums(self.mediums)
+        medium_dict = generate_mediums(config["mediums"])
 
         # generate all lenses for the simulations
-        self.lens_dict = generate_lenses(self.lenses, self.medium_dict, self.parameters)
+        lens_dict = generate_lenses(config["lenses"], medium_dict, self.parameters)
+
+        # validate sim, lens and medium setup 
+        stages_config = validate_simulation_stage_config(config["stages"], medium_dict, lens_dict)
 
         # generate all simulation stages
-        self.sim_stages = generate_simulation_stages(self.stages, self.medium_dict, self.lens_dict, self.config, self.parameters)
+        self.sim_stages = generate_simulation_stages(stages_config, medium_dict, lens_dict, config, self.parameters)
 
     def run_simulation(self):
         """Run the simulation propagation over all simulation stages."""
 
-        # TODO: make functional
-        # stages: list, petname: str, sim_id: str, parameters: SimulationParameters, options: SimulationOptions, config: dict
+        # TODO: make functional (need to update SimulationRunner too...?)
+        # sim_stages: list, parameters: SimulationParameters, options: SimulationOptions, config: dict
         sim_stages = self.sim_stages
-        petname = self.petname
-        sim_id = self.sim_id
         parameters = self.parameters
         options = self.options
         config = self.config
 
+        petname = config["petname"]
+        sim_id = config["sim_id"]
 
         passed_wavefront = None
         progress_bar = tqdm(sim_stages, leave=False)
@@ -133,45 +136,28 @@ class Simulation:
 
         utils.save_metadata(config, options.log_dir)
 
-def generate_simulation_stages(stages: list, medium_dict: dict, lens_dict: dict, config: dict, parameters: SimulationParameters):
-    """_summary_
+def generate_simulation_stages(stages: list, medium_dict: dict, lens_dict: dict, config: dict, parameters: SimulationParameters) -> list:
+    """Generate the list of simulation stages
 
     Args:
-        stages (list): _description_
-        medium_dict (dict): _description_
-        lens_dict (dict): _description_
-        config (dict): _description_
-        parameters (SimulationParameters): _description_
+        stages (list): config list containing simulation stages
+        medium_dict (dict): config dict containing simulation mediums
+        lens_dict (dict): config dict containing simulation lenses
+        config (dict): simulation config 
+        parameters (SimulationParameters): simulation parameters
 
     Returns:
-        _type_: _description_
+        list[SimulationStage]: list of SimulationStages ready for simulation
     """
 
-    # TODO confirm the config is still updated correctly...
 
-    # validate all lens, mediums exist?
-    for stage in stages:
-        assert (
-            stage["output"] in medium_dict
-        ), f"{stage['output']} has not been defined in the configuration"
-        assert (
-            stage["lens"] in lens_dict
-        ), f"{stage['lens']} has not been defined in the configuration"
-
-        assert "n_slices" in stage, f"Stage requires n_slices"
-        assert "start_distance" in stage, f"Stage requires start_distance"
-        assert "finish_distance" in stage, f"Stage requires finish_distance"
-
+    # stages to be simulated
     sim_stages = []
 
+    ################################ BEAM STAGE ################################
+
     # first stage is a beam
-    from lens_simulation.beam import generate_beam
-
     beam = generate_beam(config["beam"], parameters)
-
-    # utils.plot_lens_profile_2D(beam.lens)
-    # plt.show()
-
     beam_stage = SimulationStage(
         lens=beam.lens,
         output=Medium(1.33),
@@ -181,15 +167,14 @@ def generate_simulation_stages(stages: list, medium_dict: dict, lens_dict: dict,
         tilt={"x": beam.tilt[0], "y": beam.tilt[1]},
     )
 
-    # sim_stages.append(beam_stage) #TODO: START_HERE beam integration in sim
+    sim_stages.append(beam_stage) #TODO: START_HERE beam integration in sim
 
-    # TODO: refactor this to incorporate the first beam stage
+    ################################ LENS STAGES ################################
 
     for i, stage in enumerate(stages):
 
-        stage_no = i
+        sim_stage_no = len(sim_stages)
         
-
         sim_stage = SimulationStage(
             lens=lens_dict[stage["lens"]],
             output=medium_dict[stage["output"]],
@@ -198,42 +183,58 @@ def generate_simulation_stages(stages: list, medium_dict: dict, lens_dict: dict,
             finish_distance=stage["finish_distance"],
             options=stage["options"],
             lens_inverted=False,
-            _id=i,
+            _id=sim_stage_no,
         )
 
-        # TODO: determine the best way to do double sided lenses (and define them in the config?)
-        # TODO: should we separate double sided lens from inverting?
-        if i != 0:
+        # NOTE: if the lens and the output have the same medium, the lens is assumed to be 'double-sided'
+        # therefore, we invert the lens profile to create an 'air lens' to properly simulate the double sided lens
+        if (sim_stage.lens.medium.refractive_index == sim_stage.output.refractive_index):  # TODO: figure out why dataclass comparison isnt working
 
-            # NOTE: if the lens and the output have the same medium, the lens is assumed to be 'double-sided'
-            # therefore, we invert the lens profile to create an 'air lens' to properly simulate the double sided lens
-            if (sim_stage.lens.medium.refractive_index == sim_stage.output.refractive_index):  # TODO: figure out why dataclass comparison isnt working
-
-                sim_stage = invert_lens_and_output_medium(sim_stage, sim_stages[i - 1], parameters)
+            sim_stage = invert_lens_and_output_medium(sim_stage, sim_stages[sim_stage_no - 1], parameters)
 
         if sim_stage.options["use_equivalent_focal_distance"]:
-            eq_fd = calculate_equivalent_focal_distance(
-                sim_stage.lens, sim_stage.output
-            )
-
-            sim_stage.start_distance = (
-                sim_stage.options["focal_distance_start_multiple"] * eq_fd
-            )
-            sim_stage.finish_distance = (
-                sim_stage.options["focal_distance_multiple"] * eq_fd
-            )
-
-            # update the metadata if this option is used...
-            config["stages"][i]["start_distance"] = sim_stage.start_distance
-            config["stages"][i]["finish_distance"] = sim_stage.finish_distance
-
+            sim_stage = calculate_start_and_finish_distance(sim_stage)
+    
         # update config
+        config["stages"][i]["start_distance"] = sim_stage.start_distance
+        config["stages"][i]["finish_distance"] = sim_stage.finish_distance
         config["stages"][i]["lens_inverted"] = sim_stage.lens_inverted
 
+        # add to simulation
         sim_stages.append(sim_stage)
     
     return sim_stages
 
+
+
+
+
+def validate_simulation_stage_config(stages: list, medium_dict: dict, lens_dict: dict) -> None:
+    """Validate that all lenses and mediums have been defined, and all simulation stages have been
+    defined correctly.
+    """
+    # TODO: finish this properly
+    for stage in stages:
+        # validate all lens, mediums exist, 
+        assert (stage["output"] in medium_dict), f"{stage['output']} has not been defined in the configuration"
+        assert (stage["lens"] in lens_dict), f"{stage['lens']} has not been defined in the configuration"
+
+        # validate simulation settings
+        assert "n_slices" in stage, f"Stage requires n_slices"
+        assert "start_distance" in stage, f"Stage requires start_distance"
+        assert "finish_distance" in stage, f"Stage requires finish_distance"
+
+    return stages
+
+
+def calculate_start_and_finish_distance(stage: SimulationStage):
+    
+    eq_fd = calculate_equivalent_focal_distance(stage.lens, stage.output)
+
+    stage.start_distance = (stage.options["focal_distance_start_multiple"] * eq_fd)
+    stage.finish_distance = (stage.options["focal_distance_multiple"] * eq_fd)
+    
+    return stage 
 
 def generate_mediums(mediums: list):
     """Generate all the mediums for the simulation"""
@@ -523,23 +524,6 @@ def pad_simulation(lens: Lens, parameters: SimulationParameters) -> np.ndarray:
    
     return lens.profile
 
-# def _pad_lens_profile_to_sim_dimensions(lens: Lens, width: float, height: float, pixel_size: float) -> Lens:
-#     """Pad the lens profile to match the specified simulation dimensions
-
-#     Args:
-#         lens (Lens): Lens
-#         width (float): simulation width
-#         height (float): simulation height
-#         pixel_size (float): _description_
-
-#     Returns:
-#         Lens: _description_
-#     """
-
-
-
-#     return lens
-
 
 def calculate_delta_profile(
     sim_profile: np.ndarray, lens: Lens, output_medium: Medium
@@ -724,6 +708,10 @@ def invert_lens_and_output_medium(stage: SimulationStage, previous_stage: Simula
     Returns:
         SimulationStage: update simulation stage, with 'inverse' lens
     """
+
+    # TODO: determine the best way to do double sided lenses (and define them in the config?)
+    # TODO: should we separate double sided lens from inverting?
+
     if (stage.lens.medium.refractive_index == previous_stage.output.refractive_index):
         raise ValueError("Lens and Medium on either side are the same Medium, Lens has no effect.")  # TODO: might be useful for someone...
 
