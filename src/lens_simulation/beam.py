@@ -83,6 +83,7 @@ class Beam:
 
         pixel_size = sim_parameters.pixel_size
         sim_width = sim_parameters.sim_width
+        sim_height = sim_parameters.sim_height
         lens_type = sim_parameters.lens_type
 
         # validation
@@ -150,13 +151,14 @@ class Beam:
         
         # calculate padding parameters
         beam_position = self.position
-        pad_width = (int(sim_width/pixel_size)-lens.profile.shape[0])//2 + 1    # px
+        pad_height = (int(sim_height/pixel_size)-lens.profile.shape[0])//2 + 1    # px
+        pad_width = (int(sim_width/pixel_size)-lens.profile.shape[1])//2 + 1    # px
         relative_position_x = int(beam_position[1]/pixel_size)                  # px
         relative_position_y = int(beam_position[0]/pixel_size)                  # px
         # NOTE: ^ always symmetric
 
         # pad the profile to the sim width (Top - Bottom - Left - Right)
-        lens.profile = np.pad(lens.profile, ((pad_width + relative_position_y, pad_width - relative_position_y),
+        lens.profile = np.pad(lens.profile, ((pad_height + relative_position_y, pad_height - relative_position_y),
                                                     (pad_width + relative_position_x, pad_width - relative_position_x)), 
                                                     mode="constant", constant_values=aperturing_value)
         # assign lens
