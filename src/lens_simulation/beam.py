@@ -86,7 +86,7 @@ class Beam:
         # validation
         if self.width > sim_width:
             raise ValueError(f"Beam width is larger than simulation width: beam={self.width:.2e}, sim={sim_width:.2e}")
-        if self.width > sim_width:
+        if self.height > sim_width:
             raise ValueError(f"Beam height is larger than simulation width: beam={self.height:.2e}, sim={sim_width:.2e}")
 
         # Default beam specifications
@@ -140,11 +140,8 @@ class Beam:
 
         # set up the part of the lens square that isn't the lens for aperturing
         non_lens_profile = lens.profile == 0 
-        aperturing_value = -1e-9 # QUERY why not zero, parts of lens at zero might not be apertures e.g. escape path...
+        aperturing_value = -1 #-1e-9 # NOTE: needs to be a relatively large value for numerical comparison # QUERY why not zero, parts of lens at zero might not be apertures e.g. escape path...
         lens.profile[non_lens_profile] = aperturing_value # the non-lens-profile is the size of the lens before padding...
-
-        # apeturing profile
-        self.non_lens_profile = non_lens_profile
         
         # calculate padding parameters
         beam_position = self.position
@@ -158,7 +155,10 @@ class Beam:
                                                     mode="constant", constant_values=aperturing_value)
         # assign lens
         self.lens = lens
-        self.lens.aperture_mask_2 = lens.profile == aperturing_value
+        self.lens.aperture_mask_2 = (lens.profile == aperturing_value)
+        
+        # reset apertures back to zero height
+        self.lens.profile[self.lens.aperture_mask_2] = 0
 
         # calculate propagation distance
         self.start_distance, self.finish_distance = self.calculate_propagation_distance()

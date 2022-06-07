@@ -1,29 +1,29 @@
 sim_parameters:
   A: 10000
   pixel_size: 1.e-6
+  sim_height: 700.e-6
   sim_width: 700.e-6
   sim_wavelength: 488.e-9
   lens_type:  "Spherical"     # "Cylindrical" or "Spherical
-  padding: 0 # pixels
 options:
   log_dir: "log"
   verbose: false
-  save: true
+  save: false
   save_plot: true
   debug: false
 beam:
-    distance_mode: "direct"   # "Direct", "Width", "Focal"
-    beam_spread: "plane"      # "Plane", "Converging", "Diverging"
-    beam_shape: "square"      # "Square", "Circular", "Rectangular"
-    width: 500.e-6
-    height: 150.e-6
-    position: [0.e-6, 0.e-6] 
-    theta: 0.0
-    # numerical_aperture: null
-    tilt: [45.0, 45.0]
-    source_distance: 20.0e-3
-    # final_width: 10.0e-6
-    # focal_multiple: null
+  distance_mode: "direct"   # "Direct", "Width", "Focal"
+  beam_spread: "converging"      # "Plane", "Converging", "Diverging"
+  beam_shape: "circular"      # "Square", "Circular", "Rectangular"
+  width: 500.e-6
+  height: 50.e-6
+  position: [0.e-6, 0.e-6] 
+  theta: 45.0
+  # numerical_aperture: null
+  tilt: [0.0, 0.0]
+  source_distance: 2.0e-3
+  # final_width: 10.0e-6
+  # focal_multiple: null
 lenses:
   - name: lens_1
     diameter: 500.e-6
@@ -35,7 +35,7 @@ lenses:
     truncation: null
     aperture: null
   - name: lens_2
-    diameter: 500.e-6
+    diameter: 300.e-6
     height: 5.e-6
     exponent: 2.0
     medium: medium_1
@@ -49,15 +49,15 @@ mediums:
   - name: medium_2
     refractive_index: 1.33
 stages:
-  - lens: lens_1
-    output: medium_1
-    n_slices: 10
-    start_distance: 0
-    finish_distance: 0.1e-3
-    options:
-      use_equivalent_focal_distance: False
-      focal_distance_start_multiple: 0.0
-      focal_distance_multiple: 2.0
+  # - lens: lens_1
+  #   output: medium_1
+  #   n_slices: 10
+  #   start_distance: 0
+  #   finish_distance: 0.1e-3
+  #   options:
+  #     use_equivalent_focal_distance: False
+  #     focal_distance_start_multiple: 0.0
+  #     focal_distance_multiple: 2.0
   - lens: lens_2
     output: medium_2
     n_slices: 100

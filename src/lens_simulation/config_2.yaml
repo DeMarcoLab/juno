@@ -4,7 +4,6 @@ sim_parameters:
   sim_width: 700.e-6
   sim_wavelength: 488.e-9
   lens_type:  "Spherical" # "Cylindrical" or "Spherical
-  padding: 0 # pixels
 options:
   log_dir: "log"
   verbose: false
