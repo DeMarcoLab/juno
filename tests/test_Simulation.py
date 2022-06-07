@@ -7,11 +7,6 @@ from lens_simulation.structures import SimulationParameters
 from lens_simulation import utils
 
 
-# TODO: START_HERE
-# make sure sim_height is incorporated into simulation properly
-# force sim to be symmetric when?
-
-# TODO: deduplicate this bit
 LENS_DIAMETER = 100e-6
 LENS_HEIGHT = 20e-6
 LENS_FOCUS_EXPONENT = 2.0

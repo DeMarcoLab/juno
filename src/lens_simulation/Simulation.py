@@ -28,10 +28,8 @@ from lens_simulation.beam import generate_beam
 # visualisation, analytics, comparison
 # initial beam definition (tilt, convergence, divergence)
 
-# TODO:
-# TODO: user interface
 # TODO: tools (cleaning, sheet measurement, validation, lens creation)
-# total internal reflection check (exponential profile)
+# TODO: total internal reflection check (exponential profile)
 # TODO: performance (cached results, gpu, parallelism)
 
 
@@ -45,7 +43,6 @@ class Simulation:
 
     def read_configuration(self, config):
 
-        # TODO: add a check to the config
         config["sim_id"] = self.sim_id
         config["petname"] = self.petname
 
@@ -91,7 +88,7 @@ class Simulation:
     def run_simulation(self):
         """Run the simulation propagation over all simulation stages."""
 
-        # TODO: make functional (need to update SimulationRunner too...?)
+        # NOTE: make functional (need to update SimulationRunner too...?)
         # sim_stages: list, parameters: SimulationParameters, options: SimulationOptions, config: dict
         sim_stages = self.sim_stages
         parameters = self.parameters
@@ -210,7 +207,7 @@ def validate_simulation_stage_config(stages: list, medium_dict: dict, lens_dict:
     """Validate that all lenses and mediums have been defined, and all simulation stages have been
     defined correctly.
     """
-    # TODO: finish this properly
+
     for stage in stages:
         # validate all lens, mediums exist, 
         assert (stage["output"] in medium_dict), f"{stage['output']} has not been defined in the configuration"
@@ -245,7 +242,9 @@ def generate_mediums(mediums: list):
 
 def generate_lenses(lenses: list, medium_dict: dict, parameters: SimulationParameters):
     """Generate all the lenses for the simulation"""
-       
+
+    from lens_simulation.Lens import apply_modifications  
+    
     lens_dict = {}
     for lens_config in lenses:
 
@@ -277,47 +276,7 @@ def generate_lenses(lenses: list, medium_dict: dict, parameters: SimulationParam
                 lens_type=parameters.lens_type,
             )
 
-            # TODO: do we want to be able to apply masks to custom profiles?
-            if lens_config["grating"] is not None:
-                grating_settings = GratingSettings(
-                    width=lens_config["grating"]["width"],
-                    distance=lens_config["grating"]["distance"],
-                    depth=lens_config["grating"]["depth"],
-                    centred=lens_config["grating"]["centred"],
-                )
-                lens.calculate_grating_mask(
-                    grating_settings,
-                    x_axis=lens_config["grating"]["x"],
-                    y_axis=lens_config["grating"]["y"],
-                )
-
-            if lens_config["truncation"] is not None:
-                lens.calculate_truncation_mask(
-                    truncation=lens_config["truncation"]["height"],
-                    radius=lens_config["truncation"]["radius"],
-                    type=lens_config["truncation"]["type"],
-                )
-
-            if lens_config["aperture"] is not None:
-                lens.calculate_aperture(
-                    inner_m=lens_config["aperture"]["inner"],
-                    outer_m=lens_config["aperture"]["outer"],
-                    type=lens_config["aperture"]["type"],
-                    inverted=lens_config["aperture"]["invert"],
-                )
-
-            # apply masks
-            use_grating = True if lens_config["grating"] is not None else False
-            use_truncation = (
-                True if lens_config["truncation"] is not None else False
-            )
-            use_aperture = True if lens_config["aperture"] is not None else False
-
-            lens.apply_masks(
-                grating=use_grating,
-                truncation=use_truncation,
-                aperture=use_aperture,
-            )
+        apply_modifications(lens, lens_config)
 
         lens_dict[lens_config["name"]] = lens
 
@@ -345,7 +304,7 @@ def propagate_wavefront(
         SimulationResult: results of the wave propagation (including intermediates if debugging)
     """
 
-    lens = stage.lens
+    lens: Lens = stage.lens
     output_medium = stage.output
     n_slices = stage.n_slices
     start_distance = stage.start_distance
@@ -706,8 +665,7 @@ def invert_lens_and_output_medium(stage: SimulationStage, previous_stage: Simula
         SimulationStage: update simulation stage, with 'inverse' lens
     """
 
-    # TODO: determine the best way to do double sided lenses (and define them in the config?)
-    # TODO: should we separate double sided lens from inverting?
+
 
     if (stage.lens.medium.refractive_index == previous_stage.output.refractive_index):
         raise ValueError("Lens and Medium on either side are the same Medium, Lens has no effect.")  # TODO: might be useful for someone...

@@ -230,5 +230,3 @@ def test_aperture_inverted(spherical_lens):
     assert lens.profile[0, -1] == 0, "Outer area should be apertured"
     assert lens.profile[-1, 0] == 0, "Outer area should be apertured"
     assert lens.profile[0, -1] == 0, "Outer area should be apertured"
-
-# TODO: do the same tests for cylindrical....

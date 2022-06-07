@@ -102,16 +102,12 @@ def plot_image(arr: np.ndarray, title: str = "Image Title", save: bool = False, 
 
 
 def save_figure(fig, fname: str = "img.png") -> None:
-    # TODO: clean up the implementation (no reference to fig...)
     os.makedirs(os.path.dirname(fname), exist_ok=True)
-
-    # plt.savefig(fname)
     fig.savefig(fname)
 
 
 def plot_interactive_simulation(arr: np.ndarray):
-    # TODO: make croppable?
-    
+   
     fig = px.imshow(arr)
     return fig
 

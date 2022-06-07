@@ -50,7 +50,6 @@ class Lens:
             np.ndarray: [description]
         """
         from lens_simulation.utils import _calculate_num_of_pixels
-        # TODO: someone might define using the n_pixels
 
         n_pixels = _calculate_num_of_pixels(self.diameter, pixel_size, odd = True)
 
@@ -84,12 +83,7 @@ class Lens:
         # load the profile
         arr = np.load(fname)
 
-        # n_pixels = shape of arr
         self.pixel_size = pixel_size
-
-        # TODO: error checking?
-        # TODO: we need pad the lens if the size is smaller than the sim n_pixels?
-
         self.profile = arr
 
         return self.profile
@@ -174,7 +168,8 @@ class Lens:
 
         # aperture
         if aperture:
-            self.profile[self.custom_aperture_mask] = 0
+            self.profile[self.custom_aperture_mask] = 0     # for profile visualisation
+            self.aperture = self.custom_aperture_mask       # for propagation
 
         # if escape_path:
         #     self.profile = self.calculate_escape_path(ratio=0.2)
@@ -319,7 +314,7 @@ class Lens:
         settings: GratingSettings,
         x_axis: bool = True,
         y_axis: bool = False,
-    ):
+    ) -> None:
         """Calculate the grating mask for the specified settings"""
 
         if settings.width == 0.0:
@@ -332,6 +327,10 @@ class Lens:
                 f"""Grating width cannot be equal or larger than the distance between gratings.
                                     width={settings.width:.2e}, distance = {settings.distance:.2e}"""
             )
+        
+        # cannot apply gratings to 1d array
+        if self.profile.shape[0] == 1:
+            y_axis = False
 
         settings.width_px = int(settings.width / self.pixel_size)
         settings.distance_px = int(settings.distance / self.pixel_size)
@@ -349,8 +348,6 @@ class Lens:
 
         self.grating_mask = mask == 1
         self.grating_depth = settings.depth
-
-        return self.profile
 
 
 
@@ -422,3 +419,47 @@ def calculate_grating_coords(profile: np.ndarray, settings: GratingSettings, axi
         grating_coords.append(grating)
 
     return np.ravel(grating_coords)
+
+
+def apply_modifications(lens: Lens, lens_config: dict) -> Lens:
+    """Apply all lens modifications defined in config"""
+    if lens_config["grating"] is not None:
+        grating_settings = GratingSettings(
+                width=lens_config["grating"]["width"],
+                distance=lens_config["grating"]["distance"],
+                depth=lens_config["grating"]["depth"],
+                centred=lens_config["grating"]["centred"],
+            )
+        lens.calculate_grating_mask(
+                grating_settings,
+                x_axis=lens_config["grating"]["x"],
+                y_axis=lens_config["grating"]["y"],
+            )
+
+    if lens_config["truncation"] is not None:
+        lens.calculate_truncation_mask(
+                truncation=lens_config["truncation"]["height"],
+                radius=lens_config["truncation"]["radius"],
+                type=lens_config["truncation"]["type"],
+            )
+
+    if lens_config["aperture"] is not None:
+        lens.calculate_aperture(
+                inner_m=lens_config["aperture"]["inner"],
+                outer_m=lens_config["aperture"]["outer"],
+                type=lens_config["aperture"]["type"],
+                inverted=lens_config["aperture"]["invert"],
+            )
+
+        # apply masks
+    use_grating = True if lens_config["grating"] is not None else False
+    use_truncation = (True if lens_config["truncation"] is not None else False)
+    use_aperture = True if lens_config["aperture"] is not None else False
+
+    lens.apply_masks(
+            grating=use_grating,
+            truncation=use_truncation,
+            aperture=use_aperture,
+        )
+        
+    return lens
