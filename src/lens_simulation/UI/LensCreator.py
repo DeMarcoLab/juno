@@ -26,6 +26,8 @@ class GUILensCreator(LensCreator.Ui_LensCreator, QtWidgets.QMainWindow):
         self.center_window()
         self.showNormal()
 
+    ### Setup methods ###
+
     def setup_connections(self):
         self.pushButton_LoadProfile.clicked.connect(self.load_profile)
         self.pushButton_GenerateProfile.clicked.connect(self.generate_profile)
@@ -35,108 +37,36 @@ class GUILensCreator(LensCreator.Ui_LensCreator, QtWidgets.QMainWindow):
         [value.toggled.connect(self.live_update_profile) for value in self.__dict__.values() if value.__class__ is QtWidgets.QCheckBox]
         [value.currentTextChanged.connect(self.live_update_profile) for value in self.__dict__.values() if value.__class__ is QtWidgets.QComboBox]
 
-    def live_update_profile(self):
-        if self.checkBox_LiveUpdate.isChecked():
-            try:
-                self.generate_profile()
-            except Exception as e:
-                self.display_error_message(traceback.format_exc())
+    ### Generation methods ###
 
     def generate_profile(self):
         """Generates a profile based on the inputs to the GUI"""
         # generate the lens based off the parameters selected in GUI
-        self.generate_base_lens()
-
-        # read lens type so that we can generate the profile
-        lens_type_dict = {
-            "Cylindrical": LensType.Cylindrical,
-            "Spherical": LensType.Spherical,
-        }
-
-        lens_type = lens_type_dict[self.comboBox_LensType.currentText()]
-        pixel_size = self.doubleSpinBox_PixelSize.value()
-        cylindrical_extrusion = self.doubleSpinBox_CylindricalExtrusion.value()
-
         try:
-            self.lens.generate_profile(pixel_size=pixel_size, lens_type=lens_type)
+            self.generate_base_lens()
+
+            self.update_profile_parameters()
+            self.lens.generate_profile(pixel_size=self.pixel_size, lens_type=self.lens_type)
+
+            self.update_masks()
+            self.lens.apply_masks(grating=self.groupBox_Gratings.isChecked(),
+                                truncation=self.groupBox_Truncation.isChecked(),
+                                aperture=self.groupBox_Aperture.isChecked())
+            self.update_image_frames()
+
         except Exception as e:
             self.display_error_message(traceback.format_exc())
 
-        if self.lens.lens_type is LensType.Cylindrical:
-            if cylindrical_extrusion < pixel_size:
-                cylindrical_extrusion = pixel_size
-            try:
-                self.lens.extrude_profile(length=cylindrical_extrusion)
-            except Exception as e:
-                self.display_error_message(traceback.format_exc())
 
-        if self.groupBox_Gratings.isChecked():
-            grating_width = self.doubleSpinBox_GratingWidth.value()
-            grating_distance = self.doubleSpinBox_GratingDistance.value()
+    def generate_base_lens(self):
+        self.lens = Lens(
+            diameter=self.doubleSpinBox_LensDiameter.value(),
+            height=self.doubleSpinBox_LensHeight.value(),
+            exponent=self.doubleSpinBox_LensExponent.value(),
+            medium=self.doubleSpinBox_LensMedium.value(),
+        )
 
-            if grating_distance >= self.lens.diameter:
-                grating_distance = self.lens.diameter - pixel_size
-
-            if grating_width >= grating_distance:
-                self.statusBar.showMessage(
-                    "Grating width adjusted to be less than grating distance"
-                )
-                grating_width = grating_distance - pixel_size
-
-            grating_depth = self.doubleSpinBox_GratingDepth.value()
-            grating_axis = self.comboBox_GratingAxis.currentText()
-            grating_centered = self.checkBox_GratingCentered.isChecked()
-
-            grating_settings = GratingSettings(
-                width=grating_width,
-                distance=grating_distance,
-                depth=grating_depth,
-                axis=grating_axis,
-                centred=grating_centered,
-            )
-
-            x_axis = False
-            y_axis = False
-
-            if grating_axis in ["Vertical", "Both"]:
-                x_axis = True
-
-            if grating_axis in ["Horizontal", "Both"]:
-                y_axis = True
-
-            # TODO: Tell Patrick to fix this in generation
-            if self.lens.profile.shape[0] == 1:
-                y_axis = False
-
-            try:
-                self.lens.calculate_grating_mask(
-                    settings=grating_settings, x_axis=x_axis, y_axis=y_axis
-                )
-                self.lens.apply_masks(grating=True)
-            except Exception as e:
-                self.display_error_message(traceback.format_exc())
-
-        if self.groupBox_Truncation.isChecked():
-            truncation_mode = self.comboBox_TruncationMode.currentText()
-            truncation_value = self.doubleSpinBox_TruncationValue.value()
-            truncation_radius = self.doubleSpinBox_TruncationRadius.value()
-
-            if truncation_mode == "Height":
-                truncation_mode = "value"
-            if truncation_mode == "Radius":
-                truncation_mode = "radial"
-
-            try:
-                self.lens.calculate_truncation_mask(
-                    truncation=truncation_value,
-                    radius=truncation_radius,
-                    type=truncation_mode,
-                )
-                self.lens.apply_masks(truncation=True)
-            except Exception as e:
-                self.display_error_message(traceback.format_exc())
-
-        self.update_image_frames()
+    ### I/O methods ###
 
     def load_profile(self):
         """Loads a custom lens profile (numpy.ndarray) through Qt's file opening system"""
@@ -154,37 +84,152 @@ class GUILensCreator(LensCreator.Ui_LensCreator, QtWidgets.QMainWindow):
 
         self.update_image_frames()
 
-    def generate_base_lens(self):
-        self.lens = Lens(
-            diameter=self.doubleSpinBox_LensDiameter.value(),
-            height=self.doubleSpinBox_LensHeight.value(),
-            exponent=self.doubleSpinBox_LensExponent.value(),
-            medium=self.doubleSpinBox_LensMedium.value(),
+    ### Update methods ###
+
+    def live_update_profile(self):
+        if self.checkBox_LiveUpdate.isChecked():
+            try:
+                self.generate_profile()
+            except Exception as e:
+                self.display_error_message(traceback.format_exc())
+
+    def update_profile_parameters(self):
+        # read lens type so that we can generate the profile
+        lens_type_dict = {
+            "Cylindrical": LensType.Cylindrical,
+            "Spherical": LensType.Spherical,
+        }
+
+        self.lens_type = lens_type_dict[self.comboBox_LensType.currentText()]
+        self.pixel_size = self.doubleSpinBox_PixelSize.value()
+        self.cylindrical_extrusion = self.doubleSpinBox_CylindricalExtrusion.value()
+
+        if self.cylindrical_extrusion < self.pixel_size:
+            self.cylindrical_extrusion = self.pixel_size
+
+    def update_masks(self):
+        if self.groupBox_Gratings.isChecked():
+            self.update_grating_mask()
+
+        if self.groupBox_Truncation.isChecked():
+            self.update_truncation_mask()
+
+        if self.groupBox_Aperture.isChecked():
+            pass
+            self.update_aperture_mask()
+
+    def update_grating_mask(self):
+        grating_width = self.doubleSpinBox_GratingWidth.value()
+        grating_distance = self.doubleSpinBox_GratingDistance.value()
+        grating_depth = self.doubleSpinBox_GratingDepth.value()
+        grating_axis = self.comboBox_GratingAxis.currentText()
+        grating_centered = self.checkBox_GratingCentered.isChecked()
+
+        if grating_distance >= self.lens.diameter:
+            grating_distance = self.lens.diameter - self.pixel_size
+
+        if grating_width >= grating_distance:
+            self.statusBar.showMessage("Grating width adjusted to be less than grating distance")
+            grating_width = grating_distance - self.pixel_size
+
+        grating_settings = GratingSettings(
+            width=grating_width,
+            distance=grating_distance,
+            depth=grating_depth,
+            axis=grating_axis,
+            centred=grating_centered,
         )
+
+        x_axis = False
+        y_axis = False
+
+        if grating_axis in ["Vertical", "Both"]:
+            x_axis = True
+
+        if grating_axis in ["Horizontal", "Both"]:
+            y_axis = True
+
+        try:
+            self.lens.calculate_grating_mask(
+                settings=grating_settings, x_axis=x_axis, y_axis=y_axis
+                )
+
+        except Exception as e:
+            self.display_error_message(traceback.format_exc())
+
+    def update_truncation_mask(self):
+        truncation_mode = self.comboBox_TruncationMode.currentText()
+        truncation_value = self.doubleSpinBox_TruncationValue.value()
+        truncation_radius = self.doubleSpinBox_TruncationRadius.value()
+
+        if truncation_mode == "Height":
+            truncation_mode = "value"
+        if truncation_mode == "Radius":
+            truncation_mode = "radial"
+
+        try:
+            self.lens.calculate_truncation_mask(
+                truncation=truncation_value,
+                radius=truncation_radius,
+                type=truncation_mode,
+            )
+        except Exception as e:
+            self.display_error_message(traceback.format_exc())
+
+
+    def update_aperture_mask(self):
+        aperture_mode = self.comboBox_ApertureMode.currentText()
+        aperture_inner = self.doubleSpinBox_ApertureInner.value()
+        aperture_outer = self.doubleSpinBox_ApertureOuter.value()
+        aperture_inverted = self.checkBox_ApertureInverted.isChecked()
+
+        if aperture_mode == "Square":
+            aperture_mode = "square"
+        if aperture_mode == "Circle":
+            aperture_mode = "radial"
+
+        try:
+            self.lens.calculate_aperture(
+                inner_m=aperture_inner,
+                outer_m=aperture_outer,
+                type=aperture_mode,
+                inverted=aperture_inverted,
+            )
+        except Exception as e:
+            self.display_error_message(traceback.format_exc())
+
 
     def update_image_frames(self):
         # Cross section initialisation
+        if self.label_CrossSection.layout() is None:
+            self.label_CrossSection.setLayout(QtWidgets.QVBoxLayout())
+
         if self.pc_CrossSection is not None:
             self.label_CrossSection.layout().removeWidget(self.pc_CrossSection)
             self.pc_CrossSection.deleteLater()
+
         self.pc_CrossSection = _ImageCanvas(
             parent=self.label_CrossSection,
             image=self.lens.profile[self.lens.profile.shape[0] // 2, :],
         )
-        if self.label_CrossSection.layout() is None:
-            self.label_CrossSection.setLayout(QtWidgets.QVBoxLayout())
+
         self.label_CrossSection.layout().addWidget(self.pc_CrossSection)
 
         # Cross section initialisation
+        if self.label_Profile.layout() is None:
+            self.label_Profile.setLayout(QtWidgets.QVBoxLayout())
+
         if self.pc_Profile is not None:
             self.label_Profile.layout().removeWidget(self.pc_Profile)
             self.pc_Profile.deleteLater()
+
         self.pc_Profile = _ImageCanvas(
             parent=self.label_Profile, image=self.lens.profile
         )
-        if self.label_Profile.layout() is None:
-            self.label_Profile.setLayout(QtWidgets.QVBoxLayout())
+
         self.label_Profile.layout().addWidget(self.pc_Profile)
+
+    ### Window methods ###
 
     def center_window(self):
         """Centers the window in the display"""
@@ -194,7 +239,6 @@ class GUILensCreator(LensCreator.Ui_LensCreator, QtWidgets.QMainWindow):
             (desktop.width() - self.width()) / 2,
             (desktop.height() - self.height()) / 3.0,
         )
-
 
     def display_error_message(self, message):
         """PyQt dialog box displaying an error message."""

@@ -870,7 +870,7 @@
                  <item>
                   <widget class="QFrame" name="frame_GratingCentered">
                    <property name="enabled">
-                    <bool>true</bool>
+                    <bool>false</bool>
                    </property>
                    <property name="maximumSize">
                     <size>
@@ -895,7 +895,7 @@
                     <item>
                      <widget class="QCheckBox" name="checkBox_GratingCentered">
                       <property name="enabled">
-                       <bool>true</bool>
+                       <bool>false</bool>
                       </property>
                       <property name="text">
                        <string>Centered</string>
@@ -1139,7 +1139,7 @@
                 <property name="checked">
                  <bool>false</bool>
                 </property>
-                <layout class="QVBoxLayout" name="verticalLayout_10">
+                <layout class="QVBoxLayout" name="verticalLayout_6">
                  <item>
                   <widget class="QFrame" name="frame_ApertureMode">
                    <property name="maximumSize">
@@ -1243,6 +1243,47 @@
                       </property>
                       <property name="value">
                        <double>1.000000000000000</double>
+                      </property>
+                     </widget>
+                    </item>
+                   </layout>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QFrame" name="frame_ApertureInverted">
+                   <property name="enabled">
+                    <bool>false</bool>
+                   </property>
+                   <property name="maximumSize">
+                    <size>
+                     <width>16777215</width>
+                     <height>40</height>
+                    </size>
+                   </property>
+                   <property name="frameShape">
+                    <enum>QFrame::StyledPanel</enum>
+                   </property>
+                   <property name="frameShadow">
+                    <enum>QFrame::Raised</enum>
+                   </property>
+                   <layout class="QHBoxLayout" name="horizontalLayout_16">
+                    <item>
+                     <widget class="QLabel" name="label_ApertureInverted">
+                      <property name="text">
+                       <string>Aperture Inverted</string>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <widget class="QCheckBox" name="checkBox_ApertureInverted">
+                      <property name="enabled">
+                       <bool>false</bool>
+                      </property>
+                      <property name="text">
+                       <string>Inverted</string>
+                      </property>
+                      <property name="checked">
+                       <bool>true</bool>
                       </property>
                      </widget>
                     </item>
