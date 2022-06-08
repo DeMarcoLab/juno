@@ -31,13 +31,16 @@ class GUILensCreator(LensCreator.Ui_LensCreator, QtWidgets.QMainWindow):
         self.statusBar = QtWidgets.QStatusBar()
         self.setStatusBar(self.statusBar)
 
+        print(self.tabWidget.currentWidget().objectName())
         # default to um
         self.comboBox_Units.setCurrentIndex(1)
         self.setup_connections()
 
         # set up of image frames
         self.pc_CrossSection = None
+        self.pc_CrossSectionMask = None
         self.pc_Profile = None
+        self.pc_ProfileMask = None
 
         self.generate_profile()
 
@@ -66,6 +69,11 @@ class GUILensCreator(LensCreator.Ui_LensCreator, QtWidgets.QMainWindow):
             for value in self.__dict__.values()
             if value.__class__ is QtWidgets.QComboBox
         ]
+        [
+            value.currentChanged.connect(self.live_update_profile)
+            for value in self.__dict__.values()
+            if value.__class__ is QtWidgets.QTabWidget
+        ]
 
     ### Generation methods ###
 
@@ -79,11 +87,9 @@ class GUILensCreator(LensCreator.Ui_LensCreator, QtWidgets.QMainWindow):
             self.update_profile_parameters()
             self.generate_base_lens()
 
-
             self.lens.generate_profile(
                 pixel_size=self.pixel_size, lens_type=self.lens_type
             )
-
 
             self.update_masks()
 
@@ -98,7 +104,7 @@ class GUILensCreator(LensCreator.Ui_LensCreator, QtWidgets.QMainWindow):
 
             if self.checkBox_InvertedProfile.isChecked():
                 self.lens.invert_profile()
-                
+
             self.update_image_frames()
 
         except Exception as e:
@@ -130,6 +136,7 @@ class GUILensCreator(LensCreator.Ui_LensCreator, QtWidgets.QMainWindow):
         )
 
         self.update_image_frames()
+        self.checkBox_LiveUpdate.setChecked(False)
 
     ### Update methods ###
 
@@ -260,6 +267,21 @@ class GUILensCreator(LensCreator.Ui_LensCreator, QtWidgets.QMainWindow):
             self.display_error_message(traceback.format_exc())
 
     def update_image_frames(self):
+
+        mask_dict = {"tab_General": [None, "Mask"],
+                     "tab_Gratings": [self.lens.grating_mask, "Grating Mask"],
+                     "tab_Truncation": [self.lens.truncation_mask, "Truncation Mask"],
+                     "tab_Aperture": [self.lens.aperture_mask, "Aperture Mask"]}
+
+        cs_mask_image = None
+        profile_mask_image = None
+        current_tab = self.tabWidget.currentWidget().objectName()
+        self.label_TitleMask.setText(mask_dict[current_tab][1])
+
+        if mask_dict[current_tab][0] is not None:
+            cs_mask_image = mask_dict[current_tab][0][self.lens.profile.shape[0] // 2, :]
+            profile_mask_image = mask_dict[current_tab][0]
+
         # Cross section initialisation
         if self.label_CrossSection.layout() is None:
             self.label_CrossSection.setLayout(QtWidgets.QVBoxLayout())
@@ -271,11 +293,28 @@ class GUILensCreator(LensCreator.Ui_LensCreator, QtWidgets.QMainWindow):
         self.pc_CrossSection = _ImageCanvas(
             parent=self.label_CrossSection,
             image=self.lens.profile[self.lens.profile.shape[0] // 2, :],
+            lens=self.lens,
         )
 
         self.label_CrossSection.layout().addWidget(self.pc_CrossSection)
 
-        # Cross section initialisation
+        # Mask cross section initialisation
+        if self.label_CrossSectionMask.layout() is None:
+            self.label_CrossSectionMask.setLayout(QtWidgets.QVBoxLayout())
+
+        if self.pc_CrossSectionMask is not None:
+            self.label_CrossSectionMask.layout().removeWidget(self.pc_CrossSectionMask)
+            self.pc_CrossSectionMask.deleteLater()
+
+        self.pc_CrossSectionMask = _ImageCanvas(
+            parent=self.label_CrossSectionMask,
+            image=cs_mask_image,
+            lens=self.lens,
+        )
+
+        self.label_CrossSectionMask.layout().addWidget(self.pc_CrossSectionMask)
+
+        # Profile initialisation
         if self.label_Profile.layout() is None:
             self.label_Profile.setLayout(QtWidgets.QVBoxLayout())
 
@@ -284,10 +323,24 @@ class GUILensCreator(LensCreator.Ui_LensCreator, QtWidgets.QMainWindow):
             self.pc_Profile.deleteLater()
 
         self.pc_Profile = _ImageCanvas(
-            parent=self.label_Profile, image=self.lens.profile
+            parent=self.label_Profile, image=self.lens.profile, lens=self.lens
         )
 
         self.label_Profile.layout().addWidget(self.pc_Profile)
+
+        # Mask profile initialisation
+        if self.label_ProfileMask.layout() is None:
+            self.label_ProfileMask.setLayout(QtWidgets.QVBoxLayout())
+
+        if self.pc_ProfileMask is not None:
+            self.label_ProfileMask.layout().removeWidget(self.pc_ProfileMask)
+            self.pc_ProfileMask.deleteLater()
+
+        self.pc_ProfileMask = _ImageCanvas(
+            parent=self.label_ProfileMask, image=profile_mask_image, lens=self.lens
+        )
+
+        self.label_ProfileMask.layout().addWidget(self.pc_ProfileMask)
 
     ### Window methods ###
 
@@ -312,31 +365,29 @@ class GUILensCreator(LensCreator.Ui_LensCreator, QtWidgets.QMainWindow):
 
 
 class _ImageCanvas(FigureCanvasQTAgg):
-    def __init__(self, parent=None, image=None):
-        # self.fig = Figure()
+    def __init__(self, parent=None, image=None, lens=None):
         self.fig = Figure(layout="constrained")
+        self.fig.set_facecolor("#f0f0f0")
+
         FigureCanvasQTAgg.__init__(self, self.fig)
         self.setParent(parent)
 
         gridspec = self.fig.add_gridspec(1, 1)
         self.axes = self.fig.add_subplot(gridspec[0], xticks=[], yticks=[], title="")
+        self.axes.ticklabel_format(axis="both", style="sci", scilimits=(0, 0))
+        self.axes.clear()
 
-        # Push the image to edges of border as much as we can
-        # self.axes.axis('off')
-        self.axes.spines["top"].set_visible(False)
-        self.axes.spines["right"].set_visible(False)
-        self.axes.spines["bottom"].set_visible(False)
-        self.axes.spines["left"].set_visible(False)
-        self.fig.set_facecolor("#f0f0f0")
-
-        # Display image
-        if image.ndim == 2:
-            self.axes.imshow(
-                image, aspect="auto"
-            )  # , extent=[0, self.lens.diameter, ])
-        else:
-            self.axes.plot(image)
-
+        if image is not None:
+            # Display image
+            if image.ndim == 2:
+                self.axes.imshow(
+                    image,
+                    aspect="auto",
+                    # TODO: add length here
+                    extent=[-lens.diameter / 2, lens.diameter / 2, 0, 1],
+                )
+            else:
+                self.axes.plot(image)
 
 def main():
     """Launch the `piescope_gui` main application window."""

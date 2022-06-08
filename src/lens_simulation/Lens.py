@@ -36,6 +36,10 @@ class Lens:
         self.escape_path = None
         self.profile = None
         self.aperture_mask_2 = None # area of lens that is apertured # TODO: do this better
+        self.grating_mask = None
+        self.aperture_mask = None
+        self.truncation_mask = None
+
 
     def __repr__(self):
 
