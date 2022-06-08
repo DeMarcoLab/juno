@@ -31,7 +31,6 @@ class GUILensCreator(LensCreator.Ui_LensCreator, QtWidgets.QMainWindow):
         self.statusBar = QtWidgets.QStatusBar()
         self.setStatusBar(self.statusBar)
 
-        print(self.tabWidget.currentWidget().objectName())
         # default to um
         self.comboBox_Units.setCurrentIndex(1)
         self.setup_connections()
@@ -225,8 +224,8 @@ class GUILensCreator(LensCreator.Ui_LensCreator, QtWidgets.QMainWindow):
             truncation_mode = "radial"
 
         try:
-            self.lens.calculate_truncation_mask(
-                truncation=truncation_value,
+            self.lens.create_truncation_mask(
+                truncation_height=truncation_value,
                 radius=truncation_radius,
                 type=truncation_mode,
             )
