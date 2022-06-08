@@ -175,10 +175,16 @@ class GUILensCreator(LensCreator.Ui_LensCreator, QtWidgets.QMainWindow):
             (self.lens.diameter - self.pixel_size) / self.units
         )
 
+        self.doubleSpinBox_GratingWidth.setMinimum(1 * self.pixel_size / self.units)
+
         self.doubleSpinBox_GratingWidth.setMaximum(
             (self.doubleSpinBox_GratingDistance.value() * self.units - self.pixel_size)
             / self.units
         )
+
+        # only applied if adaptive steps are turned off
+        self.doubleSpinBox_GratingDistance.setSingleStep(1 * self.pixel_size / self.units)
+        self.doubleSpinBox_GratingWidth.setSingleStep(1 * self.pixel_size / self.units)
 
         grating_width = self.doubleSpinBox_GratingWidth.value() * self.units
         grating_distance = self.doubleSpinBox_GratingDistance.value() * self.units

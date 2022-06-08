@@ -96,7 +96,7 @@
              <enum>QTabWidget::Rounded</enum>
             </property>
             <property name="currentIndex">
-             <number>0</number>
+             <number>1</number>
             </property>
             <widget class="QWidget" name="tab_General">
              <attribute name="title">
@@ -739,6 +739,9 @@
                     </item>
                     <item>
                      <widget class="QDoubleSpinBox" name="doubleSpinBox_GratingWidth">
+                      <property name="suffix">
+                       <string/>
+                      </property>
                       <property name="minimum">
                        <double>0.010000000000000</double>
                       </property>

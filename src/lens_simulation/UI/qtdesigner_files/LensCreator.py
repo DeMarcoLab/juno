@@ -298,6 +298,7 @@ class Ui_LensCreator(object):
         self.label_GratingWidth.setObjectName("label_GratingWidth")
         self.horizontalLayout_8.addWidget(self.label_GratingWidth)
         self.doubleSpinBox_GratingWidth = QtWidgets.QDoubleSpinBox(self.frame_GratingWidth)
+        self.doubleSpinBox_GratingWidth.setSuffix("")
         self.doubleSpinBox_GratingWidth.setMinimum(0.01)
         self.doubleSpinBox_GratingWidth.setMaximum(999.99)
         self.doubleSpinBox_GratingWidth.setStepType(QtWidgets.QAbstractSpinBox.AdaptiveDecimalStepType)
@@ -784,7 +785,7 @@ class Ui_LensCreator(object):
         LensCreator.setStatusBar(self.statusbar)
 
         self.retranslateUi(LensCreator)
-        self.tabWidget.setCurrentIndex(0)
+        self.tabWidget.setCurrentIndex(1)
         QtCore.QMetaObject.connectSlotsByName(LensCreator)
 
     def retranslateUi(self, LensCreator):
