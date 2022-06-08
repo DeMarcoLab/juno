@@ -228,6 +228,7 @@ class GUILensCreator(LensCreator.Ui_LensCreator, QtWidgets.QMainWindow):
                 truncation_height=truncation_value,
                 radius=truncation_radius,
                 type=truncation_mode,
+                aperture=self.checkBox_TruncationAperture.isChecked()
             )
         except Exception as e:
             self.display_error_message(traceback.format_exc())
