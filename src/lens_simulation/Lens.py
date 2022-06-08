@@ -184,7 +184,6 @@ class Lens:
         grating: bool = False,
         truncation: bool = False,
         aperture: bool = False,
-        escape_path: bool = True,
     ):
 
         # grating
@@ -197,8 +196,9 @@ class Lens:
 
         # aperture
         if aperture:
-            self.profile[self.custom_aperture_mask] = 0     # for profile visualisation
-            self.aperture = self.custom_aperture_mask       # for propagation
+            self.apply_aperture_masks()
+            # self.profile[self.custom_aperture_mask] = 0     # for profile visualisation
+            # self.aperture = self.custom_aperture_mask       # for propagation
 
         # if escape_path:
         #     self.profile = self.calculate_escape_path(ratio=0.2)
@@ -208,7 +208,7 @@ class Lens:
 
         return self.profile
 
-    def calculate_truncation_mask(
+    def create_truncation_mask(
         self, truncation_height: float = 0.0, radius: float = 0, type: str = "value", aperture: bool = False
     ):
         """Create the truncation mask
@@ -220,8 +220,7 @@ class Lens:
             aperture (bool, optional): _description_. Defaults to False.
 
         Raises:
-            RuntimeError: _description_
-            ValueError: _description_
+            RuntimeError: lens profile must be generated before truncating
 
         Returns:
             _type_: _description_
@@ -519,7 +518,7 @@ def apply_modifications(lens: Lens, lens_config: dict) -> Lens:
             )
 
     if lens_config["truncation"] is not None:
-        lens.calculate_truncation_mask(
+        lens.create_truncation_mask(
                 truncation=lens_config["truncation"]["height"],
                 radius=lens_config["truncation"]["radius"],
                 type=lens_config["truncation"]["type"],

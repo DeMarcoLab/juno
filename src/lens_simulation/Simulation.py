@@ -309,7 +309,14 @@ def propagate_wavefront(
     save_path = os.path.join(options.log_dir, str(stage._id))
 
     # pad the lens profile to be the same size as the simulation
-    sim_profile = pad_simulation(lens, parameters=parameters)
+    lens = pad_simulation(lens, parameters=parameters)
+    
+    # apply all aperture masks, TODO: mvoe this to a better place
+    lens.apply_aperture_masks()
+    sim_profile = lens.profile
+
+    utils.plot_apeture_masks(lens)
+    plt.show()
 
     # generate frequency array
     freq_arr = generate_sq_freq_arr(sim_profile, pixel_size=parameters.pixel_size)
@@ -324,6 +331,11 @@ def propagate_wavefront(
         A=amplitude,
         aperture=lens.aperture,
     )
+
+    plt.imshow(wavefront.real)
+    plt.colorbar()
+    plt.title("wavefront")
+    plt.show()
 
     # fourier transform of wavefront
     fft_wavefront = fftpack.fft2(wavefront)
@@ -479,6 +491,7 @@ def pad_simulation(lens: Lens, parameters: SimulationParameters) -> np.ndarray:
     lens.profile = np.pad(lens.profile, pad_width=((diff_h, diff_h), (diff_w, diff_w)), mode="constant")
     
     # apply aperture mask to sim padded area
+    # TODO: could change this to calc the mask with == 0?
     lens.profile[lens.sim_aperture_mask] = 0 
 
     return lens
@@ -563,6 +576,7 @@ def calculate_wavefront(
     # padded area should be 0+0j
     if passed_wavefront is not None:
         wavefront[phase == 0] = 0 + 0j
+        # TODO ^ can remove this now that apertures work properly?
 
     # mask out apertured area
     if aperture is not None:

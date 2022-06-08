@@ -146,6 +146,19 @@ class Beam:
         else:
             raise TypeError(f"Unsupport Beam Spread: {self.spread}")
 
+
+        # position and pad beam
+        self.position_and_pad_beam(lens, sim_parameters)
+
+        # calculate propagation distance
+        self.start_distance, self.finish_distance = self.calculate_propagation_distance()
+
+    def position_and_pad_beam(self, lens: Lens, parameters: SimulationParameters):
+        
+        pixel_size = parameters.pixel_size
+        sim_width = parameters.sim_width
+        sim_height = parameters.sim_height
+
         # set up the part of the lens square that isn't the lens for aperturing
         non_lens_profile = lens.profile == 0 
         aperturing_value = -1 #-1e-9 # NOTE: needs to be a relatively large value for numerical comparison # QUERY why not zero, parts of lens at zero might not be apertures e.g. escape path...
@@ -157,7 +170,6 @@ class Beam:
         pad_width = (int(sim_width/pixel_size)-lens.profile.shape[1])//2 + 1    # px
         relative_position_x = int(beam_position[1]/pixel_size)                  # px
         relative_position_y = int(beam_position[0]/pixel_size)                  # px
-        # NOTE: ^ always symmetric
 
         # pad the profile to the sim width (Top - Bottom - Left - Right)
         lens.profile = np.pad(lens.profile, ((pad_height + relative_position_y, pad_height - relative_position_y),
@@ -165,13 +177,10 @@ class Beam:
                                                     mode="constant", constant_values=aperturing_value)
         # assign lens
         self.lens = lens
-        self.lens.aperture = (lens.profile == aperturing_value)
+        self.lens.non_lens_mask = (lens.profile == aperturing_value).astype(bool)
         
         # reset apertures back to zero height
-        self.lens.profile[self.lens.aperture]= 0
-
-        # calculate propagation distance
-        self.start_distance, self.finish_distance = self.calculate_propagation_distance()
+        self.lens.profile[self.lens.non_lens_mask] = 0
 
 
     def calculate_propagation_distance(self):
