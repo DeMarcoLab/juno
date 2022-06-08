@@ -98,17 +98,17 @@ class SimulationRunner:
                 lens_combination = []
                 for i, lens_config in enumerate(self.config["lenses"]):
                     
-                    lens_dict = lens_config
-                    lens_dict["height"] = lens_combo[i][0]   
-                    lens_dict["exponent"] = lens_combo[i][1]
+                    simulation_lenses = lens_config
+                    simulation_lenses["height"] = lens_combo[i][0]   
+                    simulation_lenses["exponent"] = lens_combo[i][1]
                     
-                    lens_combination.append(lens_dict)
+                    lens_combination.append(simulation_lenses)
                 
                 # create stage combination
                 stage_combination = []
                 for j, stage in enumerate(self.config["stages"]):
 
-                    stage = validation._validate_simulation_stage(stage)
+                    stage = validation._validate_default_simulation_stage_config(stage)
 
                     stage_dict = {
                         "lens": stage["lens"], # TODO: replace with combo

@@ -1,5 +1,4 @@
 from dataclasses import dataclass, field
-from multiprocessing.sharedctypes import Value
 import matplotlib.pyplot as plt
 import numpy as np
 from pytest import param
@@ -9,6 +8,7 @@ from enum import Enum, auto
 from lens_simulation.Medium import Medium 
 from lens_simulation.Lens import Lens, LensType
 from lens_simulation.structures import SimulationParameters
+from lens_simulation import validation
 
 class BeamSpread(Enum):
     Plane = auto()
@@ -278,33 +278,23 @@ def load_beam_config(config: dict) -> BeamSettings:
         BeamSettings: beam configuration as BeamSettings
     """
     
-    distance_mode = config["distance_mode"].title() if "distance_mode" in config else "Direct"
-    beam_spread = config["beam_spread"].title() if "beam_spread" in config else "Plane"
-    beam_shape = config["beam_shape"].title() if "beam_shape" in config else "Square"
-
-    position = config["position"] if "position" in config else [0.0, 0.0]
-    theta = config["theta"] if "theta" in config else 0.0
-    numerical_aperture = config["numerical_aperture"] if "numerical_aperture" in config else None 
-    tilt = config["tilt"] if "tilt" in config else [0.0, 0.0]
-    source_distance = config["source_distance"] if "source_distance" in config else None
-    final_width = config["final_width"] if "final_width" in config else None
-    focal_multiple = config["focal_multiple"] if "focal_multiple" in config else None
-    n_slices = config["n_slices"] if "n_slices" in config else 10
+   
+    config = validation._validate_default_beam_config(config)
 
     beam_settings = BeamSettings(
-        distance_mode=DistanceMode[distance_mode],
-        beam_spread=BeamSpread[beam_spread], 
-        beam_shape=BeamShape[beam_shape],
+        distance_mode=DistanceMode[config["distance_mode"]],
+        beam_spread=BeamSpread[config["beam_spread"]], 
+        beam_shape=BeamShape[config["beam_shape"]],
         width=config["width"],
         height= config["height"],
-        position=position,
-        theta=theta,
-        numerical_aperture=numerical_aperture,
-        tilt=tilt,
-        source_distance=source_distance,
-        final_width=final_width,
-        focal_multiple=focal_multiple,
-        n_slices=n_slices
+        position=config["position"],
+        theta=config["theta"],
+        numerical_aperture=config["numerical_aperture"],
+        tilt=config["tilt"],
+        source_distance=config["source_distance"],
+        final_width=config["final_width"],
+        focal_multiple=config["focal_multiple"],
+        n_slices=config["n_slices"]
     )
 
     return beam_settings

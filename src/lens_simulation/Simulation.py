@@ -77,16 +77,16 @@ class Simulation:
     def setup_simulation(self, config: dict):
 
         # generate all mediums for simulation
-        medium_dict = generate_mediums(config["mediums"])
+        simulation_mediums = generate_mediums(config["mediums"])
 
         # generate all lenses for the simulations
-        lens_dict = generate_lenses(config["lenses"], medium_dict, self.parameters)
+        simulation_lenses = generate_lenses(config["lenses"], simulation_mediums, self.parameters)
 
         # validate sim, lens and medium setup 
-        stages_config = validation._validate_simulation_stage_config(config["stages"], medium_dict, lens_dict)
+        stages_config = validation._validate_simulation_stage_list(config["stages"], simulation_mediums, simulation_lenses)
 
         # generate all simulation stages
-        self.sim_stages = generate_simulation_stages(stages_config, medium_dict, lens_dict, config, self.parameters)
+        self.sim_stages = generate_simulation_stages(stages_config, simulation_mediums, simulation_lenses, config, self.parameters)
 
     def run_simulation(self):
         """Run the simulation propagation over all simulation stages."""
@@ -136,13 +136,13 @@ class Simulation:
 
         utils.save_metadata(config, options.log_dir)
 
-def generate_simulation_stages(stages: list, medium_dict: dict, lens_dict: dict, config: dict, parameters: SimulationParameters) -> list:
+def generate_simulation_stages(stages: list, simulation_mediums: dict, simulation_lenses: dict, config: dict, parameters: SimulationParameters) -> list:
     """Generate the list of simulation stages
 
     Args:
         stages (list): config list containing simulation stages
-        medium_dict (dict): config dict containing simulation mediums
-        lens_dict (dict): config dict containing simulation lenses
+        simulation_mediums (dict): config dict containing simulation mediums
+        simulation_lenses (dict): config dict containing simulation lenses
         config (dict): simulation config 
         parameters (SimulationParameters): simulation parameters
 
@@ -176,8 +176,8 @@ def generate_simulation_stages(stages: list, medium_dict: dict, lens_dict: dict,
         sim_stage_no = len(sim_stages)
         
         sim_stage = SimulationStage(
-            lens=lens_dict[stage["lens"]],
-            output=medium_dict[stage["output"]],
+            lens=simulation_lenses[stage["lens"]],
+            output=simulation_mediums[stage["output"]],
             n_slices=stage["n_slices"],
             step_size=stage["step_size"],
             start_distance=stage["start_distance"],
@@ -193,7 +193,7 @@ def generate_simulation_stages(stages: list, medium_dict: dict, lens_dict: dict,
 
             sim_stage = invert_lens_and_output_medium(sim_stage, sim_stages[sim_stage_no - 1], parameters)
 
-        if sim_stage.options["use_equivalent_focal_distance"]:
+        if sim_stage.options is not None:
             sim_stage = calculate_start_and_finish_distance(sim_stage)
     
         # update config
@@ -208,39 +208,42 @@ def generate_simulation_stages(stages: list, medium_dict: dict, lens_dict: dict,
 
 
 def calculate_start_and_finish_distance(stage: SimulationStage):
-    
-    eq_fd = calculate_equivalent_focal_distance(stage.lens, stage.output)
+    if stage.options["use_equivalent_focal_distance"]:
+        eq_fd = calculate_equivalent_focal_distance(stage.lens, stage.output)
 
-    stage.start_distance = (stage.options["focal_distance_start_multiple"] * eq_fd)
-    stage.finish_distance = (stage.options["focal_distance_multiple"] * eq_fd)
-    
+        stage.start_distance = (stage.options["focal_distance_start_multiple"] * eq_fd)
+        stage.finish_distance = (stage.options["focal_distance_multiple"] * eq_fd)
+        
     return stage 
 
 def generate_mediums(mediums: list):
     """Generate all the mediums for the simulation"""
 
-    medium_dict = {}
+    simulation_mediums = {}
     for med in mediums:
 
-        medium_dict[med["name"]] = Medium(med["refractive_index"])
+        simulation_mediums[med["name"]] = Medium(med["refractive_index"])
 
-    return medium_dict
+    return simulation_mediums
 
-def generate_lenses(lenses: list, medium_dict: dict, parameters: SimulationParameters):
+def generate_lenses(lenses: list, simulation_mediums: dict, parameters: SimulationParameters):
     """Generate all the lenses for the simulation"""
 
     from lens_simulation.Lens import apply_modifications  
     
-    lens_dict = {}
+    simulation_lenses = {}
     for lens_config in lenses:
 
-        lens_config= validation._validate_lens_config(lens_config, medium_dict)
+        if lens_config["medium"] not in simulation_mediums:
+            raise ValueError("Lens Medium not found in simulation mediums")
+    
+        lens_config = validation._validate_default_lens_config(lens_config)
 
         lens = Lens(
             diameter=lens_config["diameter"],
             height=lens_config["height"],
             exponent=lens_config["exponent"],
-            medium=medium_dict[lens_config["medium"]],
+            medium=simulation_mediums[lens_config["medium"]],
         )
 
         # check lens fits in the simulation
@@ -261,11 +264,11 @@ def generate_lenses(lenses: list, medium_dict: dict, parameters: SimulationParam
                 length=lens_config["length"]
             )
 
-        apply_modifications(lens, lens_config)
+        lens = apply_modifications(lens, lens_config)
 
-        lens_dict[lens_config["name"]] = lens
+        simulation_lenses[lens_config["name"]] = lens
 
-    return lens_dict
+    return simulation_lenses
 
 
 

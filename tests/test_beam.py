@@ -131,11 +131,6 @@ def test_beam_generate_profile_diverging(beam_settings, sim_parameters):
     # assert np.isclose(np.max(beam.lens.profile), 0)
 
 
-def test_validate_beam_configuration(beam_settings):
-
-    return NotImplemented
-
-
 def test_beam_propagation_distance_direct(beam_settings, sim_parameters):
 
     test_distance = 10.e-3
