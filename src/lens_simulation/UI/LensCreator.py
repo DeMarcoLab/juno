@@ -87,7 +87,9 @@ class GUILensCreator(LensCreator.Ui_LensCreator, QtWidgets.QMainWindow):
             self.generate_base_lens()
 
             self.lens.generate_profile(
-                pixel_size=self.pixel_size, lens_type=self.lens_type, length=self.lens_length
+                pixel_size=self.pixel_size,
+                lens_type=self.lens_type,
+                length=self.lens_length,
             )
 
             self.update_masks()
@@ -183,7 +185,9 @@ class GUILensCreator(LensCreator.Ui_LensCreator, QtWidgets.QMainWindow):
         )
 
         # only applied if adaptive steps are turned off
-        self.doubleSpinBox_GratingDistance.setSingleStep(1 * self.pixel_size / self.units)
+        self.doubleSpinBox_GratingDistance.setSingleStep(
+            1 * self.pixel_size / self.units
+        )
         self.doubleSpinBox_GratingWidth.setSingleStep(1 * self.pixel_size / self.units)
 
         grating_width = self.doubleSpinBox_GratingWidth.value() * self.units
@@ -224,7 +228,9 @@ class GUILensCreator(LensCreator.Ui_LensCreator, QtWidgets.QMainWindow):
         self.doubleSpinBox_TruncationValue.setMaximum(self.lens.height / self.units)
 
         self.doubleSpinBox_TruncationRadius.setMinimum(self.pixel_size / self.units)
-        self.doubleSpinBox_TruncationRadius.setMaximum(((self.lens.diameter/2)-self.pixel_size) / self.units)
+        self.doubleSpinBox_TruncationRadius.setMaximum(
+            ((self.lens.diameter / 2) - self.pixel_size) / self.units
+        )
 
         truncation_value = self.doubleSpinBox_TruncationValue.value() * self.units
         truncation_radius = self.doubleSpinBox_TruncationRadius.value() * self.units
@@ -239,18 +245,19 @@ class GUILensCreator(LensCreator.Ui_LensCreator, QtWidgets.QMainWindow):
                 truncation_height=truncation_value,
                 radius=truncation_radius,
                 type=truncation_mode,
-                aperture=self.checkBox_TruncationAperture.isChecked()
+                aperture=self.checkBox_TruncationAperture.isChecked(),
             )
         except Exception as e:
             self.display_error_message(traceback.format_exc())
 
     def update_custom_aperture_mask(self):
 
-        self.doubleSpinBox_ApertureOuter.setMinimum(self.pixel_size / self.units)
+        self.doubleSpinBox_ApertureOuter.setMinimum(self.pixel_size * 2 / self.units)
 
         self.doubleSpinBox_ApertureOuter.setMaximum(
-            (self.lens.diameter / 2) / self.units
+            ((self.lens.diameter / 2) - self.pixel_size) / self.units
         )
+        self.doubleSpinBox_ApertureInner.setMinimum(self.pixel_size / self.units)
 
         self.doubleSpinBox_ApertureInner.setMaximum(
             (self.doubleSpinBox_ApertureOuter.value() * self.units - self.pixel_size)
@@ -279,10 +286,12 @@ class GUILensCreator(LensCreator.Ui_LensCreator, QtWidgets.QMainWindow):
 
     def update_image_frames(self):
 
-        mask_dict = {"tab_General": [None, "Mask"],
-                     "tab_Gratings": [self.lens.grating_mask, "Grating Mask"],
-                     "tab_Truncation": [self.lens.truncation_mask, "Truncation Mask"],
-                     "tab_Aperture": [self.lens.custom_aperture_mask, "Aperture Mask"]}
+        mask_dict = {
+            "tab_General": [None, "Mask"],
+            "tab_Gratings": [self.lens.grating_mask, "Grating Mask"],
+            "tab_Truncation": [self.lens.truncation_mask, "Truncation Mask"],
+            "tab_Aperture": [self.lens.custom_aperture_mask, "Aperture Mask"],
+        }
 
         cs_mask_image = None
         profile_mask_image = None
@@ -290,7 +299,9 @@ class GUILensCreator(LensCreator.Ui_LensCreator, QtWidgets.QMainWindow):
         self.label_TitleMask.setText(mask_dict[current_tab][1])
 
         if mask_dict[current_tab][0] is not None:
-            cs_mask_image = mask_dict[current_tab][0][self.lens.profile.shape[0] // 2, :]
+            cs_mask_image = mask_dict[current_tab][0][
+                self.lens.profile.shape[0] // 2, :
+            ]
             profile_mask_image = mask_dict[current_tab][0]
 
         # Cross section initialisation
@@ -318,9 +329,7 @@ class GUILensCreator(LensCreator.Ui_LensCreator, QtWidgets.QMainWindow):
             self.pc_CrossSectionMask.deleteLater()
 
         self.pc_CrossSectionMask = _ImageCanvas(
-            parent=self.label_CrossSectionMask,
-            image=cs_mask_image,
-            lens=self.lens,
+            parent=self.label_CrossSectionMask, image=cs_mask_image, lens=self.lens,
         )
 
         self.label_CrossSectionMask.layout().addWidget(self.pc_CrossSectionMask)
@@ -399,6 +408,7 @@ class _ImageCanvas(FigureCanvasQTAgg):
                 )
             else:
                 self.axes.plot(image)
+
 
 def main():
     """Launch the `piescope_gui` main application window."""
