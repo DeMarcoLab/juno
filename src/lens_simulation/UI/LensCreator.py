@@ -9,6 +9,16 @@ from matplotlib.figure import Figure
 from PyQt5 import QtCore, QtGui, QtWidgets
 from lens_simulation import constants
 
+lens_type_dict = {
+    "Cylindrical": LensType.Cylindrical,
+    "Spherical": LensType.Spherical,
+}
+
+units_dict = {
+    0: constants.NANO_TO_METRE,
+    1: constants.MICRON_TO_METRE,
+    2: constants.MM_TO_METRE,
+}
 
 class GUILensCreator(LensCreator.Ui_LensCreator, QtWidgets.QMainWindow):
     def __init__(self, parent_gui=None):
@@ -76,8 +86,8 @@ class GUILensCreator(LensCreator.Ui_LensCreator, QtWidgets.QMainWindow):
 
     def generate_base_lens(self):
         self.lens = Lens(
-            diameter=self.doubleSpinBox_LensDiameter.value(),
-            height=self.doubleSpinBox_LensHeight.value(),
+            diameter=self.doubleSpinBox_LensDiameter.value() * units_dict[self.comboBox_UnitsLensDiameter.currentIndex()],
+            height=self.doubleSpinBox_LensHeight.value() * units_dict[self.comboBox_UnitsLensHeight.currentIndex()],
             exponent=self.doubleSpinBox_LensExponent.value(),
             medium=self.doubleSpinBox_LensMedium.value(),
         )
@@ -95,7 +105,7 @@ class GUILensCreator(LensCreator.Ui_LensCreator, QtWidgets.QMainWindow):
 
         self.generate_base_lens()
         self.lens.load_profile(
-            fname=filename, pixel_size=self.doubleSpinBox_PixelSize.value()
+            fname=filename, pixel_size=self.doubleSpinBox_PixelSize.value() * units_dict[self.comboBox_UnitsPixelSize.currentIndex()]
         )
 
         self.update_image_frames()
@@ -111,14 +121,11 @@ class GUILensCreator(LensCreator.Ui_LensCreator, QtWidgets.QMainWindow):
 
     def update_profile_parameters(self):
         # read lens type so that we can generate the profile
-        lens_type_dict = {
-            "Cylindrical": LensType.Cylindrical,
-            "Spherical": LensType.Spherical,
-        }
 
         self.lens_type = lens_type_dict[self.comboBox_LensType.currentText()]
-        self.pixel_size = self.doubleSpinBox_PixelSize.value()
-        self.cylindrical_extrusion = self.doubleSpinBox_CylindricalExtrusion.value()
+        self.pixel_size = self.doubleSpinBox_PixelSize.value() * units_dict[self.comboBox_UnitsPixelSize.currentIndex()]
+
+        self.cylindrical_extrusion = self.doubleSpinBox_CylindricalExtrusion.value() * units_dict[self.comboBox_UnitsCylindricalExtrusion.currentIndex()]
 
         if self.cylindrical_extrusion < self.pixel_size:
             self.cylindrical_extrusion = self.pixel_size
