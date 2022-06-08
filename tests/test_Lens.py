@@ -36,7 +36,7 @@ def cylindrical_lens():
     return lens
 
 
-def test_Lens(cylindrical_lens):
+def test_create_lens(cylindrical_lens):
 
     lens = cylindrical_lens
 
@@ -60,7 +60,6 @@ def test_axicon_lens(cylindrical_lens):
     assert np.isclose(np.min(profile), 0, atol=5e-7)  # TODO: broken
     assert np.isclose(np.max(profile), lens.height,  atol=5e-7)
     assert np.isclose(profile[:, int(profile.shape[-1] * 0.75)],  lens.height / 2, atol=5e-7)
-    assert profile.shape[-1] == lens.n_pixels
 
 
 def test_focusing_lens(cylindrical_lens):
@@ -100,8 +99,6 @@ def test_revolve_lens():
     # maximum at midpoint
     midx, midy = profile_2D.shape[0] // 2, profile_2D.shape[1] // 2
     assert profile_2D[midx, midy] == np.max(profile_2D), "Maximum should be at the midpoint"
-    assert profile_2D.shape[-1] == lens.n_pixels
-
 
 
 def test_lens_inverted(spherical_lens):
@@ -175,7 +172,7 @@ def test_truncation_by_value(spherical_lens):
 
     lens = spherical_lens
 
-    lens.calculate_truncation_mask(truncation=truncation_value, type="value")
+    lens.create_truncation_mask(truncation_height=truncation_value, type="value")
     lens.apply_masks(truncation=True)
 
     assert np.max(lens.profile) == truncation_value, "Maximum value should be truncation value"
@@ -186,7 +183,7 @@ def test_truncation_by_radius(spherical_lens):
 
     lens = spherical_lens
 
-    lens.calculate_truncation_mask(radius=truncation_radius, type="radial")
+    lens.create_truncation_mask(radius=truncation_radius, type="radial")
     lens.apply_masks(truncation=True)
 
     assert np.isclose(np.max(lens.profile), 15.e-6, atol=0.25e-6), "Maximum value should be 15e-6"
@@ -233,5 +230,3 @@ def test_aperture_inverted(spherical_lens):
     assert lens.profile[0, -1] == 0, "Outer area should be apertured"
     assert lens.profile[-1, 0] == 0, "Outer area should be apertured"
     assert lens.profile[0, -1] == 0, "Outer area should be apertured"
-
-# TODO: do the same tests for cylindrical....

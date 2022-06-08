@@ -94,7 +94,6 @@ def test_beam_generate_profile_plane_circular(beam_settings, sim_parameters):
     beam = Beam(beam_settings)
     beam.generate_profile(sim_parameters)
 
-    # TODO
     return NotImplemented
 
 def test_beam_generate_profile_plane_rectangular(beam_settings, sim_parameters):
@@ -105,7 +104,7 @@ def test_beam_generate_profile_plane_rectangular(beam_settings, sim_parameters):
     beam = Beam(beam_settings)
     beam.generate_profile(sim_parameters)
    
-    # TODO
+
     return NotImplemented
 
 def test_beam_generate_profile_converging(beam_settings, sim_parameters):
@@ -117,22 +116,6 @@ def test_beam_generate_profile_converging(beam_settings, sim_parameters):
     beam = Beam(beam_settings)
 
     return NotImplemented
-    # TODO: 
-    # lens = Lens(
-    #     diameter=max(beam.settings.width, beam.settings.height),
-    #     height=100,
-    #     exponent=2,
-    #     medium = Medium(100)
-    # )
-
-    # # calculate height from focal distance
-    # focal_distance = focal_distance_from_theta(beam=lens, theta=beam.theta)
-    # equivalent_height = height_from_focal_distance(lens, output_medium=output_medium, focal_distance=focal_distance)
-    
-    # beam.generate_profile()
-
-    # assert np.isclose(beam.lens.height, equivalent_height)
-    # assert np.isclose(np.max(beam.lens.profile), equivalent_height)
 
 
 def test_beam_generate_profile_diverging(beam_settings, sim_parameters):
@@ -145,13 +128,7 @@ def test_beam_generate_profile_diverging(beam_settings, sim_parameters):
     beam.generate_profile(sim_parameters)
 
     # profile is inverted, max should be zero
-    # assert np.isclose(np.max(beam.lens.profile), 0)  # TODO
-
-
-def test_validate_beam_configuration(beam_settings):
-
-    # TODO:
-    return NotImplemented
+    # assert np.isclose(np.max(beam.lens.profile), 0)
 
 
 def test_beam_propagation_distance_direct(beam_settings, sim_parameters):
@@ -196,7 +173,6 @@ def test_beam_propagation_distance_focal(beam_settings, sim_parameters):
 
     sd, fd = beam.calculate_propagation_distance()
 
-    # TODO: use this
     # focal_distance = focal_distance_from_theta(beam=beam.lens, theta=beam_settings.theta)
 
     assert beam.distance_mode == DistanceMode.Focal

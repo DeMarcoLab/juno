@@ -5,9 +5,12 @@ from pytest import param
 from scipy import fftpack
 from enum import Enum, auto
 
+import logging
+
 from lens_simulation.Medium import Medium 
 from lens_simulation.Lens import Lens, LensType
 from lens_simulation.structures import SimulationParameters
+from lens_simulation import validation
 
 class BeamSpread(Enum):
     Plane = auto()
@@ -45,6 +48,7 @@ class BeamSettings:
     source_distance: float = None
     final_width: float = None
     focal_multiple: float = None
+    n_slices: int = 10
 
 
 
@@ -81,13 +85,17 @@ class Beam:
 
         pixel_size = sim_parameters.pixel_size
         sim_width = sim_parameters.sim_width
+        sim_height = sim_parameters.sim_height
         lens_type = sim_parameters.lens_type
 
         # validation
         if self.width > sim_width:
-            raise ValueError(f"Beam width is larger than simulation width: beam={self.width:.2e}, sim={sim_width:.2e}")
+            raise ValueError(f"Beam width is larger than simulation width: beam={self.width:.2e}m, sim={sim_width:.2e}m")
         if self.height > sim_width:
-            raise ValueError(f"Beam height is larger than simulation width: beam={self.height:.2e}, sim={sim_width:.2e}")
+            raise ValueError(f"Beam height is larger than simulation width: beam={self.height:.2e}m, sim={sim_width:.2e}m")
+
+        if self.position[0] > sim_width or self.position[1] > sim_width:
+            raise ValueError(f"Beam position is outside simulation: position: x:{self.position[0]:.2e}m, y:{self.position[1]:.2e}m, sim_size: {sim_width:.2e}m")
 
         # Default beam specifications
         lens = Lens(
@@ -138,6 +146,19 @@ class Beam:
         else:
             raise TypeError(f"Unsupport Beam Spread: {self.spread}")
 
+
+        # position and pad beam
+        self.position_and_pad_beam(lens, sim_parameters)
+
+        # calculate propagation distance
+        self.start_distance, self.finish_distance = self.calculate_propagation_distance()
+
+    def position_and_pad_beam(self, lens: Lens, parameters: SimulationParameters):
+        
+        pixel_size = parameters.pixel_size
+        sim_width = parameters.sim_width
+        sim_height = parameters.sim_height
+
         # set up the part of the lens square that isn't the lens for aperturing
         non_lens_profile = lens.profile == 0 
         aperturing_value = -1 #-1e-9 # NOTE: needs to be a relatively large value for numerical comparison # QUERY why not zero, parts of lens at zero might not be apertures e.g. escape path...
@@ -145,23 +166,21 @@ class Beam:
         
         # calculate padding parameters
         beam_position = self.position
-        pad_width = (int(sim_width/pixel_size)-lens.profile.shape[0])//2 + 1 
-        relative_position_x = int(beam_position[1]/pixel_size)
-        relative_position_y = int(beam_position[0]/pixel_size)
+        pad_height = (int(sim_height/pixel_size)-lens.profile.shape[0])//2 + 1    # px
+        pad_width = (int(sim_width/pixel_size)-lens.profile.shape[1])//2 + 1    # px
+        relative_position_x = int(beam_position[1]/pixel_size)                  # px
+        relative_position_y = int(beam_position[0]/pixel_size)                  # px
 
         # pad the profile to the sim width (Top - Bottom - Left - Right)
-        lens.profile = np.pad(lens.profile, ((pad_width + relative_position_y, pad_width - relative_position_y),
+        lens.profile = np.pad(lens.profile, ((pad_height + relative_position_y, pad_height - relative_position_y),
                                                     (pad_width + relative_position_x, pad_width - relative_position_x)), 
                                                     mode="constant", constant_values=aperturing_value)
         # assign lens
         self.lens = lens
-        self.lens.aperture_mask_2 = (lens.profile == aperturing_value)
+        self.lens.non_lens_mask = (lens.profile == aperturing_value).astype(bool)
         
         # reset apertures back to zero height
-        self.lens.profile[self.lens.aperture_mask_2] = 0
-
-        # calculate propagation distance
-        self.start_distance, self.finish_distance = self.calculate_propagation_distance()
+        self.lens.profile[self.lens.non_lens_mask] = 0
 
 
     def calculate_propagation_distance(self):
@@ -207,17 +226,17 @@ def validate_beam_configuration(settings: BeamSettings):
 
         # plane wave is constant width along optical axis
         settings.final_width = settings.width
-        print(f"The plane wave if constant along the optical axis. The beam final_width has been set to the initial width: {settings.width:.2e}m")
+        logging.info(f"The plane wave if constant along the optical axis. The beam final_width has been set to the initial width: {settings.width:.2e}m")
 
         if settings.distance_mode != DistanceMode.Direct:
             # plane waves only enabled for direct mode
             settings.distance_mode = DistanceMode.Direct
-            print(f"Only DistanceMode.Direct is supported for BeamSpread.Plane. The distance_mode has been set to {settings.distance_mode}.")
+            logging.info(f"Only DistanceMode.Direct is supported for BeamSpread.Plane. The distance_mode has been set to {settings.distance_mode}.")
 
     # can't do converging/divering square beams
     if settings.beam_spread in [BeamSpread.Converging, BeamSpread.Diverging]:
         settings.beam_shape = BeamShape.Circular
-        print(f"Only BeamShape.Circular is supported for {settings.beam_spread}. The beam_shape has been set to {settings.beam_shape}.")
+        logging.info(f"Only BeamShape.Circular is supported for {settings.beam_spread}. The beam_shape has been set to {settings.beam_shape}.")
 
         # QUERY?
         if settings.theta == 0.0:
@@ -227,7 +246,7 @@ def validate_beam_configuration(settings: BeamSettings):
     # non-rectangular beams are symmetric
     if settings.beam_shape in [BeamShape.Circular, BeamShape.Square]:
         settings.height = settings.width
-        print(f"The beam_shape ({settings.beam_shape}) requires a symmetric beam. The beam height has been set to the beam width: {settings.width:.2e}m ")
+        logging.info(f"The beam_shape ({settings.beam_shape}) requires a symmetric beam. The beam height has been set to the beam width: {settings.width:.2e}m ")
 
     # distance mode
     if settings.distance_mode == DistanceMode.Direct:
@@ -270,31 +289,23 @@ def load_beam_config(config: dict) -> BeamSettings:
         BeamSettings: beam configuration as BeamSettings
     """
     
-    distance_mode = config["distance_mode"].title() if "distance_mode" in config else "Direct"
-    beam_spread = config["beam_spread"].title() if "beam_spread" in config else "Plane"
-    beam_shape = config["beam_shape"].title() if "beam_shape" in config else "Square"
-
-    position = config["position"] if "position" in config else [0.0, 0.0]
-    theta = config["theta"] if "theta" in config else 0.0
-    numerical_aperture = config["numerical_aperture"] if "numerical_aperture" in config else None 
-    tilt = config["tilt"] if "tilt" in config else [0.0, 0.0]
-    source_distance = config["source_distance"] if "source_distance" in config else None
-    final_width = config["final_width"] if "final_width" in config else None
-    focal_multiple = config["focal_multiple"] if "focal_multiple" in config else None
+   
+    config = validation._validate_default_beam_config(config)
 
     beam_settings = BeamSettings(
-        distance_mode=DistanceMode[distance_mode],
-        beam_spread=BeamSpread[beam_spread], 
-        beam_shape=BeamShape[beam_shape],
+        distance_mode=DistanceMode[config["distance_mode"]],
+        beam_spread=BeamSpread[config["beam_spread"]], 
+        beam_shape=BeamShape[config["beam_shape"]],
         width=config["width"],
         height= config["height"],
-        position=position,
-        theta=theta,
-        numerical_aperture=numerical_aperture,
-        tilt=tilt,
-        source_distance=source_distance,
-        final_width=final_width,
-        focal_multiple=focal_multiple
+        position=config["position"],
+        theta=config["theta"],
+        numerical_aperture=config["numerical_aperture"],
+        tilt=config["tilt"],
+        source_distance=config["source_distance"],
+        final_width=config["final_width"],
+        focal_multiple=config["focal_multiple"],
+        n_slices=config["n_slices"]
     )
 
     return beam_settings
