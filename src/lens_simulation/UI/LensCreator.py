@@ -219,6 +219,13 @@ class GUILensCreator(LensCreator.Ui_LensCreator, QtWidgets.QMainWindow):
 
     def update_truncation_mask(self):
         truncation_mode = self.comboBox_TruncationMode.currentText()
+
+        self.doubleSpinBox_TruncationValue.setMinimum(self.pixel_size / self.units)
+        self.doubleSpinBox_TruncationValue.setMaximum(self.lens.height / self.units)
+
+        self.doubleSpinBox_TruncationRadius.setMinimum(self.pixel_size / self.units)
+        self.doubleSpinBox_TruncationRadius.setMaximum(((self.lens.diameter/2)-self.pixel_size) / self.units)
+
         truncation_value = self.doubleSpinBox_TruncationValue.value() * self.units
         truncation_radius = self.doubleSpinBox_TruncationRadius.value() * self.units
 
