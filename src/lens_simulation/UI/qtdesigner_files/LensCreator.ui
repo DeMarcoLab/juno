@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>991</width>
-    <height>617</height>
+    <height>749</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -198,9 +198,6 @@
                  <string>Lens Parameters</string>
                 </property>
                 <layout class="QVBoxLayout" name="verticalLayout_2">
-                 <property name="spacing">
-                  <number>1</number>
-                 </property>
                  <item>
                   <widget class="QFrame" name="frame_Title_General">
                    <property name="maximumSize">
@@ -256,6 +253,12 @@
                  </item>
                  <item>
                   <widget class="QFrame" name="frame_PixelSize">
+                   <property name="minimumSize">
+                    <size>
+                     <width>0</width>
+                     <height>40</height>
+                    </size>
+                   </property>
                    <property name="maximumSize">
                     <size>
                      <width>16777215</width>
@@ -303,6 +306,12 @@
                  </item>
                  <item>
                   <widget class="QFrame" name="frame_LensDiameter">
+                   <property name="minimumSize">
+                    <size>
+                     <width>0</width>
+                     <height>40</height>
+                    </size>
+                   </property>
                    <property name="maximumSize">
                     <size>
                      <width>16777215</width>
@@ -347,6 +356,12 @@
                  </item>
                  <item>
                   <widget class="QFrame" name="frame_LensLength">
+                   <property name="minimumSize">
+                    <size>
+                     <width>0</width>
+                     <height>40</height>
+                    </size>
+                   </property>
                    <property name="maximumSize">
                     <size>
                      <width>16777215</width>
@@ -406,6 +421,12 @@
                  </item>
                  <item>
                   <widget class="QFrame" name="frame_LensHeight">
+                   <property name="minimumSize">
+                    <size>
+                     <width>0</width>
+                     <height>40</height>
+                    </size>
+                   </property>
                    <property name="maximumSize">
                     <size>
                      <width>16777215</width>
@@ -447,6 +468,12 @@
                  </item>
                  <item>
                   <widget class="QFrame" name="frame_LensExponent">
+                   <property name="minimumSize">
+                    <size>
+                     <width>0</width>
+                     <height>40</height>
+                    </size>
+                   </property>
                    <property name="maximumSize">
                     <size>
                      <width>16777215</width>
@@ -491,6 +518,12 @@
                  </item>
                  <item>
                   <widget class="QFrame" name="frame_LensMedium">
+                   <property name="minimumSize">
+                    <size>
+                     <width>0</width>
+                     <height>40</height>
+                    </size>
+                   </property>
                    <property name="maximumSize">
                     <size>
                      <width>16777215</width>
@@ -544,6 +577,12 @@
                  </item>
                  <item>
                   <widget class="QFrame" name="frame_LensType">
+                   <property name="minimumSize">
+                    <size>
+                     <width>0</width>
+                     <height>40</height>
+                    </size>
+                   </property>
                    <property name="maximumSize">
                     <size>
                      <width>16777215</width>
@@ -592,6 +631,12 @@
                    <property name="enabled">
                     <bool>true</bool>
                    </property>
+                   <property name="minimumSize">
+                    <size>
+                     <width>0</width>
+                     <height>40</height>
+                    </size>
+                   </property>
                    <property name="maximumSize">
                     <size>
                      <width>16777215</width>
@@ -630,10 +675,16 @@
                  </item>
                  <item>
                   <widget class="QFrame" name="frame_LensName">
+                   <property name="minimumSize">
+                    <size>
+                     <width>0</width>
+                     <height>40</height>
+                    </size>
+                   </property>
                    <property name="maximumSize">
                     <size>
                      <width>16777215</width>
-                     <height>150</height>
+                     <height>40</height>
                     </size>
                    </property>
                    <property name="frameShape">
@@ -690,6 +741,9 @@
                 <layout class="QVBoxLayout" name="verticalLayout_4">
                  <item>
                   <widget class="QFrame" name="frame_Title_Gratings">
+                   <property name="enabled">
+                    <bool>true</bool>
+                   </property>
                    <property name="maximumSize">
                     <size>
                      <width>16777215</width>
@@ -715,7 +769,7 @@
                     <item>
                      <widget class="QLabel" name="label_PropertyName_Gratings">
                       <property name="enabled">
-                       <bool>false</bool>
+                       <bool>true</bool>
                       </property>
                       <property name="text">
                        <string>Property Name</string>
@@ -728,7 +782,7 @@
                     <item>
                      <widget class="QLabel" name="label_PropertyValue_Gratings">
                       <property name="enabled">
-                       <bool>false</bool>
+                       <bool>true</bool>
                       </property>
                       <property name="text">
                        <string>Property Value</string>
@@ -980,6 +1034,9 @@
                 <layout class="QVBoxLayout" name="verticalLayout_5">
                  <item>
                   <widget class="QFrame" name="frame_Title_Truncation">
+                   <property name="enabled">
+                    <bool>true</bool>
+                   </property>
                    <property name="maximumSize">
                     <size>
                      <width>16777215</width>
@@ -1005,7 +1062,7 @@
                     <item>
                      <widget class="QLabel" name="label_PropertyName_Truncation">
                       <property name="enabled">
-                       <bool>false</bool>
+                       <bool>true</bool>
                       </property>
                       <property name="text">
                        <string>Property Name</string>
@@ -1018,7 +1075,7 @@
                     <item>
                      <widget class="QLabel" name="label_PropertyValue_Truncation">
                       <property name="enabled">
-                       <bool>false</bool>
+                       <bool>true</bool>
                       </property>
                       <property name="text">
                        <string>Property Value</string>
@@ -1180,6 +1237,9 @@
                 <layout class="QVBoxLayout" name="verticalLayout_6">
                  <item>
                   <widget class="QFrame" name="frame_Title_Aperture">
+                   <property name="enabled">
+                    <bool>true</bool>
+                   </property>
                    <property name="maximumSize">
                     <size>
                      <width>16777215</width>
@@ -1205,7 +1265,7 @@
                     <item>
                      <widget class="QLabel" name="label_PropertyName_Aperture">
                       <property name="enabled">
-                       <bool>false</bool>
+                       <bool>true</bool>
                       </property>
                       <property name="text">
                        <string>Property Name</string>
@@ -1218,29 +1278,10 @@
                     <item>
                      <widget class="QLabel" name="label_PropertyValue_Aperture">
                       <property name="enabled">
-                       <bool>false</bool>
+                       <bool>true</bool>
                       </property>
                       <property name="text">
                        <string>Property Value</string>
-                      </property>
-                      <property name="alignment">
-                       <set>Qt::AlignCenter</set>
-                      </property>
-                     </widget>
-                    </item>
-                    <item>
-                     <widget class="QLabel" name="label_Units_Gratings_Aperture">
-                      <property name="enabled">
-                       <bool>false</bool>
-                      </property>
-                      <property name="maximumSize">
-                       <size>
-                        <width>40</width>
-                        <height>16777215</height>
-                       </size>
-                      </property>
-                      <property name="text">
-                       <string>Units</string>
                       </property>
                       <property name="alignment">
                        <set>Qt::AlignCenter</set>
@@ -1421,6 +1462,19 @@
            </widget>
           </item>
           <item row="6" column="0">
+           <spacer name="verticalSpacer_Aperture_4">
+            <property name="orientation">
+             <enum>Qt::Vertical</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>20</width>
+              <height>35</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+          <item row="5" column="0">
            <widget class="QFrame" name="frame_Buttons">
             <property name="maximumSize">
              <size>

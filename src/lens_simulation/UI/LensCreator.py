@@ -73,13 +73,17 @@ class GUILensCreator(LensCreator.Ui_LensCreator, QtWidgets.QMainWindow):
         """Generates a profile based on the inputs to the GUI"""
         # generate the lens based off the parameters selected in GUI
         self.masks_applied = False
+        self.units = units_dict[self.comboBox_Units.currentIndex()]
+
         try:
+            self.update_profile_parameters()
             self.generate_base_lens()
 
-            self.update_profile_parameters()
+
             self.lens.generate_profile(
                 pixel_size=self.pixel_size, lens_type=self.lens_type
             )
+
 
             self.update_masks()
 
@@ -92,6 +96,9 @@ class GUILensCreator(LensCreator.Ui_LensCreator, QtWidgets.QMainWindow):
                 )
                 self.masks_applied = True
 
+            if self.checkBox_InvertedProfile.isChecked():
+                self.lens.invert_profile()
+                
             self.update_image_frames()
 
         except Exception as e:
@@ -99,10 +106,8 @@ class GUILensCreator(LensCreator.Ui_LensCreator, QtWidgets.QMainWindow):
 
     def generate_base_lens(self):
         self.lens = Lens(
-            diameter=self.doubleSpinBox_LensDiameter.value()
-            * units_dict[self.comboBox_Units.currentIndex()],
-            height=self.doubleSpinBox_LensHeight.value()
-            * units_dict[self.comboBox_Units.currentIndex()],
+            diameter=self.doubleSpinBox_LensDiameter.value() * self.units,
+            height=self.doubleSpinBox_LensHeight.value() * self.units,
             exponent=self.doubleSpinBox_LensExponent.value(),
             medium=self.doubleSpinBox_LensMedium.value(),
         )
@@ -121,8 +126,7 @@ class GUILensCreator(LensCreator.Ui_LensCreator, QtWidgets.QMainWindow):
         self.generate_base_lens()
         self.lens.load_profile(
             fname=filename,
-            pixel_size=self.doubleSpinBox_PixelSize.value()
-            * units_dict[self.comboBox_Units.currentIndex()],
+            pixel_size=self.doubleSpinBox_PixelSize.value() * self.units,
         )
 
         self.update_image_frames()
@@ -140,18 +144,13 @@ class GUILensCreator(LensCreator.Ui_LensCreator, QtWidgets.QMainWindow):
         # read lens type so that we can generate the profile
 
         self.lens_type = lens_type_dict[self.comboBox_LensType.currentText()]
-        self.pixel_size = (
-            self.doubleSpinBox_PixelSize.value()
-            * units_dict[self.comboBox_Units.currentIndex()]
-        )
+        self.pixel_size = self.doubleSpinBox_PixelSize.value() * self.units
 
-        self.cylindrical_extrusion = (
-            self.doubleSpinBox_LensLength.value()
-            * units_dict[self.comboBox_Units.currentIndex()]
-        )
+        # set minimums to avoid erroring
+        self.doubleSpinBox_LensDiameter.setMinimum(2 * self.pixel_size / self.units)
+        self.doubleSpinBox_LensLength.setMinimum(1 * self.pixel_size / self.units)
 
-        if self.cylindrical_extrusion < self.pixel_size:
-            self.cylindrical_extrusion = self.pixel_size
+        self.lens_length = self.doubleSpinBox_LensLength.value() * self.units
 
     def update_masks(self):
         if self.groupBox_Gratings.isChecked():
@@ -165,34 +164,21 @@ class GUILensCreator(LensCreator.Ui_LensCreator, QtWidgets.QMainWindow):
             self.update_aperture_mask()
 
     def update_grating_mask(self):
-        # Update maximums to not give user ability to error out
-        self.doubleSpinBox_GratingDistance.setMaximum(
-            (self.lens.diameter - self.pixel_size)
-            / units_dict[self.comboBox_Units.currentIndex()]
-        )
+        # Update minimums/maximums to not give user ability to error out
+        self.doubleSpinBox_GratingDistance.setMinimum(2 * self.pixel_size / self.units)
 
+        self.doubleSpinBox_GratingDistance.setMaximum(
+            (self.lens.diameter - self.pixel_size) / self.units
+        )
 
         self.doubleSpinBox_GratingWidth.setMaximum(
-            (
-                self.doubleSpinBox_GratingDistance.value()
-                * units_dict[self.comboBox_Units.currentIndex()]
-                - self.pixel_size
-            )
-            / units_dict[self.comboBox_Units.currentIndex()]
+            (self.doubleSpinBox_GratingDistance.value() * self.units - self.pixel_size)
+            / self.units
         )
 
-        grating_width = (
-            self.doubleSpinBox_GratingWidth.value()
-            * units_dict[self.comboBox_Units.currentIndex()]
-        )
-        grating_distance = (
-            self.doubleSpinBox_GratingDistance.value()
-            * units_dict[self.comboBox_Units.currentIndex()]
-        )
-        grating_depth = (
-            self.doubleSpinBox_GratingDepth.value()
-            * units_dict[self.comboBox_Units.currentIndex()]
-        )
+        grating_width = self.doubleSpinBox_GratingWidth.value() * self.units
+        grating_distance = self.doubleSpinBox_GratingDistance.value() * self.units
+        grating_depth = self.doubleSpinBox_GratingDepth.value() * self.units
         grating_axis = self.comboBox_GratingAxis.currentText()
         grating_centered = self.checkBox_GratingCentered.isChecked()
 
@@ -223,8 +209,8 @@ class GUILensCreator(LensCreator.Ui_LensCreator, QtWidgets.QMainWindow):
 
     def update_truncation_mask(self):
         truncation_mode = self.comboBox_TruncationMode.currentText()
-        truncation_value = self.doubleSpinBox_TruncationValue.value() * units_dict[self.comboBox_Units.currentIndex()]
-        truncation_radius = self.doubleSpinBox_TruncationRadius.value() * units_dict[self.comboBox_Units.currentIndex()]
+        truncation_value = self.doubleSpinBox_TruncationValue.value() * self.units
+        truncation_radius = self.doubleSpinBox_TruncationRadius.value() * self.units
 
         if truncation_mode == "Height":
             truncation_mode = "value"
@@ -241,14 +227,21 @@ class GUILensCreator(LensCreator.Ui_LensCreator, QtWidgets.QMainWindow):
             self.display_error_message(traceback.format_exc())
 
     def update_aperture_mask(self):
+
+        self.doubleSpinBox_ApertureOuter.setMinimum(self.pixel_size / self.units)
+
+        self.doubleSpinBox_ApertureOuter.setMaximum(
+            (self.lens.diameter / 2) / self.units
+        )
+
         self.doubleSpinBox_ApertureInner.setMaximum(
-            (self.doubleSpinBox_ApertureOuter.value() * units_dict[self.comboBox_Units.currentIndex()] - self.pixel_size)
-            / units_dict[self.comboBox_Units.currentIndex()]
+            (self.doubleSpinBox_ApertureOuter.value() * self.units - self.pixel_size)
+            / self.units
         )
 
         aperture_mode = self.comboBox_ApertureMode.currentText()
-        aperture_inner = self.doubleSpinBox_ApertureInner.value() * units_dict[self.comboBox_Units.currentIndex()]
-        aperture_outer = self.doubleSpinBox_ApertureOuter.value() * units_dict[self.comboBox_Units.currentIndex()]
+        aperture_inner = self.doubleSpinBox_ApertureInner.value() * self.units
+        aperture_outer = self.doubleSpinBox_ApertureOuter.value() * self.units
         aperture_inverted = self.checkBox_ApertureInverted.isChecked()
 
         if aperture_mode == "Square":
