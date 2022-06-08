@@ -382,6 +382,8 @@ class Lens:
 
         # combine aperture masks
         self.aperture = (self.non_lens_mask + self.truncation_aperture_mask + self.custom_aperture_mask + self.sim_aperture_mask).astype(bool)
+        self.profile[self.aperture] = 0
+
 
     def create_escape_path(self, parameters, ep: float) -> None:
         """Create the escape path for the lens

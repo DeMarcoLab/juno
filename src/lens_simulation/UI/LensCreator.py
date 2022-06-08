@@ -9,7 +9,7 @@ from lens_simulation.Lens import GratingSettings, Lens, LensType
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
 from matplotlib.figure import Figure
 from PyQt5 import QtCore, QtGui, QtWidgets
-from lens_simulation import constants
+from lens_simulation import constants, utils
 
 lens_type_dict = {
     "Cylindrical": LensType.Cylindrical,
@@ -81,6 +81,8 @@ class GUILensCreator(LensCreator.Ui_LensCreator, QtWidgets.QMainWindow):
         # generate the lens based off the parameters selected in GUI
         self.masks_applied = False
         self.units = units_dict[self.comboBox_Units.currentIndex()]
+        self.frame_TruncationAperture.setEnabled(self.groupBox_Truncation.isChecked())
+
 
         try:
             self.update_profile_parameters()
@@ -130,14 +132,31 @@ class GUILensCreator(LensCreator.Ui_LensCreator, QtWidgets.QMainWindow):
         if filename is "":
             return
 
-        self.generate_base_lens()
-        self.lens.load_profile(
-            fname=filename,
-            pixel_size=self.doubleSpinBox_PixelSize.value() * self.units,
-        )
 
-        self.update_image_frames()
-        self.checkBox_LiveUpdate.setChecked(False)
+        if filename.endswith('.npy'):
+            self.generate_base_lens()
+            self.lens.load_profile(
+                fname=filename,
+                pixel_size=self.doubleSpinBox_PixelSize.value() * self.units,
+            )
+
+            self.update_image_frames()
+            self.checkBox_LiveUpdate.setChecked(False)
+
+        elif filename.endswith(('.yml', '.yaml')):
+            config = utils.load_config(filename)
+
+            self.doubleSpinBox_PixelSize.setValue(config["diameter"])
+            self.doubleSpinBox_LensDiameter.setValue(config["diameter"])
+            self.doubleSpinBox_LensHeight.setValue(config["height"])
+            self.doubleSpinBox_LensLength.setValue(config["length"])
+            self.doubleSpinBox_LensMedium.setValue(config["medium"])
+            self.doubleSpinBox_LensExponent.setValue(config["exponent"])
+
+        else:
+            return
+
+
 
     ### Update methods ###
 
