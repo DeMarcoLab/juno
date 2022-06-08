@@ -46,7 +46,7 @@ class Simulation:
 
         config["sim_id"] = self.sim_id
         config["petname"] = self.petname
-
+        config["started"] = utils.current_timestamp()
 
 
         # create logging directory
@@ -134,6 +134,8 @@ class Simulation:
             # pass the wavefront to the next stage
             passed_wavefront = result.propagation
 
+        # save final sim configruation
+        config["finished"] = utils.current_timestamp()
         utils.save_metadata(config, options.log_dir)
 
 def generate_simulation_stages(stages: list, simulation_mediums: dict, simulation_lenses: dict, config: dict, parameters: SimulationParameters) -> list:

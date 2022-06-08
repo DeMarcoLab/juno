@@ -1,6 +1,10 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
+import logging
+import datetime
+import time
+
 import plotly.express as px
 import os 
 import json
@@ -269,3 +273,27 @@ def _calculate_num_of_pixels(width: float, pixel_size: float, odd: bool = True) 
         n_pixels += 1
 
     return n_pixels
+
+
+
+def current_timestamp() -> str:
+    return datetime.datetime.fromtimestamp(time.time()).strftime('%Y%m%d.%H%M%S')
+
+# TODO: better logs: https://www.toptal.com/python/in-depth-python-logging
+def configure_logging(save_path='', log_filename='logfile', log_level=logging.INFO):
+    """Log to the terminal and to file simultaneously."""
+    timestamp = current_timestamp()
+
+    logfile = os.path.join(save_path, f"{log_filename}.log")
+
+    logging.basicConfig(
+        format="%(asctime)s | %(name)s | %(levelname)s | %(funcName)s:%(lineno)d | %(message)s",
+        level=log_level,
+        # Multiple handlers can be added to your logging configuration.
+        # By default log messages are appended to the file if it exists already
+        handlers=[
+            logging.FileHandler(logfile),
+            logging.StreamHandler(),
+        ])
+
+    return logfile

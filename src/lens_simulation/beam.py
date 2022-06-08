@@ -5,6 +5,8 @@ from pytest import param
 from scipy import fftpack
 from enum import Enum, auto
 
+import logging
+
 from lens_simulation.Medium import Medium 
 from lens_simulation.Lens import Lens, LensType
 from lens_simulation.structures import SimulationParameters
@@ -215,17 +217,17 @@ def validate_beam_configuration(settings: BeamSettings):
 
         # plane wave is constant width along optical axis
         settings.final_width = settings.width
-        print(f"The plane wave if constant along the optical axis. The beam final_width has been set to the initial width: {settings.width:.2e}m")
+        logging.info(f"The plane wave if constant along the optical axis. The beam final_width has been set to the initial width: {settings.width:.2e}m")
 
         if settings.distance_mode != DistanceMode.Direct:
             # plane waves only enabled for direct mode
             settings.distance_mode = DistanceMode.Direct
-            print(f"Only DistanceMode.Direct is supported for BeamSpread.Plane. The distance_mode has been set to {settings.distance_mode}.")
+            logging.info(f"Only DistanceMode.Direct is supported for BeamSpread.Plane. The distance_mode has been set to {settings.distance_mode}.")
 
     # can't do converging/divering square beams
     if settings.beam_spread in [BeamSpread.Converging, BeamSpread.Diverging]:
         settings.beam_shape = BeamShape.Circular
-        print(f"Only BeamShape.Circular is supported for {settings.beam_spread}. The beam_shape has been set to {settings.beam_shape}.")
+        logging.info(f"Only BeamShape.Circular is supported for {settings.beam_spread}. The beam_shape has been set to {settings.beam_shape}.")
 
         # QUERY?
         if settings.theta == 0.0:
@@ -235,7 +237,7 @@ def validate_beam_configuration(settings: BeamSettings):
     # non-rectangular beams are symmetric
     if settings.beam_shape in [BeamShape.Circular, BeamShape.Square]:
         settings.height = settings.width
-        print(f"The beam_shape ({settings.beam_shape}) requires a symmetric beam. The beam height has been set to the beam width: {settings.width:.2e}m ")
+        logging.info(f"The beam_shape ({settings.beam_shape}) requires a symmetric beam. The beam height has been set to the beam width: {settings.width:.2e}m ")
 
     # distance mode
     if settings.distance_mode == DistanceMode.Direct:
