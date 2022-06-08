@@ -17,7 +17,9 @@ class GUILensCreator(LensCreator.Ui_LensCreator, QtWidgets.QMainWindow):
         self.statusBar = QtWidgets.QStatusBar()
         self.setStatusBar(self.statusBar)
 
+        self.setup_comboboxes()
         self.setup_connections()
+
         # set up of image frames
         self.pc_CrossSection = None
         self.pc_Profile = None
@@ -37,6 +39,14 @@ class GUILensCreator(LensCreator.Ui_LensCreator, QtWidgets.QMainWindow):
         [value.valueChanged.connect(self.live_update_profile) for value in self.__dict__.values() if value.__class__ is QtWidgets.QDoubleSpinBox]
         [value.toggled.connect(self.live_update_profile) for value in self.__dict__.values() if value.__class__ in [QtWidgets.QCheckBox, QtWidgets.QGroupBox]]
         [value.currentTextChanged.connect(self.live_update_profile) for value in self.__dict__.values() if value.__class__ is QtWidgets.QComboBox]
+
+    def setup_comboboxes(self):
+        # default to um
+        self.comboBox_UnitsLensDiameter.setCurrentIndex(1)
+        self.comboBox_UnitsLensHeight.setCurrentIndex(1)
+        self.comboBox_UnitsPixelSize.setCurrentIndex(1)
+        self.comboBox_UnitsCylindricalExtrusion.setCurrentIndex(1)
+
 
     ### Generation methods ###
 
