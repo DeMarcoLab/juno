@@ -204,6 +204,9 @@
                       <property name="minimum">
                        <double>0.010000000000000</double>
                       </property>
+                      <property name="maximum">
+                       <double>999.990000000000009</double>
+                      </property>
                       <property name="stepType">
                        <enum>QAbstractSpinBox::AdaptiveDecimalStepType</enum>
                       </property>
@@ -253,6 +256,9 @@
                      <widget class="QDoubleSpinBox" name="doubleSpinBox_LensDiameter">
                       <property name="minimum">
                        <double>0.100000000000000</double>
+                      </property>
+                      <property name="maximum">
+                       <double>999.990000000000009</double>
                       </property>
                       <property name="stepType">
                        <enum>QAbstractSpinBox::AdaptiveDecimalStepType</enum>
@@ -314,7 +320,7 @@
                        <double>0.010000000000000</double>
                       </property>
                       <property name="maximum">
-                       <double>99.989999999999995</double>
+                       <double>999.990000000000009</double>
                       </property>
                       <property name="singleStep">
                        <double>0.100000000000000</double>
@@ -323,7 +329,7 @@
                        <enum>QAbstractSpinBox::AdaptiveDecimalStepType</enum>
                       </property>
                       <property name="value">
-                       <double>1.000000000000000</double>
+                       <double>0.010000000000000</double>
                       </property>
                      </widget>
                     </item>
@@ -366,6 +372,9 @@
                     </item>
                     <item>
                      <widget class="QDoubleSpinBox" name="doubleSpinBox_LensHeight">
+                      <property name="maximum">
+                       <double>999.990000000000009</double>
+                      </property>
                       <property name="stepType">
                        <enum>QAbstractSpinBox::AdaptiveDecimalStepType</enum>
                       </property>
@@ -470,7 +479,7 @@
                        <double>1.000000000000000</double>
                       </property>
                       <property name="maximum">
-                       <double>5.000000000000000</double>
+                       <double>10.000000000000000</double>
                       </property>
                       <property name="singleStep">
                        <double>0.100000000000000</double>
@@ -733,6 +742,9 @@
                       <property name="minimum">
                        <double>0.010000000000000</double>
                       </property>
+                      <property name="maximum">
+                       <double>999.990000000000009</double>
+                      </property>
                       <property name="stepType">
                        <enum>QAbstractSpinBox::AdaptiveDecimalStepType</enum>
                       </property>
@@ -767,6 +779,9 @@
                      <widget class="QDoubleSpinBox" name="doubleSpinBox_GratingDistance">
                       <property name="minimum">
                        <double>0.010000000000000</double>
+                      </property>
+                      <property name="maximum">
+                       <double>999.990000000000009</double>
                       </property>
                       <property name="stepType">
                        <enum>QAbstractSpinBox::AdaptiveDecimalStepType</enum>
@@ -805,6 +820,9 @@
                      <widget class="QDoubleSpinBox" name="doubleSpinBox_GratingDepth">
                       <property name="minimum">
                        <double>0.010000000000000</double>
+                      </property>
+                      <property name="maximum">
+                       <double>999.990000000000009</double>
                       </property>
                       <property name="stepType">
                        <enum>QAbstractSpinBox::AdaptiveDecimalStepType</enum>
@@ -1062,6 +1080,9 @@
                     </item>
                     <item>
                      <widget class="QDoubleSpinBox" name="doubleSpinBox_TruncationValue">
+                      <property name="maximum">
+                       <double>999.990000000000009</double>
+                      </property>
                       <property name="stepType">
                        <enum>QAbstractSpinBox::AdaptiveDecimalStepType</enum>
                       </property>
@@ -1097,6 +1118,9 @@
                     </item>
                     <item>
                      <widget class="QDoubleSpinBox" name="doubleSpinBox_TruncationRadius">
+                      <property name="maximum">
+                       <double>999.990000000000009</double>
+                      </property>
                       <property name="stepType">
                        <enum>QAbstractSpinBox::AdaptiveDecimalStepType</enum>
                       </property>
@@ -1309,6 +1333,9 @@
                     </item>
                     <item>
                      <widget class="QDoubleSpinBox" name="doubleSpinBox_ApertureInner">
+                      <property name="maximum">
+                       <double>999.990000000000009</double>
+                      </property>
                       <property name="stepType">
                        <enum>QAbstractSpinBox::AdaptiveDecimalStepType</enum>
                       </property>
@@ -1344,6 +1371,9 @@
                     </item>
                     <item>
                      <widget class="QDoubleSpinBox" name="doubleSpinBox_ApertureOuter">
+                      <property name="maximum">
+                       <double>999.990000000000009</double>
+                      </property>
                       <property name="stepType">
                        <enum>QAbstractSpinBox::AdaptiveDecimalStepType</enum>
                       </property>
