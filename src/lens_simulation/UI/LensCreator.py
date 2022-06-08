@@ -87,7 +87,7 @@ class GUILensCreator(LensCreator.Ui_LensCreator, QtWidgets.QMainWindow):
             self.generate_base_lens()
 
             self.lens.generate_profile(
-                pixel_size=self.pixel_size, lens_type=self.lens_type
+                pixel_size=self.pixel_size, lens_type=self.lens_type, length=self.lens_length
             )
 
             self.update_masks()
@@ -148,7 +148,6 @@ class GUILensCreator(LensCreator.Ui_LensCreator, QtWidgets.QMainWindow):
 
     def update_profile_parameters(self):
         # read lens type so that we can generate the profile
-
         self.lens_type = lens_type_dict[self.comboBox_LensType.currentText()]
         self.pixel_size = self.doubleSpinBox_PixelSize.value() * self.units
 
