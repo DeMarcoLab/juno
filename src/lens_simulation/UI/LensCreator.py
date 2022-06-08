@@ -7,6 +7,7 @@ from lens_simulation.Lens import GratingSettings, Lens, LensType
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
 from matplotlib.figure import Figure
 from PyQt5 import QtCore, QtGui, QtWidgets
+from lens_simulation import constants
 
 
 class GUILensCreator(LensCreator.Ui_LensCreator, QtWidgets.QMainWindow):
