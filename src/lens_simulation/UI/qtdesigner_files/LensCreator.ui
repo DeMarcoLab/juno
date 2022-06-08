@@ -358,7 +358,7 @@
                   <number>6</number>
                  </property>
                  <item>
-                  <widget class="QFrame" name="frame_CylindricalExtrusion_2">
+                  <widget class="QFrame" name="frame_TitleGeneral">
                    <property name="maximumSize">
                     <size>
                      <width>16777215</width>
@@ -382,7 +382,7 @@
                      <number>5</number>
                     </property>
                     <item>
-                     <widget class="QLabel" name="label_CylindricalExtrusion_2">
+                     <widget class="QLabel" name="label_PropertyName">
                       <property name="enabled">
                        <bool>true</bool>
                       </property>
@@ -395,7 +395,7 @@
                      </widget>
                     </item>
                     <item>
-                     <widget class="QLabel" name="label_CylindricalExtrusion_3">
+                     <widget class="QLabel" name="label_PropertyValue">
                       <property name="enabled">
                        <bool>true</bool>
                       </property>
@@ -408,7 +408,7 @@
                      </widget>
                     </item>
                     <item>
-                     <widget class="QLabel" name="label_CylindricalExtrusion_4">
+                     <widget class="QLabel" name="label_Units">
                       <property name="enabled">
                        <bool>true</bool>
                       </property>
@@ -577,7 +577,7 @@
                   </widget>
                  </item>
                  <item>
-                  <widget class="QFrame" name="frame_CylindricalExtrusion">
+                  <widget class="QFrame" name="frame_LensLength">
                    <property name="maximumSize">
                     <size>
                      <width>16777215</width>
@@ -608,7 +608,7 @@
                      </widget>
                     </item>
                     <item>
-                     <widget class="QDoubleSpinBox" name="doubleSpinBox_CylindricalExtrusion">
+                     <widget class="QDoubleSpinBox" name="doubleSpinBox_LensLength">
                       <property name="enabled">
                        <bool>true</bool>
                       </property>
@@ -633,7 +633,7 @@
                      </widget>
                     </item>
                     <item>
-                     <widget class="QComboBox" name="comboBox_UnitsCylindricalExtrusion">
+                     <widget class="QComboBox" name="comboBox_UnitsLensLength">
                       <property name="maximumSize">
                        <size>
                         <width>40</width>
@@ -898,7 +898,7 @@
                      </widget>
                     </item>
                     <item>
-                     <widget class="QFrame" name="frame_UnitsLensMedium_2">
+                     <widget class="QFrame" name="frame_UnitsLensType">
                       <property name="maximumSize">
                        <size>
                         <width>40</width>
@@ -955,7 +955,7 @@
                      </widget>
                     </item>
                     <item>
-                     <widget class="QFrame" name="frame_UnitsLensMedium_3">
+                     <widget class="QFrame" name="frame_UnitsInvertedProfile">
                       <property name="maximumSize">
                        <size>
                         <width>40</width>

@@ -14,6 +14,7 @@ lens_type_dict = {
     "Spherical": LensType.Spherical,
 }
 
+# maps the index of comboboxes to a constant
 units_dict = {
     0: constants.NANO_TO_METRE,
     1: constants.MICRON_TO_METRE,
@@ -55,7 +56,7 @@ class GUILensCreator(LensCreator.Ui_LensCreator, QtWidgets.QMainWindow):
         self.comboBox_UnitsLensDiameter.setCurrentIndex(1)
         self.comboBox_UnitsLensHeight.setCurrentIndex(1)
         self.comboBox_UnitsPixelSize.setCurrentIndex(1)
-        self.comboBox_UnitsCylindricalExtrusion.setCurrentIndex(1)
+        self.comboBox_UnitsLensLength.setCurrentIndex(1)
 
 
     ### Generation methods ###
@@ -125,7 +126,7 @@ class GUILensCreator(LensCreator.Ui_LensCreator, QtWidgets.QMainWindow):
         self.lens_type = lens_type_dict[self.comboBox_LensType.currentText()]
         self.pixel_size = self.doubleSpinBox_PixelSize.value() * units_dict[self.comboBox_UnitsPixelSize.currentIndex()]
 
-        self.cylindrical_extrusion = self.doubleSpinBox_CylindricalExtrusion.value() * units_dict[self.comboBox_UnitsCylindricalExtrusion.currentIndex()]
+        self.cylindrical_extrusion = self.doubleSpinBox_LensLength.value() * units_dict[self.comboBox_UnitsLensLength.currentIndex()]
 
         if self.cylindrical_extrusion < self.pixel_size:
             self.cylindrical_extrusion = self.pixel_size
