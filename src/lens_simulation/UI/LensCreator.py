@@ -124,7 +124,7 @@ class GUILensCreator(LensCreator.Ui_LensCreator, QtWidgets.QMainWindow):
     def load_profile(self):
         """Loads a custom lens profile (numpy.ndarray) through Qt's file opening system"""
         filename, _ = QtWidgets.QFileDialog.getOpenFileName(
-            self, "Load Profile", filter="Numpy array (*.npy)"
+            self, "Load Profile", filter="All types (*.yml *.yaml *.npy) ;;Yaml config (*.yml *.yaml) ;;Numpy array (*.npy)"
         )
 
         if filename is "":
@@ -257,7 +257,7 @@ class GUILensCreator(LensCreator.Ui_LensCreator, QtWidgets.QMainWindow):
         self.doubleSpinBox_ApertureOuter.setMaximum(
             ((self.lens.diameter / 2) - self.pixel_size) / self.units
         )
-        self.doubleSpinBox_ApertureInner.setMinimum(self.pixel_size / self.units)
+        self.doubleSpinBox_ApertureInner.setMinimum(self.pixel_size * 2 / self.units)
 
         self.doubleSpinBox_ApertureInner.setMaximum(
             (self.doubleSpinBox_ApertureOuter.value() * self.units - self.pixel_size)
