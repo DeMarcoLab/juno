@@ -350,3 +350,25 @@ def plot_apeture_masks(lens: Lens) -> plt.Figure:
     ax[1, 2].set_title("lens_profile")
 
     return fig
+
+def plot_lens_modifications(lens):
+    from lens_simulation.Lens import check_modification_masks
+
+    lens = check_modification_masks(lens)
+
+    fig, ax = plt.subplots(2, 2, figsize=(7.5, 7.5))
+
+    plt.suptitle("Lens Modifcations")
+    ax[0, 0].imshow(lens.grating_mask, cmap="plasma")
+    ax[0, 0].set_title("grating mask")
+
+    ax[0, 1].imshow(lens.escape_mask, cmap="plasma")
+    ax[0, 1].set_title("escape mask")
+
+    ax[1, 0].imshow(lens.truncation_mask, cmap="plasma")
+    ax[1, 0].set_title("truncation mask")
+
+    ax[1, 1].imshow(lens.profile, cmap="plasma")
+    ax[1, 1].set_title("lens profile")
+
+    return fig

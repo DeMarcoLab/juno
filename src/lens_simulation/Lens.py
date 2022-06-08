@@ -582,3 +582,25 @@ def test_escape_path_fits_inside_simulation(
             f"The given escape path is outside the simulation size: ep: {ep_w}px, sim: {n_pixels_sim_width}px"
         )
 
+def check_modification_masks(lens):
+    from lens_simulation import utils
+
+    # create if they dont exist
+    if lens.grating_mask is None:
+        lens.grating_mask = np.zeros_like(lens.profile)
+    if lens.escape_mask is None:
+        lens.escape_mask = np.zeros_like(lens.profile)
+    if lens.truncation_mask is None:
+        lens.truncation_mask = np.zeros_like(lens.profile)
+
+    # match shape
+    if lens.grating_mask.shape != lens.profile.shape:
+        lens.grating_mask = utils.pad_to_equal_size(lens.grating_mask, lens.profile).astype(bool)
+    
+    if lens.escape_mask.shape != lens.profile.shape:
+        lens.escape_mask = utils.pad_to_equal_size(lens.escape_mask, lens.profile).astype(bool)
+
+    if lens.truncation_mask.shape != lens.profile.shape:
+        lens.truncation_mask = utils.pad_to_equal_size(lens.truncation_mask, lens.profile).astype(bool)
+    
+    return lens
