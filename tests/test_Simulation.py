@@ -144,7 +144,8 @@ def test_pad_simulation_asymmetric(sim_parameters):
         medium=Medium(1))
 
     lens.generate_profile(sim_parameters.pixel_size, LensType.Cylindrical)
-    sim_profile = Simulation.pad_simulation(lens, sim_parameters)
+    sim_lens = Simulation.pad_simulation(lens, sim_parameters)
+    sim_profile = sim_lens.profile
 
     sim_n_pixels_height = utils._calculate_num_of_pixels(sim_parameters.sim_height, sim_parameters.pixel_size) 
     sim_n_pixels_width = utils._calculate_num_of_pixels(sim_parameters.sim_width, sim_parameters.pixel_size) 
@@ -163,9 +164,11 @@ def test_pad_simulation_symmetric(sim_parameters):
     medium=Medium(1))
     
     lens.generate_profile(sim_parameters.pixel_size, LensType.Spherical)
-    sim_profile = Simulation.pad_simulation(lens, sim_parameters)
+    sim_lens = Simulation.pad_simulation(lens, sim_parameters)
+    sim_profile = sim_lens.profile
     sim_n_pixels_height = utils._calculate_num_of_pixels(sim_parameters.sim_height, sim_parameters.pixel_size) 
     sim_n_pixels_width = utils._calculate_num_of_pixels(sim_parameters.sim_width, sim_parameters.pixel_size)
+    
     assert sim_parameters.sim_height == sim_parameters.sim_width
     assert sim_profile.shape == (sim_n_pixels_height, sim_n_pixels_width)
     assert sim_profile[0, 0] == 0, "Corners should be zero"

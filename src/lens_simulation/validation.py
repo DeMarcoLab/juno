@@ -30,6 +30,7 @@ def _validate_default_lens_config(lens_config: dict) -> dict:
     lens_config["grating"] = None if "grating" not in lens_config else lens_config["grating"]
     lens_config["truncation"] = None if "truncation" not in lens_config else lens_config["truncation"]
     lens_config["aperture"] = None if "aperture" not in lens_config else lens_config["aperture"]
+    lens_config["escape_path"] = None if "escape_path" not in lens_config else lens_config["escape_path"]
 
     # QUERY
     # do we want to require height, diameter, exponent if the user loads a custom profile. What is required?

@@ -468,15 +468,33 @@ def pad_simulation(lens: Lens, parameters: SimulationParameters) -> np.ndarray:
     sim_n_pixels_height = utils._calculate_num_of_pixels(parameters.sim_height, parameters.pixel_size)
     sim_n_pixels_width = utils._calculate_num_of_pixels(parameters.sim_width, parameters.pixel_size)
 
+    # calculate aperture mask
+    lens.sim_aperture_mask  = calculate_sim_aperture(lens, sim_n_pixels_height, sim_n_pixels_width)
+
     # calculate different in size
     diff_h = (sim_n_pixels_height - lens.profile.shape[0]) // 2
     diff_w = (sim_n_pixels_width - lens.profile.shape[1]) // 2
 
     # pad the lens profile
     lens.profile = np.pad(lens.profile, pad_width=((diff_h, diff_h), (diff_w, diff_w)), mode="constant")
-   
-    return lens.profile
+    
+    # apply aperture mask to sim padded area
+    lens.profile[lens.sim_aperture_mask] = 0 
 
+    return lens
+
+def calculate_sim_aperture(lens, sim_h, sim_w) -> np.ndarray:
+    lens_h, lens_w = lens.profile.shape
+    aperture_mask = np.ones(shape=(sim_h, sim_w))
+    
+    y0 = sim_h//2 - lens_h//2
+    y1 = sim_h//2 + lens_h//2
+    x0 = sim_w//2 - lens_w//2
+    x1 = sim_w//2 + lens_w//2
+
+    aperture_mask[y0:y1, x0:x1] = 0
+
+    return aperture_mask.astype(bool)
 
 def calculate_delta_profile(
     sim_profile: np.ndarray, lens: Lens, output_medium: Medium

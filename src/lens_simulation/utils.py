@@ -275,6 +275,16 @@ def _calculate_num_of_pixels(width: float, pixel_size: float, odd: bool = True) 
     return n_pixels
 
 
+def create_distance_map_px(w: int, h: int) -> np.ndarray:
+    x = np.arange(0, w)
+    y = np.arange(0, h)
+    
+    X, Y = np.meshgrid(x, y)
+    distance = np.sqrt(((w / 2) - X) ** 2 + ((h / 2) - Y) ** 2)
+
+    return distance
+
+
 
 def current_timestamp() -> str:
     return datetime.datetime.fromtimestamp(time.time()).strftime('%Y%m%d.%H%M%S')
@@ -297,3 +307,46 @@ def configure_logging(save_path='', log_filename='logfile', log_level=logging.IN
         ])
 
     return logfile
+
+def pad_to_equal_size(small: np.ndarray, large: np.ndarray, value: int = 0) -> tuple:
+    """Determine the amount to pad to match size"""
+    sh, sw = small.shape
+    lh, lw = large.shape
+    ph, pw = int((lh - sh) // 2), int((lw - sw) // 2)
+
+    padded = np.pad(small, pad_width=((ph, ph), (pw, pw)), mode="constant", constant_values=value)
+
+    return padded
+
+
+def plot_apeture_masks(lens: Lens) -> plt.Figure:
+
+    fig, ax = plt.subplots(2, 3, figsize=(10, 7.5))
+
+    plt.suptitle("Lens Aperture Masks")
+    ax[0, 0].imshow(lens.non_lens_mask, cmap="plasma")
+    ax[0, 0].set_title("non_lens_area")
+
+    ax[0, 1].imshow(lens.truncation_aperture_mask, cmap="plasma")
+    ax[0, 1].set_title("truncation_aperture")
+
+    ax[1, 0].imshow(lens.custom_aperture_mask, cmap="plasma")
+    ax[1, 0].set_title("custom_aperture")
+
+    ax[1, 1].imshow(lens.sim_aperture_mask, cmap="plasma")
+    ax[1, 1].set_title("sim_aperture")
+
+
+    ax[0, 2].imshow(lens.aperture, cmap="plasma")
+    ax[0, 2].set_title("full_aperture")
+
+    lens.profile[lens.aperture] = 0
+
+    # lens.profile[lens.non_lens_mask.astype(bool)] = 1
+    # lens.profile[lens.truncation_aperture_mask.astype(bool)] = 2
+    # lens.profile[lens.custom_aperture_mask.astype(bool)] = 3
+    # lens.profile[lens.sim_aperture_mask.astype(bool)] = 4
+    ax[1, 2].imshow(lens.profile, cmap="plasma")
+    ax[1, 2].set_title("lens_profile")
+
+    return fig

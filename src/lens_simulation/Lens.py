@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from operator import le
 
 import numpy as np
 
@@ -35,7 +36,20 @@ class Lens:
         self.medium = medium
         self.escape_path = None
         self.profile = None
-        self.aperture = None # area of lens that is apertured
+        
+
+        # aperturing masks
+        self.non_lens_mask = None               # non defined lens area
+        self.custom_aperture_mask = None        # user defined aperture
+        self.truncation_aperture_mask = None    # truncation aperture
+        self.sim_aperture_mask = None           # simulation padding aperture
+        self.aperture = None                    # full aperture mask
+
+        # modifications
+        self.grating_mask = None
+        self.escape_mask = None
+        self.truncation_mask = None
+
 
     def __repr__(self):
 
@@ -143,6 +157,9 @@ class Lens:
         # clip the profile to zero
         profile = np.clip(profile, 0, np.max(profile))
 
+        # mask out non defined lens area
+        self.non_lens_mask = (profile == 0).astype(bool) # TODO: maybe change to distance filter instead?
+        
         # filter profile
         # profile = ndimage.gaussian_filter(profile, sigma=3)
 
@@ -192,73 +209,42 @@ class Lens:
         return self.profile
 
     def calculate_truncation_mask(
-        self, truncation: float = None, radius: float = 0, type: str = "value"
+        self, truncation_height: float = 0.0, radius: float = 0, type: str = "value", aperture: bool = False
     ):
-        """Calculate the truncation mask """
+        """Create the truncation mask
+
+        Args:
+            height (float, optional): _description_. Defaults to None.
+            radius (float, optional): _description_. Defaults to 0.
+            type (str, optional): _description_. Defaults to "value".
+            aperture (bool, optional): _description_. Defaults to False.
+
+        Raises:
+            RuntimeError: _description_
+            ValueError: _description_
+
+        Returns:
+            _type_: _description_
+        """
         if self.profile is None:
             raise RuntimeError(
                 "A Lens profile must be defined before applying a mask. Please generate a profile first."
-            )
-
-        # if radius == 0:
-        #     self.truncation_mask = np.zeros_like(self.profile).astype(int)
-        #     self.truncation = np.max(self.profile)
-        #     return self.profile
-
-        if type == "value":
-
-            if truncation is None:
-                raise ValueError(
-                    f"No truncation value has been supplied for a {type} type truncation. Please provide a maximum truncation height"
-                )
+            )   
 
         if type == "radial":
             radius_px = int(radius / self.pixel_size)
 
             truncation_px = self.profile.shape[0] // 2 + radius_px
 
-            truncation = self.profile[self.profile.shape[0] // 2, truncation_px]
+            truncation_height = self.profile[self.profile.shape[0] // 2, truncation_px]
 
-        self.truncation_mask = self.profile >= truncation
-        self.truncation = truncation
+        self.truncation_mask = self.profile >= truncation_height
+        self.truncation = truncation_height
+
+        if aperture:
+            self.truncation_aperture_mask = self.truncation_mask
 
         return self.profile
-
-    def calculate_escape_path(self, ratio=0.2):
-
-        inner_px = int(self.profile.shape[1] / self.pixel_size)
-        outer_px = int(self.profile.shape[1] * (1 + 0.2) / self.pixel_size)
-
-        mask = np.ones_like(self.profile)
-
-        if type == "radial":
-
-            inner_rad_px = self.profile.shape[1] // 2 + inner_px
-            outer_rad_px = self.profile.shape[1] // 2 + outer_px
-
-            inner_val = self.profile[self.profile.shape[0] // 2, inner_rad_px]
-            outer_val = self.profile[self.profile.shape[0] // 2, outer_rad_px]
-
-            inner_mask = self.profile <= inner_val
-            outer_mask = self.profile >= outer_val
-            mask[inner_mask * outer_mask] = 0
-
-        h, w = self.profile.shape
-
-        h1, w1 = int(h * (1 + ratio)), int(w * (1 + ratio))
-        profile_with_escape_path = np.zeros(shape=(h1, w1))
-
-        profile_with_escape_path[:h, :w] = self.profile
-
-        self.profile = profile_with_escape_path
-
-        return NotImplemented
-
-    # escape path:
-    # inner radius: lens radius
-    # outer radius: (1 + scale) * lens radius
-    # e.g. 1.1 * lens_radius
-    # pad with zero?
 
     def calculate_aperture(
         self,
@@ -268,58 +254,58 @@ class Lens:
         inverted: bool = False,
     ):
         """Calculate the aperture mask"""
-
-        # Aperture
-        # define mask, apply to profile (wavefront = 0)
+        from lens_simulation import utils
 
         if inner_m > outer_m:
             raise ValueError(
-                """Inner radius must be smaller than outer radius.
+                """Inner dimension must be smaller than outer dimension.
                             inner = {inner_m:.1e}m, outer = {outer_m:.1e}m"""
             )
 
+        # no aperture
         if inner_m == 0.0 and outer_m == 0.0:
-            self.custom_aperture_mask = np.zeros_like(self.profile, dtype=np.uint8)
-            return self.profile
+            self.custom_aperture_mask = np.zeros_like(self.profile, dtype=bool)
+            return
 
+        h, w = self.profile.shape
         inner_px = int(inner_m / self.pixel_size)
         outer_px = int(outer_m / self.pixel_size)
 
-        if not inverted:
-            mask = np.zeros_like(self.profile, dtype=np.uint8)
-        else:
-            mask = np.ones_like(self.profile, dtype=np.uint8)
-
-        centre_x_px = mask.shape[1] // 2
-        centre_y_px = mask.shape[0] // 2
-
         if type == "square":
+            
+            mask = np.zeros_like(self.profile, dtype=bool)
 
-            min_x, max_x = centre_x_px - inner_px, centre_x_px + inner_px
-            min_y, max_y = centre_y_px - inner_px, centre_y_px + inner_px
+            centre_y_px = mask.shape[0] // 2
+            centre_x_px = mask.shape[1] // 2
+            
+            # need to clip to make sure inside profile
 
-            outer_x0, outer_x1 = centre_x_px - outer_px, centre_x_px + outer_px
-            outer_y0, outer_y1 = centre_y_px - outer_px, centre_y_px + outer_px
+            # inside square
+            min_x = np.clip(centre_x_px - inner_px, 0, mask.shape[1])
+            max_x = np.clip(centre_x_px + inner_px, 0, mask.shape[1])
+            min_y = np.clip(centre_y_px - inner_px, 0, mask.shape[0])
+            max_y = np.clip(centre_y_px + inner_px, 0, mask.shape[0])
+            
+            # outside square
+            outer_x0 = np.clip(centre_x_px - outer_px, 0, mask.shape[1])
+            outer_x1 = np.clip(centre_x_px + outer_px, 0, mask.shape[1])
+            outer_y0 = np.clip(centre_y_px - outer_px, 0, mask.shape[0])
+            outer_y1 = np.clip(centre_y_px + outer_px, 0, mask.shape[0])
 
-            mask[outer_y0:outer_y1, outer_x0:outer_x1] = 1
-            mask[min_y:max_y, min_x:max_x] = 0
+            mask[outer_y0:outer_y1, outer_x0:outer_x1] = True
+            mask[min_y:max_y, min_x:max_x] = False
 
         if type == "radial":
 
-            inner_rad_px = self.profile.shape[1] // 2 + inner_px
-            outer_rad_px = self.profile.shape[1] // 2 + outer_px
+            # TODO: only works for spherical?
 
-            inner_val = self.profile[self.profile.shape[0] // 2, inner_rad_px]
-            outer_val = self.profile[self.profile.shape[0] // 2, outer_rad_px]
+            distance = utils.create_distance_map_px(w, h)
+            mask = ((distance <= outer_px) * (distance >= inner_px)).astype(bool)
 
-            inner_mask = self.profile <= inner_val
-            outer_mask = self.profile >= outer_val
+        if inverted:
+            mask = np.logical_not(mask)
 
-            mask[inner_mask * outer_mask] = not inverted
-
-        self.custom_aperture_mask = mask == 1
-
-        return self.profile
+        self.custom_aperture_mask = mask
 
     def calculate_grating_mask(
         self,
@@ -361,8 +347,92 @@ class Lens:
         self.grating_mask = mask == 1
         self.grating_depth = settings.depth
 
+    def apply_aperture_masks(self):
+        from lens_simulation import utils
+
+        # create if they dont exist
+        if self.non_lens_mask is None:
+            self.non_lens_mask = np.zeros_like(self.profile)
+        if self.custom_aperture_mask is None:
+            self.custom_aperture_mask = np.zeros_like(self.profile)
+        if self.truncation_aperture_mask is None:
+            self.truncation_aperture_mask = np.zeros_like(self.profile)
+        if self.sim_aperture_mask is None:
+            self.sim_aperture_mask = np.zeros_like(self.profile)
+
+        # match shape
+        if self.non_lens_mask.shape != self.profile.shape:
+            self.non_lens_mask = utils.pad_to_equal_size(self.non_lens_mask, self.profile).astype(bool)
+        
+        if self.custom_aperture_mask.shape != self.profile.shape:
+            self.custom_aperture_mask = utils.pad_to_equal_size(self.custom_aperture_mask, self.profile).astype(bool)
+
+        if self.truncation_aperture_mask.shape != self.profile.shape:
+            self.truncation_aperture_mask = utils.pad_to_equal_size(self.truncation_aperture_mask, self.profile).astype(bool)
+        
+        if self.sim_aperture_mask.shape != self.profile.shape:
+            self.sim_aperture_mask = utils.pad_to_equal_size(self.sim_aperture_mask, self.profile).astype(bool)
 
 
+        # combine aperture masks
+        self.aperture = (self.non_lens_mask + self.truncation_aperture_mask + self.custom_aperture_mask + self.sim_aperture_mask).astype(bool)
+
+    def create_escape_path(self, parameters, ep: float) -> None:
+        """Create the escape path for the lens
+
+        Args:
+            lens (Lens): lens
+            parameters (SimulationParameters): simulation parameters
+            ep (float): escape path percentage
+
+        Returns:
+            np.ndarray: lens profile with escape path
+        """
+        from lens_simulation import utils
+
+        if parameters.lens_type not in [LensType.Cylindrical, LensType.Spherical]:
+            raise ValueError(f"Lens type {parameters.lens_type} is not supported for escape paths.")
+
+        lens_h, lens_w = self.profile.shape
+
+        # TODO: decide if we want independent escape path amounts.
+        ep_h, ep_w = calculate_escape_path_dimensions(self, ep)
+
+        # check if escape path fits within the simulation size
+        test_escape_path_fits_inside_simulation(self, parameters, ep)
+
+        ESCAPE_PATH_VALUE = 0
+
+        # padding dimensions
+        pad_h = int((ep_h - lens_h) // 2)
+        pad_w = int((ep_w - lens_w) // 2)
+
+        # use the maxium dimension to pad escape path?
+        # TODO: decide if we use the maximum dimension for calculating the escape path or individual
+        # TODO: if we use the maxium padding amount, we need to check it fits in both dimensions        
+        # pad_d = max(pad_h, pad_w)
+
+        profile_with_escape_path = np.pad(
+            self.profile,
+            pad_width=((pad_h, pad_h), (pad_w, pad_w)),
+            mode="constant",
+            constant_values=ESCAPE_PATH_VALUE,
+        )
+
+        if parameters.lens_type is LensType.Spherical:
+        
+            assert ep_h == ep_w, f"escape path must be symmetric {ep_h}, {ep_w}"
+            assert lens_h == lens_w, f"lens must be symmetric {lens_h}, {lens_w}"
+
+            distance = utils.create_distance_map_px(ep_w, ep_h)
+            self.escape_mask = (distance <= ep_h // 2) * (distance >= lens_h // 2)
+            profile_with_escape_path[self.escape_mask] = 0
+            
+            # set the non-lens_area
+            self.non_lens_mask = (distance > ep_h // 2).astype(bool)
+            profile_with_escape_path[self.non_lens_mask] = 0
+
+        self.profile = profile_with_escape_path
 
 
 
@@ -475,3 +545,41 @@ def apply_modifications(lens: Lens, lens_config: dict) -> Lens:
         )
         
     return lens
+
+
+def calculate_escape_path_dimensions(lens: Lens, ep: float):
+    """Calculate the maxium dimensions for the escape path"""
+
+    lens_h, lens_w = lens.profile.shape
+    ep_h, ep_w = int(lens_h * (1 + ep)), int(lens_w * (1 + ep))
+
+    return (ep_h, ep_w)
+
+
+def test_escape_path_fits_inside_simulation(
+    lens: Lens, parameters, ep: float
+):
+    from lens_simulation import utils
+    from lens_simulation.structures import SimulationParameters
+
+
+    n_pixels_sim_height = utils._calculate_num_of_pixels(
+        parameters.sim_height, parameters.pixel_size
+    )
+    n_pixels_sim_width = utils._calculate_num_of_pixels(
+        parameters.sim_width, parameters.pixel_size
+    )
+
+    # calculate the escape path dimensions
+    ep_h, ep_w = calculate_escape_path_dimensions(lens, ep)
+
+    if ep_h > n_pixels_sim_height:
+        raise ValueError(
+            f"The given escape path is outside the simulation size: ep: {ep_h}px, sim: {n_pixels_sim_height}px"
+        )
+
+    if ep_w > n_pixels_sim_width:
+        raise ValueError(
+            f"The given escape path is outside the simulation size: ep: {ep_w}px, sim: {n_pixels_sim_width}px"
+        )
+
