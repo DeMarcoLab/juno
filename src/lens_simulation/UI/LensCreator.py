@@ -166,8 +166,7 @@ class GUILensCreator(LensCreator.Ui_LensCreator, QtWidgets.QMainWindow):
             self.update_truncation_mask()
 
         if self.groupBox_Aperture.isChecked():
-            pass
-            self.update_aperture_mask()
+            self.update_custom_aperture_mask()
 
     def update_grating_mask(self):
         # Update minimums/maximums to not give user ability to error out
@@ -233,7 +232,7 @@ class GUILensCreator(LensCreator.Ui_LensCreator, QtWidgets.QMainWindow):
         except Exception as e:
             self.display_error_message(traceback.format_exc())
 
-    def update_aperture_mask(self):
+    def update_custom_aperture_mask(self):
 
         self.doubleSpinBox_ApertureOuter.setMinimum(self.pixel_size / self.units)
 
@@ -271,7 +270,7 @@ class GUILensCreator(LensCreator.Ui_LensCreator, QtWidgets.QMainWindow):
         mask_dict = {"tab_General": [None, "Mask"],
                      "tab_Gratings": [self.lens.grating_mask, "Grating Mask"],
                      "tab_Truncation": [self.lens.truncation_mask, "Truncation Mask"],
-                     "tab_Aperture": [self.lens.aperture_mask, "Aperture Mask"]}
+                     "tab_Aperture": [self.lens.custom_aperture_mask, "Aperture Mask"]}
 
         cs_mask_image = None
         profile_mask_image = None
