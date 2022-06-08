@@ -873,7 +873,7 @@
                  <item>
                   <widget class="QFrame" name="frame_GratingCentered">
                    <property name="enabled">
-                    <bool>false</bool>
+                    <bool>true</bool>
                    </property>
                    <property name="maximumSize">
                     <size>
@@ -898,7 +898,7 @@
                     <item>
                      <widget class="QCheckBox" name="checkBox_GratingCentered">
                       <property name="enabled">
-                       <bool>false</bool>
+                       <bool>true</bool>
                       </property>
                       <property name="text">
                        <string>Centered</string>
