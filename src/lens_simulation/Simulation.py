@@ -256,7 +256,6 @@ def generate_lenses(lenses: list, simulation_mediums: dict, parameters: Simulati
         else:
             lens.generate_profile(
                 pixel_size=parameters.pixel_size,
-                lens_type=parameters.lens_type,
                 length=lens_config["length"]
             )
 
@@ -693,9 +692,7 @@ def invert_lens_and_output_medium(stage: SimulationStage, previous_stage: Simula
         medium=previous_stage.output,
     )  # replace the lens with lens of previous output medium
 
-    stage.lens.generate_profile(
-        parameters.pixel_size, lens_type=parameters.lens_type
-    )
+    stage.lens.generate_profile(parameters.pixel_size)
     stage.lens.invert_profile()
     stage.lens_inverted = True
 

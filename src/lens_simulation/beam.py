@@ -49,6 +49,7 @@ class BeamSettings:
     final_width: float = None
     focal_multiple: float = None
     n_slices: int = 10
+    lens_type: LensType = LensType.Spherical
 
 
 
@@ -73,6 +74,7 @@ class Beam:
         self.tilt: list[float] = settings.tilt
 
         self.output_medium = Medium(1.33)
+        self.lens_type = settings.lens_type
 
         self.settings: BeamSettings = settings # TODO: remove?
 
@@ -86,7 +88,7 @@ class Beam:
         pixel_size = sim_parameters.pixel_size
         sim_width = sim_parameters.sim_width
         sim_height = sim_parameters.sim_height
-        lens_type = sim_parameters.lens_type
+        lens_type = self.lens_type
 
         # validation
         if self.width > sim_width:
@@ -102,10 +104,11 @@ class Beam:
             diameter=max(self.width, self.height),
             height=100,                     # arbitrary non-zero
             exponent=2,                     # must be 2 for focusing
-            medium=Medium(100)              # arbitrary non-zero
+            medium=Medium(100),              # arbitrary non-zero
+            lens_type= lens_type
         )
 
-        lens.generate_profile(pixel_size=pixel_size, lens_type=lens_type)
+        lens.generate_profile(pixel_size=pixel_size)
 
         # generate the lens profile
         if self.spread is BeamSpread.Plane:
@@ -137,7 +140,7 @@ class Beam:
             lens.height = height_from_focal_distance(lens, output_medium=self.output_medium, focal_distance=self.focal_distance)
 
             # regenerate lens profile
-            lens.generate_profile(pixel_size=pixel_size, lens_type=lens_type)
+            lens.generate_profile(pixel_size=pixel_size)
 
             if self.spread is BeamSpread.Diverging:
                 lens.invert_profile()
@@ -305,7 +308,8 @@ def load_beam_config(config: dict) -> BeamSettings:
         source_distance=config["source_distance"],
         final_width=config["final_width"],
         focal_multiple=config["focal_multiple"],
-        n_slices=config["n_slices"]
+        n_slices=config["n_slices"],
+        lens_type=LensType[config["lens_type"]]
     )
 
     return beam_settings

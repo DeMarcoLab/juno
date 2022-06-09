@@ -4,7 +4,7 @@ sim_parameters:
   sim_height: 700.e-6
   sim_width: 700.e-6
   sim_wavelength: 488.e-9
-  lens_type:  "Spherical"     # "Cylindrical" or "Spherical
+  # lens_type:  "Spherical"     # "Cylindrical" or "Spherical
 options:
   log_dir: "log"
   # verbose: false
@@ -25,6 +25,7 @@ beam:
   # # final_width: 10.0e-6
   # # focal_multiple: null
   # n_slices: 10
+  # lens_type:  "Spherical"     # "Cylindrical" or "Spherical 
 lenses:
   - name: lens_1
     medium: medium_1

@@ -19,10 +19,12 @@ def _validate_default_lens_config(lens_config: dict) -> dict:
     if "exponent" not in lens_config:
         raise ValueError(f"Lens config requires exponent. None provided")
 
+
     # if loading profile:
     # if "custom" not in lens_config:
     #     raise ValueError(f"Lens config requires custom to load a profile. None provided.")
 
+    
 
     # default settings
     lens_config["custom"] = None if "custom" not in lens_config else lens_config["custom"]
@@ -31,9 +33,12 @@ def _validate_default_lens_config(lens_config: dict) -> dict:
     lens_config["truncation"] = None if "truncation" not in lens_config else lens_config["truncation"]
     lens_config["aperture"] = None if "aperture" not in lens_config else lens_config["aperture"]
     lens_config["escape_path"] = None if "escape_path" not in lens_config else lens_config["escape_path"]
+    lens_config["lens_type"] = "Spherical" if "lens_type" not in lens_config else lens_config["lens_type"].title()
+
 
     # QUERY
     # do we want to require height, diameter, exponent if the user loads a custom profile. What is required?
+    # is lens_type a required parameters? how much error checking on the lens_type, e.g. if not in LensType.name etc
 
     return lens_config
 
@@ -57,6 +62,7 @@ def _validate_default_beam_config(config: dict) -> dict:
     config["final_width"] = config["final_width"] if "final_width" in config else None
     config["focal_multiple"] = config["focal_multiple"] if "focal_multiple" in config else None
     config["n_slices"] = config["n_slices"] if "n_slices" in config else 10
+    config["lens_type"] = config["lens_type"].title() if "lens_type" in config else "Spherical"
 
     return config
 

@@ -14,7 +14,6 @@ class SimulationParameters:
     sim_width: float
     sim_height: float
     sim_wavelength: float
-    lens_type: LensType
 
 @dataclass
 class SimulationOptions:
