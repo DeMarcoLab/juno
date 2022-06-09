@@ -540,7 +540,7 @@ def generate_lens(lens_config: dict, medium: Medium) -> Lens:
                 height=lens_config["height"],
                 exponent=lens_config["exponent"], 
                 medium=medium, 
-                lens_type=lens_config["lens_type"])
+                lens_type=LensType[lens_config["lens_type"]])
 
     return lens
     

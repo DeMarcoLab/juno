@@ -135,10 +135,6 @@ def _validate_simulation_parameters_config(config: dict) -> dict:
     if "sim_wavelength" not in config:
         raise ValueError(f"Sim Parameters config requires sim_wavelength. None provided")
 
-    #TODO: rmeove this
-    if "lens_type" not in config:
-        raise ValueError(f"Sim Parameters config requires lens_type. None provided")
-    
     return config
 
 def _validate_simulation_options_config(config: dict) -> dict:

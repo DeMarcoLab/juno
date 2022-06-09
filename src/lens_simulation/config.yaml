@@ -13,8 +13,8 @@ options:
   # debug: false
 beam:
   # distance_mode: "direct"   # "Direct", "Width", "Focal"
-  beam_spread: "plane"      # "Plane", "Converging", "Diverging"
-  beam_shape: "square"      # "Square", "Circular", "Rectangular"
+  # beam_spread: "plane"      # "Plane", "Converging", "Diverging"
+  # beam_shape: "square"      # "Square", "Circular", "Rectangular"
   width: 500.e-6
   height: 50.e-6
   # position: [0.e-6, 0.e-6] 
@@ -29,21 +29,11 @@ beam:
 lenses:
   - name: lens_1
     medium: medium_1
-    diameter: 500.e-6
-    height: 0.e-6
-    exponent: 0.0
-    custom: null # filepath or dir?
-    length: null
-    grating: null
-    truncation: null
-    aperture: null
-  - name: lens_2
-    medium: medium_1
     diameter: 300.e-6
     height: 5.e-6
     exponent: 2.0
-    escape_path: 0.5
     lens_type:  "Spherical"     # "Cylindrical" or "Spherical 
+    escape_path: 0.1
     # length: nu
     # custom: null
     # grating: null
@@ -64,7 +54,7 @@ stages:
   #     use_equivalent_focal_distance: False
   #     focal_distance_start_multiple: 0.0
   #     focal_distance_multiple: 2.0
-  - lens: lens_2
+  - lens: lens_1
     output: medium_2
     step_size: 0.1e-3
     start_distance: 0

@@ -69,7 +69,6 @@ class Simulation:
             sim_width=config["sim_parameters"]["sim_width"],
             sim_height=config["sim_parameters"]["sim_height"], 
             sim_wavelength=config["sim_parameters"]["sim_wavelength"],
-            lens_type=LensType[config["sim_parameters"]["lens_type"]],
         )
 
         return config
