@@ -436,9 +436,3 @@ def plot_lens_modifications(lens):
 
     return fig
 
-def plot_slice_gif(dir: Path) -> None:
-
-    # load each slice
-    # stack as image stack
-    # save as gif
-    return NotImplemented

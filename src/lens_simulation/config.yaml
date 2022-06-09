@@ -1,8 +1,8 @@
 sim_parameters:
   A: 10000
   pixel_size: 1.e-6
-  sim_height: 300.e-6
-  sim_width: 300.e-6
+  sim_height: 500.e-6
+  sim_width: 500.e-6
   sim_wavelength: 488.e-9
   # lens_type:  "Spherical"     # "Cylindrical" or "Spherical
 options:
@@ -36,23 +36,23 @@ lenses:
     # escape_path: 0.1
     # length: nu
     # custom: null
-    grating: 
-      width: 10.e-6
-      distance: 20.e-6
-      depth: 0.15e-6
-      x: true
-      y: false
-      centred: true
-    truncation: 
-      height: 3.e-6
-      radius: 50.e-6
-      type: radial # radial, square
-      aperture: false
-    aperture:
-      inner: 50.e-6
-      outer: 100.e-6
-      type: radial   # radial, square
-      invert: false
+    # grating: 
+    #   width: 10.e-6
+    #   distance: 20.e-6
+    #   depth: 0.15e-6
+    #   x: true
+    #   y: false
+    #   centred: true
+    # truncation: 
+    #   height: 3.e-6
+    #   radius: 50.e-6
+    #   type: radial # radial, square
+    #   aperture: false
+    # aperture:
+    #   inner: 50.e-6
+    #   outer: 100.e-6
+    #   type: radial   # radial, square
+    #   invert: false
 mediums:
   - name: medium_1
     refractive_index: 2.348
@@ -72,11 +72,11 @@ stages:
     output: medium_2
     step_size: 0.1e-3
     start_distance: 0
-    finish_distance: 5.e-3
-    options:
-      use_equivalent_focal_distance: true
-      focal_distance_start_multiple: 0.0
-      focal_distance_multiple: 2.0
+    finish_distance: 10.e-3
+    # options:
+    #   use_equivalent_focal_distance: true
+    #   focal_distance_start_multiple: 0.0
+    #   focal_distance_multiple: 2.0
   # - lens: lens_2
   #   output: medium_2
   #   n_slices: 100

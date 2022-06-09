@@ -236,7 +236,7 @@ class Lens:
         if type == "radial":
             radius_px = int(radius / self.pixel_size)
 
-            truncation_px = self.profile.shape[0] // 2 + radius_px
+            truncation_px = self.profile.shape[0] // 2 + radius_px + 1
 
             truncation_height = self.profile[self.profile.shape[0] // 2, truncation_px]
 
