@@ -210,6 +210,13 @@ def save_simulation(sim: np.ndarray, fname: Path) -> None:
     os.makedirs(os.path.dirname(fname), exist_ok=True)
     np.save(fname, sim)
 
+
+def load_yaml_config(config_filename) -> dict:
+    with open(config_filename, "r") as f:
+        config = yaml.full_load(f)
+
+    return config
+
 def load_config(config_filename):
     with open(config_filename, "r") as f:
         config = yaml.full_load(f)
@@ -340,8 +347,7 @@ def plot_apeture_masks(lens: Lens) -> plt.Figure:
     ax[0, 2].imshow(lens.aperture, cmap="plasma")
     ax[0, 2].set_title("full_aperture")
 
-    lens.profile[lens.aperture] = 0
-
+    # lens.profile[lens.aperture] = 0
     # lens.profile[lens.non_lens_mask.astype(bool)] = 1
     # lens.profile[lens.truncation_aperture_mask.astype(bool)] = 2
     # lens.profile[lens.custom_aperture_mask.astype(bool)] = 3
@@ -372,3 +378,10 @@ def plot_lens_modifications(lens):
     ax[1, 1].set_title("lens profile")
 
     return fig
+
+def plot_slice_gif(dir: Path) -> None:
+
+    # load each slice
+    # stack as image stack
+    # save as gif
+    return NotImplemented
