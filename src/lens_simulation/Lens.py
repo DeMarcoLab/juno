@@ -238,7 +238,7 @@ class Lens:
         if type == "radial":
             radius_px = int(radius / self.pixel_size)
 
-            truncation_px = self.profile.shape[0] // 2 + radius_px
+            truncation_px = self.profile.shape[0] // 2 + radius_px + 1
 
             truncation_height = self.profile[self.profile.shape[0] // 2, truncation_px]
 
@@ -574,9 +574,10 @@ def apply_modifications(lens: Lens, lens_config: dict, parameters) -> Lens:
 
     if lens_config["truncation"] is not None:
         lens.create_truncation_mask(
-            truncation=lens_config["truncation"]["height"],
+            truncation_height=lens_config["truncation"]["height"],
             radius=lens_config["truncation"]["radius"],
             type=lens_config["truncation"]["type"],
+            aperture=lens_config["truncation"]["aperture"]
         )
 
     if lens_config["aperture"] is not None:
