@@ -42,6 +42,7 @@ lenses:
     height: 5.e-6
     exponent: 2.0
     escape_path: 0.5
+    lens_type:  "Spherical"     # "Cylindrical" or "Spherical 
     # length: nu
     # custom: null
     # grating: null

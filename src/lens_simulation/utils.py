@@ -210,6 +210,13 @@ def save_simulation(sim: np.ndarray, fname: Path) -> None:
     os.makedirs(os.path.dirname(fname), exist_ok=True)
     np.save(fname, sim)
 
+
+def load_yaml_config(config_filename) -> dict:
+    with open(config_filename, "r") as f:
+        config = yaml.full_load(f)
+
+    return config
+
 def load_config(config_filename):
     with open(config_filename, "r") as f:
         config = yaml.full_load(f)
