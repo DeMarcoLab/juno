@@ -663,6 +663,13 @@ def save_result_plots(
         fig = utils.plot_lens_profile_slices(result.lens)
         utils.save_figure(fig, fname=os.path.join(save_path, "lens_slices.png"))
 
+    # save propagation gifs
+    try:
+        utils.save_propagation_gif(save_path)
+        utils.save_propagation_slices_gif(save_path)
+    except:
+        pass
+
 def invert_lens_and_output_medium(stage: SimulationStage, previous_stage: SimulationStage, parameters: SimulationParameters) -> SimulationStage:
     """Invert the lens profile, and swap the stage and lens mediums to create an 'inverse' lens
 

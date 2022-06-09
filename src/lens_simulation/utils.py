@@ -133,7 +133,7 @@ def plot_lens_profile_2D(lens: Lens):
     plt.imshow(lens_profile, cmap="plasma")
     plt.colorbar()
 
-    return fig
+    return fig  
 
 
 def plot_lens_profile_slices(lens: Lens, max_height: float = None) -> plt.Figure:
