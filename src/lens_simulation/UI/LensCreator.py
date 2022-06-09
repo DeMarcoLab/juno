@@ -1,14 +1,11 @@
 import sys
 import traceback
 
-from matplotlib import units
-from matplotlib.pyplot import colorbar, yticks
-
 import lens_simulation.UI.qtdesigner_files.LensCreator as LensCreator
 import numpy as np
 from lens_simulation.Lens import GratingSettings, Lens, LensType
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
-from matplotlib.figure import Figure
+from matplotlib import pyplot as plt
 from PyQt5 import QtCore, QtGui, QtWidgets
 from lens_simulation import constants, utils
 
@@ -82,16 +79,16 @@ class GUILensCreator(LensCreator.Ui_LensCreator, QtWidgets.QMainWindow):
         # generate the lens based off the parameters selected in GUI
         self.masks_applied = False
         self.units = units_dict[self.comboBox_Units.currentIndex()]
-        self.frame_TruncationAperture.setEnabled(self.groupBox_Truncation.isChecked() and self.groupBox_Aperture.isChecked())
-
+        self.frame_TruncationAperture.setEnabled(
+            self.groupBox_Truncation.isChecked() and self.groupBox_Aperture.isChecked()
+        )
 
         try:
             self.update_profile_parameters()
             self.generate_base_lens()
 
             self.lens.generate_profile(
-                pixel_size=self.pixel_size,
-                length=self.lens_length,
+                pixel_size=self.pixel_size, length=self.lens_length,
             )
 
             self.update_masks()
@@ -119,7 +116,7 @@ class GUILensCreator(LensCreator.Ui_LensCreator, QtWidgets.QMainWindow):
             height=self.doubleSpinBox_LensHeight.value() * self.units,
             exponent=self.doubleSpinBox_LensExponent.value(),
             medium=self.doubleSpinBox_LensMedium.value(),
-            lens_type=self.lens_type
+            lens_type=self.lens_type,
         )
 
     ### I/O methods ###
@@ -127,14 +124,15 @@ class GUILensCreator(LensCreator.Ui_LensCreator, QtWidgets.QMainWindow):
     def load_profile(self):
         """Loads a custom lens profile (numpy.ndarray) through Qt's file opening system"""
         filename, _ = QtWidgets.QFileDialog.getOpenFileName(
-            self, "Load Profile", filter="All types (*.yml *.yaml *.npy) ;;Yaml config (*.yml *.yaml) ;;Numpy array (*.npy)"
+            self,
+            "Load Profile",
+            filter="All types (*.yml *.yaml *.npy) ;;Yaml config (*.yml *.yaml) ;;Numpy array (*.npy)",
         )
 
         if filename is "":
             return
 
-
-        if filename.endswith('.npy'):
+        if filename.endswith(".npy"):
             self.generate_base_lens()
             self.lens.load_profile(
                 fname=filename,
@@ -144,7 +142,7 @@ class GUILensCreator(LensCreator.Ui_LensCreator, QtWidgets.QMainWindow):
             self.update_image_frames()
             self.checkBox_LiveUpdate.setChecked(False)
 
-        elif filename.endswith(('.yml', '.yaml')):
+        elif filename.endswith((".yml", ".yaml")):
             config = utils.load_config(filename)
 
             self.doubleSpinBox_PixelSize.setValue(config["diameter"])
@@ -156,8 +154,6 @@ class GUILensCreator(LensCreator.Ui_LensCreator, QtWidgets.QMainWindow):
 
         else:
             return
-
-
 
     ### Update methods ###
 
@@ -309,6 +305,8 @@ class GUILensCreator(LensCreator.Ui_LensCreator, QtWidgets.QMainWindow):
 
     def update_image_frames(self):
 
+        plt.close("all")
+
         mask_dict = {
             "tab_General": [None, "Mask"],
             "tab_Gratings": [self.lens.grating_mask, "Grating Mask"],
@@ -327,63 +325,36 @@ class GUILensCreator(LensCreator.Ui_LensCreator, QtWidgets.QMainWindow):
             ]
             profile_mask_image = mask_dict[current_tab][0]
 
-        # Cross section initialisation
-        if self.label_CrossSection.layout() is None:
-            self.label_CrossSection.setLayout(QtWidgets.QVBoxLayout())
-
-        if self.pc_CrossSection is not None:
-            self.label_CrossSection.layout().removeWidget(self.pc_CrossSection)
-            self.pc_CrossSection.deleteLater()
-
-        self.pc_CrossSection = _ImageCanvas(
-            parent=self.label_CrossSection,
-            image=self.lens.profile[self.lens.profile.shape[0] // 2, :],
-            lens=self.lens, ndim=1
+        self.pc_Profile = self.update_frame(
+            label=self.label_Profile, pc=self.pc_Profile, image=self.lens.profile, ndim=2, mask=False
         )
 
-        self.label_CrossSection.layout().addWidget(self.pc_CrossSection)
-
-        # Mask cross section initialisation
-        if self.label_CrossSectionMask.layout() is None:
-            self.label_CrossSectionMask.setLayout(QtWidgets.QVBoxLayout())
-
-        if self.pc_CrossSectionMask is not None:
-            self.label_CrossSectionMask.layout().removeWidget(self.pc_CrossSectionMask)
-            self.pc_CrossSectionMask.deleteLater()
-
-        self.pc_CrossSectionMask = _ImageCanvas(
-            parent=self.label_CrossSectionMask, image=cs_mask_image, lens=self.lens, ndim=1
+        self.pc_ProfileMask = self.update_frame(
+            label=self.label_ProfileMask, pc=self.pc_ProfileMask, image=profile_mask_image, ndim=2, mask=True
         )
 
-        self.label_CrossSectionMask.layout().addWidget(self.pc_CrossSectionMask)
-
-        # Profile initialisation
-        if self.label_Profile.layout() is None:
-            self.label_Profile.setLayout(QtWidgets.QVBoxLayout())
-
-        if self.pc_Profile is not None:
-            self.label_Profile.layout().removeWidget(self.pc_Profile)
-            self.pc_Profile.deleteLater()
-
-        self.pc_Profile = _ImageCanvas(
-            parent=self.label_Profile, image=self.lens.profile, lens=self.lens
+        self.pc_CrossSection = self.update_frame(
+            label=self.label_CrossSection, pc=self.pc_CrossSection, image=self.lens.profile[self.lens.profile.shape[0]//2, :], ndim=1, mask=False
         )
 
-        self.label_Profile.layout().addWidget(self.pc_Profile)
-
-        # Mask profile initialisation
-        if self.label_ProfileMask.layout() is None:
-            self.label_ProfileMask.setLayout(QtWidgets.QVBoxLayout())
-
-        if self.pc_ProfileMask is not None:
-            self.label_ProfileMask.layout().removeWidget(self.pc_ProfileMask)
-            self.pc_ProfileMask.deleteLater()
-
-        self.pc_ProfileMask = _ImageCanvas(
-            parent=self.label_ProfileMask, image=profile_mask_image, lens=self.lens
+        self.pc_CrossSectionMask = self.update_frame(
+            label=self.label_CrossSectionMask, pc=self.pc_CrossSectionMask, image=cs_mask_image, ndim=1, mask=True
         )
 
-        self.label_ProfileMask.layout().addWidget(self.pc_ProfileMask)
+
+    def update_frame(self, label, pc, image, ndim, mask):
+        """Helper function to update individual image frame"""
+        if label.layout() is None:
+            label.setLayout(QtWidgets.QVBoxLayout())
+        if pc is not None:
+            label.layout().removeWidget(pc)
+            pc.deleteLater()
+
+        pc = _ImageCanvas(parent=label, image=image, lens=self.lens, ndim=ndim, mask=mask)
+
+        label.layout().addWidget(pc)
+
+        return pc
 
     ### Window methods ###
 
@@ -407,48 +378,54 @@ class GUILensCreator(LensCreator.Ui_LensCreator, QtWidgets.QMainWindow):
         self.error_dialog.exec_()
 
 
-class _ImageCanvas(FigureCanvasQTAgg):
-    def __init__(self, parent=None, image=None, lens=None, ndim=2):
-        self.fig = Figure()#layout="tight")#layout="constrained")
-        self.fig.set_facecolor("#f0f0f0")
+class _ImageCanvas(FigureCanvasQTAgg, QtWidgets.QWidget):
+    def __init__(self, parent=None, image=None, lens=None, ndim=2, mask=False):
+
+        if ndim == 2:
+            colorbar_ticks = None
+            if mask:
+                if image is None:
+                    image = np.zeros(shape=lens.profile.shape)
+                    colorbar_ticks = [0]
+                func_ = utils.plot_array_2D
+                thing_to_plot = image
+            else:
+                func_ = utils.plot_lens_profile_2D
+                thing_to_plot = lens
+
+            self.fig = func_(
+                thing_to_plot,
+                facecolor="#f0f0f0",
+                extent=[
+                    -lens.diameter / 2,
+                    lens.diameter / 2,
+                    -lens.length / 2,
+                    lens.length / 2,
+                ],
+                colorbar_ticks=colorbar_ticks
+            )
+
+        elif ndim == 1:
+            if mask:
+                if image is None:
+                    image = np.zeros(shape=lens.profile.shape[0])
+
+                self.fig = plt.figure()
+                self.fig.set_facecolor("#f0f0f0")
+                gridspec = self.fig.add_gridspec(1, 1)
+                axes = self.fig.add_subplot(gridspec[0], title="")
+                axes.ticklabel_format(axis="both", style='sci', scilimits=(0, 0), useMathText=True)
+                axes.locator_params(nbins=4)
+
+                image = axes.plot(image)
+
+            else:
+                max_height = np.amax(lens.profile)
+                self.fig = utils.plot_lens_profile_slices(lens=lens, max_height=max_height, title="", facecolor="#f0f0f0")
 
         FigureCanvasQTAgg.__init__(self, self.fig)
         self.setParent(parent)
-        from mpl_toolkits.axes_grid1 import make_axes_locatable
-        gridspec = self.fig.add_gridspec(1, 1)
-        self.axes = self.fig.add_subplot(gridspec[0], title="")
-        self.axes.ticklabel_format(axis="both", style="sci", scilimits=(0, 0), useMathText=True)
 
-        colorbar_ticks = None
-        # Display image
-        if image is None:
-            colorbar_ticks = [0, 0.2, 0.4, 0.6, 0.8, 1]
-            if ndim == 2:
-                image = np.zeros(shape=lens.profile.shape)
-            else:
-                image = np.zeros(shape=lens.profile.shape[0])
-
-
-        if image.ndim == 2:
-            divider = make_axes_locatable(self.axes)
-            cax=divider.append_axes('right', size='5%', pad=0.1)
-
-            self.axes.locator_params(nbins=4)
-
-            r = self.axes.xaxis.get_offset_text()
-            r.set_x(1.2)
-
-            im = self.axes.imshow(
-                image,
-                aspect="auto",
-                # TODO: add length here
-                extent=[-lens.diameter / 2, lens.diameter / 2, -lens.length/2, lens.length/2],
-            )
-            self.fig.colorbar(im, cax=cax, orientation='vertical', ticks=colorbar_ticks)
-
-        else:
-            self.axes.plot(image)
-            self.axes.yticks=colorbar_ticks
 
 
 def main():
