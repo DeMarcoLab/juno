@@ -122,21 +122,60 @@ def plot_interactive_simulation(arr: np.ndarray):
     return fig
 
 
-def plot_lens_profile_2D(lens: Lens):
+def plot_lens_profile_2D(lens: Lens, title="", facecolor="#ffffff", tickstyle="sci",
+                         cmap=None, extent=None, colorbar_ticks=None):
+    """Plots a lens profile using plot_array_2D, including aperture hatching"""
+    # TODO: Add tests for this
     if not isinstance(lens, Lens):
         raise TypeError('plot_lens_profile_2D requires a Lens object')
 
-    lens_profile = lens.profile
+    fig = plot_array_2D(array=lens.profile, title=title, facecolor=facecolor,
+    tickstyle=tickstyle, cmap=cmap, extent=extent, colorbar_ticks=colorbar_ticks)
 
-    fig = plt.figure()
-    plt.title("Lens Profile (Two-Dimensional)")
-    plt.imshow(lens_profile, cmap="plasma")
-    plt.colorbar()
+    axes = fig.axes[0]
+
+    if lens.aperture is not None:
+        aperture = np.ma.array(lens.aperture, mask=[lens.aperture == 0])
+        axes.contourf(aperture, hatches=["x"], extent=extent, cmap="gray")
 
     return fig  
 
 
-def plot_lens_profile_slices(lens: Lens, max_height: float = None) -> plt.Figure:
+def plot_array_2D(array: np.ndarray, title="", facecolor="#ffffff", tickstyle="sci", cmap=None, extent=None, colorbar_ticks=None):
+    """Plots an ndarray"""
+    if not isinstance(array, np.ndarray):
+        raise TypeError('plot_array_2D requires a numpy.ndarray object')
+
+    fig = plt.figure()
+    fig.set_facecolor(facecolor)
+
+    # set up axes
+    gridspec = fig.add_gridspec(1, 1)
+    axes = fig.add_subplot(gridspec[0], title=title)
+    axes.ticklabel_format(axis="both", style=tickstyle, scilimits=(0, 0), useMathText=True)
+    axes.locator_params(nbins=4)
+
+    # reposition scientific notation on x axis
+    if tickstyle is not "plain":
+        x_ext = axes.xaxis.get_offset_text()
+        x_ext.set_x(1.2)
+
+    # set up colorbar positioning/size
+    from mpl_toolkits.axes_grid1 import make_axes_locatable
+    divider = make_axes_locatable(axes)
+    cax=divider.append_axes('right', size='5%', pad=0.1)
+
+    # plot image
+    image = axes.imshow(array, aspect='auto', extent=extent, cmap=cmap)
+
+    # plot colorbar
+    fig.colorbar(image, cax=cax, orientation='vertical', ticks=colorbar_ticks)
+
+    return fig
+
+
+
+def plot_lens_profile_slices(lens: Lens, max_height: float = None, title: str = "Lens Profile Slices", facecolor: str = "#ffffff") -> plt.Figure:
     # TODO: add proper distances to plot
     """Plot slices of a two-dimensional lens at one-eighth, one-quarter and one-half distances"""
 
@@ -156,7 +195,8 @@ def plot_lens_profile_slices(lens: Lens, max_height: float = None) -> plt.Figure
     # TODO: slice in the other directions
 
     fig = plt.figure()
-    plt.title("Lens Profile Slices")
+    fig.set_facecolor(facecolor)
+    plt.title(title)
     plt.plot(lens_profile[mid_px, :], "b--", label="0.5")
     plt.plot(lens_profile[quarter_px, :], "g--", label="0.25")
     plt.plot(lens_profile[sixth_px, :], "r--", label="0.125")
@@ -190,16 +230,16 @@ def save_propagation_slices_gif(path: str) -> None:
     """Save vertical and horizontal simulation slices as gif"""
     filenames = sorted(glob.glob(os.path.join(path, "*mm.npy")))
 
-    # TODO: might not be possible for very large sims to load full sim, 
+    # TODO: might not be possible for very large sims to load full sim,
     # will need to come up with another way to load slices in right format
     sim = None
     for i, fname in enumerate(filenames):
 
         slice = np.load(fname)
-        
+
         if sim is None:
             sim = np.zeros(shape=(len(filenames), *slice.shape), dtype=np.float32)
-        
+
         sim[i,:, :] = slice
 
     # normalise sim values
@@ -211,7 +251,7 @@ def save_propagation_slices_gif(path: str) -> None:
     # save horizontal slices
     horizontal = []
     for i in range(sim.shape[2]):
-        
+
         slice = sim[:, :, i]
         horizontal.append(slice)
 
@@ -221,7 +261,7 @@ def save_propagation_slices_gif(path: str) -> None:
     # save vertical slices
     vertical = []
     for i in range(sim.shape[1]):
-        
+
         slice = sim[:, i, :]
         vertical.append(slice)
 
