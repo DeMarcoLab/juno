@@ -233,7 +233,7 @@ class GUILensCreator(LensCreator.Ui_LensCreator, QtWidgets.QMainWindow):
             y_axis = True
 
         try:
-            self.lens.calculate_grating_mask(
+            self.lens.create_grating_mask(
                 settings=grating_settings, x_axis=x_axis, y_axis=y_axis
             )
 
@@ -294,7 +294,7 @@ class GUILensCreator(LensCreator.Ui_LensCreator, QtWidgets.QMainWindow):
             aperture_mode = "radial"
 
         try:
-            self.lens.calculate_aperture(
+            self.lens.create_custom_aperture(
                 inner_m=aperture_inner,
                 outer_m=aperture_outer,
                 type=aperture_mode,
