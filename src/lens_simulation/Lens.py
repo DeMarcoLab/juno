@@ -36,7 +36,7 @@ class Lens:
         self.height = height
         self.exponent = exponent
         self.medium = medium
-        self.length = None
+        self.length = diameter
         self.lens_type = lens_type
 
         # lens profile
@@ -279,8 +279,8 @@ class Lens:
 
             mask = np.zeros_like(self.profile, dtype=bool)
 
-            centre_y_px = mask.shape[0] // 2
-            centre_x_px = mask.shape[1] // 2
+            centre_y_px = mask.shape[0] // 2 + 1
+            centre_x_px = mask.shape[1] // 2 + 1
 
             # need to clip to make sure inside profile
 

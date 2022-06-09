@@ -2,6 +2,7 @@ import sys
 import traceback
 
 from matplotlib import units
+from matplotlib.pyplot import colorbar, yticks
 
 import lens_simulation.UI.qtdesigner_files.LensCreator as LensCreator
 import numpy as np
@@ -81,7 +82,7 @@ class GUILensCreator(LensCreator.Ui_LensCreator, QtWidgets.QMainWindow):
         # generate the lens based off the parameters selected in GUI
         self.masks_applied = False
         self.units = units_dict[self.comboBox_Units.currentIndex()]
-        self.frame_TruncationAperture.setEnabled(self.groupBox_Truncation.isChecked())
+        self.frame_TruncationAperture.setEnabled(self.groupBox_Truncation.isChecked() and self.groupBox_Aperture.isChecked())
 
 
         try:
@@ -337,7 +338,7 @@ class GUILensCreator(LensCreator.Ui_LensCreator, QtWidgets.QMainWindow):
         self.pc_CrossSection = _ImageCanvas(
             parent=self.label_CrossSection,
             image=self.lens.profile[self.lens.profile.shape[0] // 2, :],
-            lens=self.lens,
+            lens=self.lens, ndim=1
         )
 
         self.label_CrossSection.layout().addWidget(self.pc_CrossSection)
@@ -351,7 +352,7 @@ class GUILensCreator(LensCreator.Ui_LensCreator, QtWidgets.QMainWindow):
             self.pc_CrossSectionMask.deleteLater()
 
         self.pc_CrossSectionMask = _ImageCanvas(
-            parent=self.label_CrossSectionMask, image=cs_mask_image, lens=self.lens,
+            parent=self.label_CrossSectionMask, image=cs_mask_image, lens=self.lens, ndim=1
         )
 
         self.label_CrossSectionMask.layout().addWidget(self.pc_CrossSectionMask)
@@ -407,29 +408,47 @@ class GUILensCreator(LensCreator.Ui_LensCreator, QtWidgets.QMainWindow):
 
 
 class _ImageCanvas(FigureCanvasQTAgg):
-    def __init__(self, parent=None, image=None, lens=None):
-        self.fig = Figure(layout="constrained")
+    def __init__(self, parent=None, image=None, lens=None, ndim=2):
+        self.fig = Figure()#layout="tight")#layout="constrained")
         self.fig.set_facecolor("#f0f0f0")
 
         FigureCanvasQTAgg.__init__(self, self.fig)
         self.setParent(parent)
-
+        from mpl_toolkits.axes_grid1 import make_axes_locatable
         gridspec = self.fig.add_gridspec(1, 1)
-        self.axes = self.fig.add_subplot(gridspec[0], xticks=[], yticks=[], title="")
-        self.axes.ticklabel_format(axis="both", style="sci", scilimits=(0, 0))
-        self.axes.clear()
+        self.axes = self.fig.add_subplot(gridspec[0], title="")
+        self.axes.ticklabel_format(axis="both", style="sci", scilimits=(0, 0), useMathText=True)
 
-        if image is not None:
-            # Display image
-            if image.ndim == 2:
-                self.axes.imshow(
-                    image,
-                    aspect="auto",
-                    # TODO: add length here
-                    extent=[-lens.diameter / 2, lens.diameter / 2, 0, 1],
-                )
+        colorbar_ticks = None
+        # Display image
+        if image is None:
+            colorbar_ticks = [0, 0.2, 0.4, 0.6, 0.8, 1]
+            if ndim == 2:
+                image = np.zeros(shape=lens.profile.shape)
             else:
-                self.axes.plot(image)
+                image = np.zeros(shape=lens.profile.shape[0])
+
+
+        if image.ndim == 2:
+            divider = make_axes_locatable(self.axes)
+            cax=divider.append_axes('right', size='5%', pad=0.1)
+
+            self.axes.locator_params(nbins=4)
+
+            r = self.axes.xaxis.get_offset_text()
+            r.set_x(1.2)
+
+            im = self.axes.imshow(
+                image,
+                aspect="auto",
+                # TODO: add length here
+                extent=[-lens.diameter / 2, lens.diameter / 2, -lens.length/2, lens.length/2],
+            )
+            self.fig.colorbar(im, cax=cax, orientation='vertical', ticks=colorbar_ticks)
+
+        else:
+            self.axes.plot(image)
+            self.axes.yticks=colorbar_ticks
 
 
 def main():
