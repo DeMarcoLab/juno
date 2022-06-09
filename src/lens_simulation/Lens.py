@@ -36,7 +36,7 @@ class Lens:
         self.height = height
         self.exponent = exponent
         self.medium = medium
-        self.length = None
+        self.length = diameter
         self.lens_type = lens_type
 
         # lens profile

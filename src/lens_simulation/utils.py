@@ -11,6 +11,10 @@ import json
 import yaml
 import petname
 
+import glob
+import imageio
+from PIL import Image
+
 from lens_simulation.Lens import Lens
 from lens_simulation import validation
 
@@ -164,6 +168,67 @@ def plot_lens_profile_slices(lens: Lens, max_height: float = None) -> plt.Figure
     plt.legend(loc="best")
     
     return fig
+
+
+def save_propagation_gif(path: str):
+    """Save a gif of the propagation"""
+
+
+    search_path = os.path.join(path, "*mm.npy")
+
+    filenames = sorted(glob.glob(search_path))
+    images = []
+    for fname in filenames:
+
+        slice = np.load(fname)
+        img = Image.fromarray(slice)
+
+        images.append(img)
+
+    save_path = os.path.join(path, "propagation.gif")
+    imageio.mimsave(save_path, images, duration=0.2)
+
+def save_propagation_slices_gif(path: str) -> None:
+    """Save vertical and horizontal simulation slices as gif"""
+    filenames = sorted(glob.glob(os.path.join(path, "*mm.npy")))
+
+    # TODO: might not be possible for very large sims to load full sim, 
+    # will need to come up with another way to load slices in right format
+    sim = None
+    for i, fname in enumerate(filenames):
+
+        slice = np.load(fname)
+        
+        if sim is None:
+            sim = np.zeros(shape=(len(filenames), *slice.shape), dtype=np.float32)
+        
+        sim[i,:, :] = slice
+
+    # normalise sim values
+    sim = (sim - np.mean(sim)) / np.std(sim)
+    # sim = (sim - np.min(sim)) / (np.max(sim) - np.min(sim))
+    # sim = np.clip(sim, 0.5, np.max(sim))
+    # sim = sim.astype(np.uint16)
+
+    # save horizontal slices
+    horizontal = []
+    for i in range(sim.shape[2]):
+        
+        slice = sim[:, :, i]
+        horizontal.append(slice)
+
+    save_path = os.path.join(path, "horizontal.gif")
+    imageio.mimsave(save_path, horizontal, duration=0.05)
+
+    # save vertical slices
+    vertical = []
+    for i in range(sim.shape[1]):
+        
+        slice = sim[:, i, :]
+        vertical.append(slice)
+
+    save_path = os.path.join(path, "vertical.gif")
+    imageio.mimsave(save_path, vertical, duration=0.05)
 
 #################### DATA ####################
 
