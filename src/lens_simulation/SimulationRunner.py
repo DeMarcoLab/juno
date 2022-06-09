@@ -5,16 +5,15 @@ import uuid
 import os
 import petname
 
+import logging
 from pprint import pprint
 import numpy as np
 from tqdm import tqdm
 
 from lens_simulation import Simulation, utils
+from lens_simulation import validation
 
 # TODO: convert print to logging, and save log file
-# TODO: add datetime to sim metadata?
-# TODO: add time taken to logging
-# TODO: change n_slices to a common sim parameter
 
 class SimulationRunner:
 
@@ -26,19 +25,21 @@ class SimulationRunner:
         self.config = utils.load_config(config_filename)
 
         # create logging directory
-        log_dir = os.getcwd() # TODO: make user selectable
-        self.data_path: Path = os.path.join(log_dir , "log",  str(self.petname))
+        self.data_path: Path = os.path.join(self.config["options"]["log_dir"], str(self.petname))
         os.makedirs(self.data_path, exist_ok=True)
 
         # update metadata
         self.config["run_id"] = self.run_id
+        self.config["started"] = utils.current_timestamp()
+
+        logfile = utils.configure_logging(self.data_path)
 
     def initialise_simulation(self) -> None :
 
-        print("-"*50)
-        print(f"\nSimulation Run: {self.petname} ({self.run_id})")
-        print(f"Data: {self.data_path}")
-        print("-"*50)
+        logging.info("-"*50)
+        logging.info(f"Simulation Run: {self.petname} ({self.run_id})")
+        logging.info(f"Data: {self.data_path}")
+        logging.info("-"*50)
 
         all_lens_params = []
         for lens in self.config["lenses"]:
@@ -84,8 +85,8 @@ class SimulationRunner:
         # generate configuration for simulations
         n_lens_configs = len(self.all_parameters_combinations_lens)
         n_stage_configs = len(self.all_parameters_combinations_stages)
-        # print(f"\n{n_lens_configs}} Lens Configurations. {n_stage_configs} Stage Configurations")
-        print(f"Generating {n_lens_configs * n_stage_configs} Simulation Configurations. ")
+        # logging.info(f"{n_lens_configs}} Lens Configurations. {n_stage_configs} Stage Configurations")
+        logging.info(f"Generating {n_lens_configs * n_stage_configs} Simulation Configurations. ")
         
         self.simulation_configurations = []
 
@@ -98,21 +99,25 @@ class SimulationRunner:
                 lens_combination = []
                 for i, lens_config in enumerate(self.config["lenses"]):
                     
-                    lens_dict = lens_config
-                    lens_dict["height"] = lens_combo[i][0]   
-                    lens_dict["exponent"] = lens_combo[i][1]
+                    simulation_lenses = lens_config
+                    simulation_lenses["height"] = lens_combo[i][0]   
+                    simulation_lenses["exponent"] = lens_combo[i][1]
                     
-                    lens_combination.append(lens_dict)
+                    lens_combination.append(simulation_lenses)
                 
                 # create stage combination
                 stage_combination = []
                 for j, stage in enumerate(self.config["stages"]):
+
+                    stage = validation._validate_default_simulation_stage_config(stage)
+
                     stage_dict = {
                         "lens": stage["lens"], # TODO: replace with combo
                         "output": stage["output"], # TODO: replace with combo
                         "start_distance": stage_combo[j][0],  
                         "finish_distance": stage_combo[j][1],
                         "n_slices": stage["n_slices"],
+                        "step_size": stage["step_size"],
                         "options": stage["options"],
                     }
                     stage_combination.append(stage_dict)
@@ -133,24 +138,33 @@ class SimulationRunner:
                 self.simulation_configurations.append(sim_config)
 
        
-        print(f"Generated {len(self.simulation_configurations)} simulation configurations.")
+        logging.info(f"Generated {len(self.simulation_configurations)} simulation configurations.")
 
         # save sim configurations
         utils.save_metadata(self.config, self.data_path)
 
     def run_simulations(self):
-        print(f"\nRunning {len(self.simulation_configurations)} Simulations")
+        logging.info(f"Running {len(self.simulation_configurations)} Simulations")
 
-        print("----------- Simulation Summary -----------")
-        print(f"Pixel Size: {self.config['sim_parameters']['pixel_size']:.1e}m")
-        print(f"Simulation Size: {self.config['sim_parameters']['sim_height']:.1e}m x {self.config['sim_parameters']['sim_width']:.1e}m")
-        print(f"No. Stages: {len(self.config['stages']) + 1}")
-        print("------------------------------------------")
+        logging.info("----------- Simulation Summary -----------")
+        logging.info(f"Pixel Size: {self.config['sim_parameters']['pixel_size']:.1e}m")
+        logging.info(f"Simulation Wavelength: {self.config['sim_parameters']['sim_wavelength']}m")
+        logging.info(f"Simulation Size: {self.config['sim_parameters']['sim_height']:.1e}m x {self.config['sim_parameters']['sim_width']:.1e}m")
+        logging.info(f"No. Stages: {len(self.config['stages']) + 1}")
+        logging.info("------------------------------------------")
 
         for sim_config in tqdm(self.simulation_configurations):
 
             sim = Simulation.Simulation(sim_config)
             sim.run_simulation()
+            logging.info(f"Finished simulation {sim.petname}")
+        
+        # save final sim configuration
+        logging.info(f"Finished running {len(self.simulation_configurations)} Simulations")
+        self.config["finished"] = utils.current_timestamp()
+        utils.save_metadata(self.config, self.data_path)
+
+
 
 
 def generate_parameter_sweep(param: list) -> np.ndarray:

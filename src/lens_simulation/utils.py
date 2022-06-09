@@ -1,13 +1,22 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
+import logging
+import datetime
+import time
+
 import plotly.express as px
 import os 
 import json
 import yaml
 import petname
 
+import glob
+import imageio
+from PIL import Image
+
 from lens_simulation.Lens import Lens
+from lens_simulation import validation
 
 from pathlib import Path
 
@@ -18,6 +27,7 @@ from pathlib import Path
 
 # initial beam -> lens -> sim -> lens -> sim
 
+#################### PLOTTING ####################
 
 def plot_simulation(
     arr: np.ndarray,
@@ -102,66 +112,14 @@ def plot_image(arr: np.ndarray, title: str = "Image Title", save: bool = False, 
 
 
 def save_figure(fig, fname: str = "img.png") -> None:
-    # TODO: clean up the implementation (no reference to fig...)
     os.makedirs(os.path.dirname(fname), exist_ok=True)
-
-    # plt.savefig(fname)
     fig.savefig(fname)
 
 
 def plot_interactive_simulation(arr: np.ndarray):
-    # TODO: make croppable?
-    
+   
     fig = px.imshow(arr)
     return fig
-
-def plot_lenses(lens_dict: dict) -> None:
-    # plot lens profiles
-    for name, lens in lens_dict.items():
-        # fig, ax = plt.Figure()
-        plt.title("Lens Profiles")
-        plt.plot(lens.profile, label=name)
-        plt.legend(loc="best")
-        plt.plot()
-
-
-def load_simulation(filename):
-    sim = np.load(filename)
-    return sim
-
-def save_metadata(config: dict, log_dir: str) -> None:
-    # serialisable
-    if "sim_id" in config:
-        config["sim_id"] = str(config["sim_id"])
-    config["run_id"] = str(config["run_id"])
-    
-    # save as json
-    with open(os.path.join(log_dir, "metadata.json"), "w") as f:
-        json.dump(config, f, indent=4)
-
-def load_metadata(path: str):
-    metadata_fname = os.path.join(path, "metadata.json")
-
-    with open(metadata_fname, "r") as f:
-        metadata = json.load(f) 
-    
-    return metadata
-
-def load_config(config_filename):
-    with open(config_filename, "r") as f:
-        conf = yaml.full_load(f)
-
-
-    # validation
-    # TODO: medium, stages, see _format_dictionary
-    # convert all height and exponent values to float
-    for i, lens in enumerate(conf["lenses"]):
-        for param in ["height", "exponent"]:
-            if isinstance(lens[param], list):
-                for j, h in enumerate(lens[param]):
-                    conf["lenses"][i][param][j] = float(h)
-
-    return conf
 
 
 def plot_lens_profile_2D(lens: Lens):
@@ -212,6 +170,92 @@ def plot_lens_profile_slices(lens: Lens, max_height: float = None) -> plt.Figure
     return fig
 
 
+def save_propagation_gif(path: str):
+    """Save a gif of the propagation"""
+
+
+    search_path = os.path.join(path, "*mm.npy")
+
+    filenames = sorted(glob.glob(search_path))
+    images = []
+    for fname in filenames:
+
+        slice = np.load(fname)
+        img = Image.fromarray(slice)
+
+        images.append(img)
+
+    save_path = os.path.join(path, "propagation.gif")
+    imageio.mimsave(save_path, images, duration=0.2)
+
+def save_propagation_slices_gif(path: str) -> None:
+    """Save vertical and horizontal simulation slices as gif"""
+    filenames = sorted(glob.glob(os.path.join(path, "*mm.npy")))
+
+    # TODO: might not be possible for very large sims to load full sim, 
+    # will need to come up with another way to load slices in right format
+    sim = None
+    for i, fname in enumerate(filenames):
+
+        slice = np.load(fname)
+        
+        if sim is None:
+            sim = np.zeros(shape=(len(filenames), *slice.shape), dtype=np.float32)
+        
+        sim[i,:, :] = slice
+
+    # normalise sim values
+    sim = (sim - np.mean(sim)) / np.std(sim)
+    # sim = (sim - np.min(sim)) / (np.max(sim) - np.min(sim))
+    # sim = np.clip(sim, 0.5, np.max(sim))
+    # sim = sim.astype(np.uint16)
+
+    # save horizontal slices
+    horizontal = []
+    for i in range(sim.shape[2]):
+        
+        slice = sim[:, :, i]
+        horizontal.append(slice)
+
+    save_path = os.path.join(path, "horizontal.gif")
+    imageio.mimsave(save_path, horizontal, duration=0.05)
+
+    # save vertical slices
+    vertical = []
+    for i in range(sim.shape[1]):
+        
+        slice = sim[:, i, :]
+        vertical.append(slice)
+
+    save_path = os.path.join(path, "vertical.gif")
+    imageio.mimsave(save_path, vertical, duration=0.05)
+
+#################### DATA ####################
+
+
+def load_simulation(filename):
+    sim = np.load(filename)
+    return sim
+
+def save_metadata(config: dict, log_dir: str) -> None:
+    # serialisable
+    if "sim_id" in config:
+        config["sim_id"] = str(config["sim_id"])
+    config["run_id"] = str(config["run_id"])
+    
+    # save as json
+    with open(os.path.join(log_dir, "metadata.json"), "w") as f:
+        json.dump(config, f, indent=4)
+
+def load_metadata(path: str):
+    metadata_fname = os.path.join(path, "metadata.json")
+
+    with open(metadata_fname, "r") as f:
+        metadata = json.load(f) 
+    
+    return metadata
+
+
 def save_simulation(sim: np.ndarray, fname: Path) -> None:
     """Save the simulation array as a numpy array
 
@@ -224,6 +268,30 @@ def save_simulation(sim: np.ndarray, fname: Path) -> None:
     np.save(fname, sim)
 
 
+def load_yaml_config(config_filename) -> dict:
+    with open(config_filename, "r") as f:
+        config = yaml.full_load(f)
+
+    return config
+
+def load_config(config_filename):
+    with open(config_filename, "r") as f:
+        config = yaml.full_load(f)
+
+
+    config = validation._validate_simulation_config(config)
+    # validation
+    # TODO move to validation, 
+    # TODO: medium, stages, see _format_dictionary
+    # convert all height and exponent values to float
+    for i, lens in enumerate(config["lenses"]):
+        for param in ["height", "exponent"]:
+            if isinstance(lens[param], list):
+                for j, h in enumerate(lens[param]):
+                    config["lenses"][i][param][j] = float(h)
+
+    return config
+
 def load_simulation_config(config_filename: str = "config.yaml") -> dict:
     """Load the default configuration ready to simulate.
 
@@ -234,8 +302,7 @@ def load_simulation_config(config_filename: str = "config.yaml") -> dict:
         dict: configuration as dictionary formatted for simulation
     """
 
-    with open(config_filename, "r") as f:
-        conf = yaml.full_load(f)
+    conf = load_config(config_filename)
 
     run_id = petname.generate(3)  # run_id is for when running a batch of sims, each sim has unique id
     data_path = os.path.join(conf["options"]["log_dir"],  str(run_id))
@@ -270,3 +337,102 @@ def _calculate_num_of_pixels(width: float, pixel_size: float, odd: bool = True) 
         n_pixels += 1
 
     return n_pixels
+
+
+def create_distance_map_px(w: int, h: int) -> np.ndarray:
+    x = np.arange(0, w)
+    y = np.arange(0, h)
+    
+    X, Y = np.meshgrid(x, y)
+    distance = np.sqrt(((w / 2) - X) ** 2 + ((h / 2) - Y) ** 2)
+
+    return distance
+
+
+
+def current_timestamp() -> str:
+    return datetime.datetime.fromtimestamp(time.time()).strftime('%Y%m%d.%H%M%S')
+
+# TODO: better logs: https://www.toptal.com/python/in-depth-python-logging
+def configure_logging(save_path='', log_filename='logfile', log_level=logging.INFO):
+    """Log to the terminal and to file simultaneously."""
+    timestamp = current_timestamp()
+
+    logfile = os.path.join(save_path, f"{log_filename}.log")
+
+    logging.basicConfig(
+        format="%(asctime)s | %(name)s | %(levelname)s | %(funcName)s:%(lineno)d | %(message)s",
+        level=log_level,
+        # Multiple handlers can be added to your logging configuration.
+        # By default log messages are appended to the file if it exists already
+        handlers=[
+            logging.FileHandler(logfile),
+            logging.StreamHandler(),
+        ])
+
+    return logfile
+
+def pad_to_equal_size(small: np.ndarray, large: np.ndarray, value: int = 0) -> tuple:
+    """Determine the amount to pad to match size"""
+    sh, sw = small.shape
+    lh, lw = large.shape
+    ph, pw = int((lh - sh) // 2), int((lw - sw) // 2)
+
+    padded = np.pad(small, pad_width=((ph, ph), (pw, pw)), mode="constant", constant_values=value)
+
+    return padded
+
+
+def plot_apeture_masks(lens: Lens) -> plt.Figure:
+
+    fig, ax = plt.subplots(2, 3, figsize=(10, 7.5))
+
+    plt.suptitle("Lens Aperture Masks")
+    ax[0, 0].imshow(lens.non_lens_mask, cmap="plasma")
+    ax[0, 0].set_title("non_lens_area")
+
+    ax[0, 1].imshow(lens.truncation_aperture_mask, cmap="plasma")
+    ax[0, 1].set_title("truncation_aperture")
+
+    ax[1, 0].imshow(lens.custom_aperture_mask, cmap="plasma")
+    ax[1, 0].set_title("custom_aperture")
+
+    ax[1, 1].imshow(lens.sim_aperture_mask, cmap="plasma")
+    ax[1, 1].set_title("sim_aperture")
+
+
+    ax[0, 2].imshow(lens.aperture, cmap="plasma")
+    ax[0, 2].set_title("full_aperture")
+
+    # lens.profile[lens.aperture] = 0
+    # lens.profile[lens.non_lens_mask.astype(bool)] = 1
+    # lens.profile[lens.truncation_aperture_mask.astype(bool)] = 2
+    # lens.profile[lens.custom_aperture_mask.astype(bool)] = 3
+    # lens.profile[lens.sim_aperture_mask.astype(bool)] = 4
+    ax[1, 2].imshow(lens.profile, cmap="plasma")
+    ax[1, 2].set_title("lens_profile")
+
+    return fig
+
+def plot_lens_modifications(lens):
+    from lens_simulation.Lens import check_modification_masks
+
+    lens = check_modification_masks(lens)
+
+    fig, ax = plt.subplots(2, 2, figsize=(7.5, 7.5))
+
+    plt.suptitle("Lens Modifcations")
+    ax[0, 0].imshow(lens.grating_mask, cmap="plasma")
+    ax[0, 0].set_title("grating mask")
+
+    ax[0, 1].imshow(lens.escape_mask, cmap="plasma")
+    ax[0, 1].set_title("escape mask")
+
+    ax[1, 0].imshow(lens.truncation_mask, cmap="plasma")
+    ax[1, 0].set_title("truncation mask")
+
+    ax[1, 1].imshow(lens.profile, cmap="plasma")
+    ax[1, 1].set_title("lens profile")
+
+    return fig
+

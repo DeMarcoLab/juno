@@ -14,7 +14,6 @@ class SimulationParameters:
     sim_width: float
     sim_height: float
     sim_wavelength: float
-    lens_type: LensType
 
 @dataclass
 class SimulationOptions:
@@ -35,6 +34,7 @@ class SimulationStage:
     lens_inverted: bool = False
     _id: int = 0
     tilt: dict = None
+    step_size: float = None
 
 
 @dataclass

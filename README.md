@@ -98,5 +98,17 @@ $ snakeviz output.profile
 ```
 
 
+# Coverage
+
+```bash
+
+$ pip install coverage
+$ coverage run -m pytest -vv
+$ coverage report -m 
+$ coverage html
+```
+
+
+
 ### Citation 
 TODO
