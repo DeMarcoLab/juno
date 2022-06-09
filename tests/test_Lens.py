@@ -126,7 +126,7 @@ def test_grating_mask(spherical_lens):
         depth = 1e-6,
         centred = True
     )
-    lens.calculate_grating_mask(grating_settings, x_axis=True, y_axis=True)
+    lens.create_grating_mask(grating_settings, x_axis=True, y_axis=True)
     lens.apply_masks(grating=True)
 
     centre_x, centre_y = lens.profile.shape[0] // 2 , lens.profile.shape[1] // 2
@@ -143,7 +143,7 @@ def test_grating_mask_is_not_centred(spherical_lens):
         depth = 1e-6,
         centred = False
     )
-    lens.calculate_grating_mask(grating_settings, x_axis=True, y_axis=True)
+    lens.create_grating_mask(grating_settings, x_axis=True, y_axis=True)
     lens.apply_masks(grating=True)
 
     centre_x, centre_y = lens.profile.shape[0] // 2 , lens.profile.shape[1] // 2
@@ -164,7 +164,7 @@ def test_grating_mask_raises_error(spherical_lens):
 
     with pytest.raises(ValueError):
         # distance between grating must be greater than grating width
-        lens.calculate_grating_mask(grating_settings, x_axis=True, y_axis=True)
+        lens.create_grating_mask(grating_settings, x_axis=True, y_axis=True)
 
 def test_truncation_by_value(spherical_lens):
 
@@ -196,7 +196,7 @@ def test_aperture(spherical_lens):
 
     lens = spherical_lens
 
-    lens.calculate_aperture(inner_m = inner_m, outer_m=outer_m, type="radial", inverted=False)
+    lens.create_custom_aperture(inner_m = inner_m, outer_m=outer_m, type="radial", inverted=False)
     lens.apply_masks(aperture=True)
 
     centre_x, centre_y = lens.profile.shape[0] // 2 , lens.profile.shape[1] // 2
@@ -214,7 +214,7 @@ def test_aperture_inverted(spherical_lens):
 
     lens = spherical_lens
 
-    lens.calculate_aperture(inner_m = inner_m, outer_m=outer_m, type="radial", inverted=True)
+    lens.create_custom_aperture(inner_m = inner_m, outer_m=outer_m, type="radial", inverted=True)
     lens.apply_masks(aperture=True)
 
     centre_x, centre_y = lens.profile.shape[0] // 2 , lens.profile.shape[1] // 2

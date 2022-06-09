@@ -231,22 +231,16 @@ def generate_mediums(mediums: list):
 def generate_lenses(lenses: list, simulation_mediums: dict, parameters: SimulationParameters):
     """Generate all the lenses for the simulation"""
 
-    from lens_simulation.Lens import apply_modifications  
+    from lens_simulation.Lens import apply_modifications, generate_lens  
     
     simulation_lenses = {}
     for lens_config in lenses:
 
         if lens_config["medium"] not in simulation_mediums:
             raise ValueError("Lens Medium not found in simulation mediums")
-    
-        lens_config = validation._validate_default_lens_config(lens_config)
 
-        lens = Lens(
-            diameter=lens_config["diameter"],
-            height=lens_config["height"],
-            exponent=lens_config["exponent"],
-            medium=simulation_mediums[lens_config["medium"]],
-        )
+        # generate lens from config
+        lens = generate_lens(lens_config=lens_config, medium=simulation_mediums[lens_config["medium"]])
 
         # check lens fits in the simulation
         if lens.diameter > parameters.sim_width or lens.diameter > parameters.sim_height:
@@ -266,7 +260,7 @@ def generate_lenses(lenses: list, simulation_mediums: dict, parameters: Simulati
                 length=lens_config["length"]
             )
 
-        lens = apply_modifications(lens, lens_config)
+        lens = apply_modifications(lens, lens_config, parameters)
 
         simulation_lenses[lens_config["name"]] = lens
 
@@ -315,9 +309,6 @@ def propagate_wavefront(
     lens.apply_aperture_masks()
     sim_profile = lens.profile
 
-    utils.plot_apeture_masks(lens)
-    plt.show()
-
     # generate frequency array
     freq_arr = generate_sq_freq_arr(sim_profile, pixel_size=parameters.pixel_size)
 
@@ -331,11 +322,6 @@ def propagate_wavefront(
         A=amplitude,
         aperture=lens.aperture,
     )
-
-    plt.imshow(wavefront.real)
-    plt.colorbar()
-    plt.title("wavefront")
-    plt.show()
 
     # fourier transform of wavefront
     fft_wavefront = fftpack.fft2(wavefront)
