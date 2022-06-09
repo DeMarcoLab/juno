@@ -90,7 +90,6 @@ class GUILensCreator(LensCreator.Ui_LensCreator, QtWidgets.QMainWindow):
 
             self.lens.generate_profile(
                 pixel_size=self.pixel_size,
-                lens_type=self.lens_type,
                 length=self.lens_length,
             )
 
@@ -119,6 +118,7 @@ class GUILensCreator(LensCreator.Ui_LensCreator, QtWidgets.QMainWindow):
             height=self.doubleSpinBox_LensHeight.value() * self.units,
             exponent=self.doubleSpinBox_LensExponent.value(),
             medium=self.doubleSpinBox_LensMedium.value(),
+            lens_type=self.lens_type
         )
 
     ### I/O methods ###
@@ -176,7 +176,10 @@ class GUILensCreator(LensCreator.Ui_LensCreator, QtWidgets.QMainWindow):
         self.doubleSpinBox_LensDiameter.setMinimum(2 * self.pixel_size / self.units)
         self.doubleSpinBox_LensLength.setMinimum(1 * self.pixel_size / self.units)
 
-        self.lens_length = self.doubleSpinBox_LensLength.value() * self.units
+        if self.lens_type is LensType.Spherical:
+            self.lens_length = self.doubleSpinBox_LensDiameter.value() * self.units
+        else:
+            self.lens_length = self.doubleSpinBox_LensLength.value() * self.units
 
     def update_masks(self):
         if self.groupBox_Gratings.isChecked():
