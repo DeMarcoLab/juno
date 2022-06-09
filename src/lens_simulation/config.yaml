@@ -43,8 +43,16 @@ lenses:
       x: true
       y: false
       centred: true
-    # truncation: null
-    # aperture: null
+    truncation: 
+      height: 3.e-6
+      radius: 50.e-6
+      type: radial # radial, square
+      aperture: false
+    aperture:
+      inner: 50.e-6
+      outer: 100.e-6
+      type: radial   # radial, square
+      invert: false
 mediums:
   - name: medium_1
     refractive_index: 2.348

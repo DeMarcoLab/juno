@@ -24,8 +24,6 @@ def _validate_default_lens_config(lens_config: dict) -> dict:
     # if "custom" not in lens_config:
     #     raise ValueError(f"Lens config requires custom to load a profile. None provided.")
 
-    
-
     # default settings
     lens_config["custom"] = None if "custom" not in lens_config else lens_config["custom"]
     lens_config["length"] = None if "length" not in lens_config else lens_config["length"]
@@ -36,11 +34,55 @@ def _validate_default_lens_config(lens_config: dict) -> dict:
     lens_config["lens_type"] = "Spherical" if "lens_type" not in lens_config else lens_config["lens_type"].title()
 
 
+    # validate lens modifications
+    lens_config = _validate_default_lens_modification_config(lens_config)
+
     # QUERY
     # do we want to require height, diameter, exponent if the user loads a custom profile. What is required?
     # is lens_type a required parameters? how much error checking on the lens_type, e.g. if not in LensType.name etc
 
     return lens_config
+
+
+def _validate_default_lens_modification_config(config: dict) -> dict:
+
+    if config["grating"] is not None:
+        if "width" not in config["grating"]:
+            raise ValueError(f"Lens grating config requires width. None provided.")
+        if "distance" not in config["grating"]:
+            raise ValueError(f"Lens grating config requires distance. None provided.")
+        if "depth" not in config["grating"]:
+            raise ValueError(f"Lens grating config requires depth. None provided.")
+        if "x" not in config["grating"]:
+            raise ValueError(f"Lens grating config requires x. None provided.")
+        if "y" not in config["grating"]:
+            raise ValueError(f"Lens grating config requires y. None provided.")
+        if "centred" not in config["grating"]:
+            raise ValueError(f"Lens grating config requires centred. None provided.")
+
+    if config["truncation"] is not None:
+        if "height" not in config["truncation"]:
+            raise ValueError(f"Lens truncation config requires height. None provided.")
+        if "radius" not in config["truncation"]:
+            raise ValueError(f"Lens truncation config requires radius. None provided.")
+        if "type" not in config["truncation"]:
+            raise ValueError(f"Lens truncation config requires type. None provided.")
+        if "aperture" not in config["truncation"]:
+            raise ValueError(f"Lens truncation config requires aperture. None provided.")
+
+    if config["aperture"] is not None:
+        if "inner" not in config["aperture"]:
+            raise ValueError(f"Lens aperture config requires inner. None provided.")
+        if "outer" not in config["aperture"]:
+            raise ValueError(f"Lens aperture config requires outer. None provided.")
+        if "type" not in config["aperture"]:
+            raise ValueError(f"Lens aperture config requires type. None provided.")
+        if "invert" not in config["aperture"]:
+            raise ValueError(f"Lens aperture config requires invert. None provided.")
+
+    return config
+
+
 
 def _validate_default_beam_config(config: dict) -> dict:
     # required settings
