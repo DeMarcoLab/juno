@@ -45,7 +45,6 @@ def sim_parameters():
         sim_width=LENS_DIAMETER,
         sim_height=LENS_DIAMETER,
         sim_wavelength=488.e-9,
-        lens_type=LensType.Spherical
     )
 
 

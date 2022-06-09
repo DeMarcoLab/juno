@@ -117,14 +117,6 @@ def plot_interactive_simulation(arr: np.ndarray):
     fig = px.imshow(arr)
     return fig
 
-def plot_lenses(simulation_lenses: dict) -> None:
-    # plot lens profiles
-    for name, lens in simulation_lenses.items():
-        # fig, ax = plt.Figure()
-        plt.title("Lens Profiles")
-        plt.plot(lens.profile, label=name)
-        plt.legend(loc="best")
-        plt.plot()
 
 def plot_lens_profile_2D(lens: Lens):
     if not isinstance(lens, Lens):

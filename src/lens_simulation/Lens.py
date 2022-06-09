@@ -1,6 +1,4 @@
 from dataclasses import dataclass
-import imp
-from operator import le
 
 import numpy as np
 
@@ -30,14 +28,18 @@ class LensType(Enum):
 
 class Lens:
     def __init__(
-        self, diameter: float, height: float, exponent: float, medium: Medium = Medium()
+        self, diameter: float, height: float, exponent: float, medium: Medium = Medium(), lens_type: LensType = LensType.Spherical
     ) -> None:
 
+        # lens properties
         self.diameter = diameter
         self.height = height
         self.exponent = exponent
         self.medium = medium
-        self.escape_path = None
+        self.length = None
+        self.lens_type = lens_type
+
+        # lens profile
         self.profile = None
 
         # aperturing masks
@@ -61,7 +63,6 @@ class Lens:
     def generate_profile(
         self,
         pixel_size: float,
-        lens_type: LensType = LensType.Cylindrical,
         length: int = None,
     ) -> np.ndarray:
         """_summary_
@@ -80,7 +81,7 @@ class Lens:
 
         self.pixel_size = pixel_size
 
-        if lens_type == LensType.Cylindrical:
+        if self.lens_type == LensType.Cylindrical:
 
             if length is None:
                 length = pixel_size
@@ -88,7 +89,7 @@ class Lens:
 
             self.profile = self.extrude_profile(length, n_pixels)
 
-        if lens_type == LensType.Spherical:
+        if self.lens_type == LensType.Spherical:
 
             self.profile = self.revolve_profile(n_pixels)
 
@@ -407,9 +408,9 @@ class Lens:
         """
         from lens_simulation import utils
 
-        if parameters.lens_type not in [LensType.Cylindrical, LensType.Spherical]:
+        if self.lens_type not in [LensType.Cylindrical, LensType.Spherical]:
             raise ValueError(
-                f"Lens type {parameters.lens_type} is not supported for escape paths."
+                f"Lens type {self.lens_type} is not supported for escape paths."
             )
 
         lens_h, lens_w = self.profile.shape
@@ -437,7 +438,8 @@ class Lens:
             mode="constant",
             constant_values=ESCAPE_PATH_VALUE,
         )
-        if parameters.lens_type is LensType.Spherical:
+
+        if self.lens_type is LensType.Spherical:
 
             assert ep_h == ep_w, f"escape path must be symmetric {ep_h}, {ep_w}"
             assert lens_h == lens_w, f"lens must be symmetric {lens_h}, {lens_w}"
@@ -544,7 +546,8 @@ def generate_lens(lens_config: dict, medium: Medium) -> Lens:
     lens = Lens(diameter=lens_config["diameter"],
                 height=lens_config["height"],
                 exponent=lens_config["exponent"],
-                medium=medium)
+                medium=medium,
+                lens_type=LensType[lens_config["lens_type"]])
 
     return lens
 
