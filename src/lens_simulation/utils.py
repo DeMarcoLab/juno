@@ -6,7 +6,7 @@ import datetime
 import time
 
 import plotly.express as px
-import os 
+import os
 import json
 import yaml
 import petname
@@ -17,7 +17,7 @@ from lens_simulation import validation
 from pathlib import Path
 
 # TODO: visualisation
-# visualisation between lens and sim data is inconsistent, 
+# visualisation between lens and sim data is inconsistent,
 # light comes from bottom for lens profile, and top for sim result.
 # need to make it more consistent, and file a way to tile the results into the sim setup for visualisation
 
@@ -104,7 +104,7 @@ def plot_image(arr: np.ndarray, title: str = "Image Title", save: bool = False, 
     if save:
         save_figure(fig, fname)
 
-    return fig  
+    return fig
 
 
 def save_figure(fig, fname: str = "img.png") -> None:
@@ -113,7 +113,7 @@ def save_figure(fig, fname: str = "img.png") -> None:
 
 
 def plot_interactive_simulation(arr: np.ndarray):
-   
+
     fig = px.imshow(arr)
     return fig
 
@@ -127,32 +127,30 @@ def plot_lenses(simulation_lenses: dict) -> None:
         plt.plot()
 
 def plot_lens_profile_2D(lens: Lens):
-    # TODO: add proper distances to plot
+    if not isinstance(lens, Lens):
+        raise TypeError('plot_lens_profile_2D requires a Lens object')
 
-    if isinstance(lens, np.ndarray):
-        lens_profile = lens
-    if isinstance(lens, Lens):
-        lens_profile = lens.profile
+    lens_profile = lens.profile
 
     fig = plt.figure()
     plt.title("Lens Profile (Two-Dimensional)")
     plt.imshow(lens_profile, cmap="plasma")
     plt.colorbar()
-    
+
     return fig
 
 
 def plot_lens_profile_slices(lens: Lens, max_height: float = None) -> plt.Figure:
     # TODO: add proper distances to plot
     """Plot slices of a two-dimensional lens at one-eighth, one-quarter and one-half distances"""
-    
+
     if isinstance(lens, np.ndarray):
         lens_profile = lens
     if isinstance(lens, Lens):
         lens_profile = lens.profile
     else:
         raise TypeError("Non-Lens passed")
-    
+
     thirty_two_px = lens.profile.shape[0] // 32
     sixteen_px = lens.profile.shape[0] // 16
     sixth_px = lens_profile.shape[0] // 8
@@ -165,12 +163,12 @@ def plot_lens_profile_slices(lens: Lens, max_height: float = None) -> plt.Figure
     plt.title("Lens Profile Slices")
     plt.plot(lens_profile[mid_px, :], "b--", label="0.5")
     plt.plot(lens_profile[quarter_px, :], "g--", label="0.25")
-    plt.plot(lens_profile[sixth_px, :], "r--", label="0.125") 
+    plt.plot(lens_profile[sixth_px, :], "r--", label="0.125")
     plt.plot(lens_profile[sixteen_px, :], "c--", label="0.0625")
     plt.plot(lens_profile[thirty_two_px, :], "m--", label="0.03125")
     plt.ylim([0, max_height])
     plt.legend(loc="best")
-    
+
     return fig
 
 #################### DATA ####################
@@ -185,7 +183,7 @@ def save_metadata(config: dict, log_dir: str) -> None:
     if "sim_id" in config:
         config["sim_id"] = str(config["sim_id"])
     config["run_id"] = str(config["run_id"])
-    
+
     # save as json
     with open(os.path.join(log_dir, "metadata.json"), "w") as f:
         json.dump(config, f, indent=4)
@@ -194,8 +192,8 @@ def load_metadata(path: str):
     metadata_fname = os.path.join(path, "metadata.json")
 
     with open(metadata_fname, "r") as f:
-        metadata = json.load(f) 
-    
+        metadata = json.load(f)
+
     return metadata
 
 
@@ -224,7 +222,7 @@ def load_config(config_filename):
 
     config = validation._validate_simulation_config(config)
     # validation
-    # TODO move to validation, 
+    # TODO move to validation,
     # TODO: medium, stages, see _format_dictionary
     # convert all height and exponent values to float
     for i, lens in enumerate(config["lenses"]):
@@ -249,16 +247,16 @@ def load_simulation_config(config_filename: str = "config.yaml") -> dict:
 
     run_id = petname.generate(3)  # run_id is for when running a batch of sims, each sim has unique id
     data_path = os.path.join(conf["options"]["log_dir"],  str(run_id))
-    config = {"run_id": run_id, 
-                "parameters": None, 
-                "log_dir": data_path, 
-                "sim_parameters": conf["sim_parameters"], 
+    config = {"run_id": run_id,
+                "parameters": None,
+                "log_dir": data_path,
+                "sim_parameters": conf["sim_parameters"],
                 "options": conf["options"],
                 "beam": conf["beam"],
-                "mediums": conf["mediums"], 
+                "mediums": conf["mediums"],
                 "lenses": conf["lenses"],
                 "stages": conf["stages"]}
-    
+
     return config
 
 
@@ -285,7 +283,7 @@ def _calculate_num_of_pixels(width: float, pixel_size: float, odd: bool = True) 
 def create_distance_map_px(w: int, h: int) -> np.ndarray:
     x = np.arange(0, w)
     y = np.arange(0, h)
-    
+
     X, Y = np.meshgrid(x, y)
     distance = np.sqrt(((w / 2) - X) ** 2 + ((h / 2) - Y) ** 2)
 
