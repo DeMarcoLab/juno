@@ -96,10 +96,13 @@ def _validate_default_beam_config(config: dict) -> dict:
     config["beam_spread"] = config["beam_spread"].title() if "beam_spread" in config else "Plane"
     config["beam_shape"] = config["beam_shape"].title() if "beam_shape" in config else "Square"
 
-    config["position"] = config["position"] if "position" in config else [0.0, 0.0]
+
+    config["position_x"] = config["position_x"] if "position_x" in config else 0.0
+    config["position_y"] = config["position_y"] if "position_y" in config else 0.0
     config["theta"] = config["theta"] if "theta" in config else 0.0
     config["numerical_aperture"] = config["numerical_aperture"] if "numerical_aperture" in config else None 
-    config["tilt"] = config["tilt"] if "tilt" in config else [0.0, 0.0]
+    config["tilt_x"] = config["tilt_x"] if "tilt_x" in config else 0.0
+    config["tilt_y"] = config["tilt_y"] if "tilt_y" in config else 0.0
     config["source_distance"] = config["source_distance"] if "source_distance" in config else None
     config["final_width"] = config["final_width"] if "final_width" in config else None
     config["focal_multiple"] = config["focal_multiple"] if "focal_multiple" in config else None

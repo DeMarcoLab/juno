@@ -63,7 +63,7 @@ class Lens:
     def generate_profile(
         self,
         pixel_size: float,
-        length: int = None,
+        length: float = None,
     ) -> np.ndarray:
         """_summary_
 
@@ -530,7 +530,7 @@ def calculate_grating_coords(
     return np.ravel(grating_coords)
 
 
-def generate_lens(lens_config: dict, medium: Medium) -> Lens:
+def generate_lens(lens_config: dict, medium: Medium, parameters) -> Lens:
     """Generate a lens from a dictionary configuration
 
     Args:
@@ -548,6 +548,25 @@ def generate_lens(lens_config: dict, medium: Medium) -> Lens:
                 exponent=lens_config["exponent"],
                 medium=medium,
                 lens_type=LensType[lens_config["lens_type"]])
+
+    # check lens fits in the simulation
+    if lens.diameter > parameters.sim_width or lens.diameter > parameters.sim_height:
+        raise ValueError(
+            f"Lens diameter must be smaller than the simulation size: lens: {lens.diameter:.2e}m, sim: {parameters.sim_width:.2e}mx{parameters.sim_height:.2e}m"
+        )
+
+    # load a custom lens profile
+    if lens_config["custom"]:
+        lens.load_profile(fname=lens_config["custom"])
+
+    # generate the profile from the configuration
+    else:
+        lens.generate_profile(
+            pixel_size=parameters.pixel_size,
+            length=lens_config["length"]
+        )
+
+    lens = apply_modifications(lens, lens_config, parameters)
 
     return lens
 

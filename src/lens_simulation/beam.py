@@ -41,10 +41,12 @@ class BeamSettings:
     beam_shape: BeamShape
     width: float
     height: float
-    position: list = field(default_factory=[0, 0])
+    position_x: 0.0
+    position_y: 0.0
     theta: float = 0.0                      # degrees
     numerical_aperture: float = None        
-    tilt: list = None                       # degrees
+    tilt_x: float = 0.0
+    tilt_y: float = 0.0                     # degrees
     source_distance: float = None
     final_width: float = None
     focal_multiple: float = None
@@ -65,13 +67,13 @@ class Beam:
 
         self.width: float = settings.width
         self.height: float  = settings.height
-        self.position: list[float] = settings.position
+        self.position: list[float] = [settings.position_x, settings.position_y]
 
         self.theta: float  = np.deg2rad(settings.theta) # degrees -> rad
         self.source_distance: float = settings.source_distance
         self.final_width: float = settings.final_width
 
-        self.tilt: list[float] = settings.tilt
+        self.tilt: list[float] = [settings.tilt_x, settings.tilt_y]
 
         self.output_medium = Medium(1.33)
         self.lens_type = settings.lens_type
@@ -301,10 +303,12 @@ def load_beam_config(config: dict) -> BeamSettings:
         beam_shape=BeamShape[config["beam_shape"]],
         width=config["width"],
         height= config["height"],
-        position=config["position"],
+        position_x=config["position_x"],
+        position_y=config["position_y"],
         theta=config["theta"],
         numerical_aperture=config["numerical_aperture"],
-        tilt=config["tilt"],
+        tilt_x=config["tilt_x"],
+        tilt_y=config["tilt_y"],
         source_distance=config["source_distance"],
         final_width=config["final_width"],
         focal_multiple=config["focal_multiple"],

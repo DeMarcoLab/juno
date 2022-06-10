@@ -15,7 +15,6 @@ def beam_settings():
         beam_shape=BeamShape.Square,
         width= 10e-6,
         height= 5e-6,
-        position=[-0e-6, 0e-6],
         source_distance=10e-6
     )
 
