@@ -27,7 +27,7 @@ class Air(Medium):
 
 
 @dataclass
-class LithiumNiabate(Medium):
+class LithiumNiobate(Medium):
     refractive_index: float = 2.348
 
 
