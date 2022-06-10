@@ -398,6 +398,9 @@ def load_simulation_data(path):
     df_join["started"] = metadata["started"]
     df_join["finished"] = metadata["finished"]
 
+
+    df_join["lens"] = df_join["lens"].astype(str)
+
     return df_join
 
 
