@@ -32,6 +32,7 @@ def _validate_default_lens_config(lens_config: dict) -> dict:
     lens_config["aperture"] = None if "aperture" not in lens_config else lens_config["aperture"]
     lens_config["escape_path"] = None if "escape_path" not in lens_config else lens_config["escape_path"]
     lens_config["lens_type"] = "Spherical" if "lens_type" not in lens_config else lens_config["lens_type"].title()
+    lens_config["inverted"] = False if "inverted" not in lens_config else lens_config["inverted"]
 
 
     # validate lens modifications

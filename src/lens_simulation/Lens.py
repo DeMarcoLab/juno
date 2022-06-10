@@ -25,6 +25,8 @@ class LensType(Enum):
     Cylindrical = 1
     Spherical = 2
 
+# @dataclass
+# class LensSettings:
 
 class Lens:
     def __init__(
@@ -575,6 +577,9 @@ def generate_lens(lens_config: dict, medium: Medium, parameters) -> Lens:
 
 def apply_modifications(lens: Lens, lens_config: dict, parameters) -> Lens:
     """Apply all lens modifications defined in config"""
+
+    if lens_config["inverted"] is True:
+        lens.invert_profile()
 
     if lens_config["escape_path"] is not None:
         lens.create_escape_path(parameters, lens_config["escape_path"])
