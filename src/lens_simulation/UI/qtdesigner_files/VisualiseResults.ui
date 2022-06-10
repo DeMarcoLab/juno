@@ -19,8 +19,8 @@
      <rect>
       <x>9</x>
       <y>9</y>
-      <width>1921</width>
-      <height>991</height>
+      <width>1951</width>
+      <height>1001</height>
      </rect>
     </property>
     <property name="frameShape">
@@ -49,8 +49,8 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>1600</width>
-             <height>949</height>
+             <width>1603</width>
+             <height>959</height>
             </rect>
            </property>
           </widget>
@@ -74,15 +74,12 @@
         <enum>QFrame::Raised</enum>
        </property>
        <layout class="QGridLayout" name="gridLayout_2">
-        <item row="5" column="0">
-         <widget class="QLabel" name="label_metadata">
+        <item row="4" column="0">
+         <widget class="QLabel" name="label_filter_title">
           <property name="text">
-           <string>metadata</string>
+           <string>Filter Results</string>
           </property>
          </widget>
-        </item>
-        <item row="4" column="0">
-         <widget class="QComboBox" name="comboBox_select_simulation"/>
         </item>
         <item row="1" column="0">
          <widget class="QLabel" name="label_sim_run_name">
@@ -105,10 +102,10 @@
           </property>
          </widget>
         </item>
-        <item row="3" column="0">
-         <widget class="QLabel" name="label_select_simulation">
+        <item row="2" column="0">
+         <widget class="QPushButton" name="pushButton_load_simulation">
           <property name="text">
-           <string>Select a simulation</string>
+           <string>Load Simulation</string>
           </property>
          </widget>
         </item>
@@ -125,10 +122,75 @@
           </property>
          </spacer>
         </item>
-        <item row="2" column="0">
-         <widget class="QPushButton" name="pushButton_load_simulation">
+        <item row="5" column="0">
+         <widget class="QTabWidget" name="tabWidget">
+          <property name="currentIndex">
+           <number>0</number>
+          </property>
+          <widget class="QWidget" name="tab">
+           <attribute name="title">
+            <string>Tab 1</string>
+           </attribute>
+           <widget class="QFrame" name="frame">
+            <property name="geometry">
+             <rect>
+              <x>0</x>
+              <y>0</y>
+              <width>271</width>
+              <height>221</height>
+             </rect>
+            </property>
+            <property name="frameShape">
+             <enum>QFrame::StyledPanel</enum>
+            </property>
+            <property name="frameShadow">
+             <enum>QFrame::Raised</enum>
+            </property>
+            <layout class="QGridLayout" name="gridLayout_4">
+             <item row="0" column="1">
+              <widget class="QDoubleSpinBox" name="doubleSpinBox"/>
+             </item>
+             <item row="0" column="0">
+              <widget class="QLabel" name="label">
+               <property name="text">
+                <string>Stage</string>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="1">
+              <widget class="QDoubleSpinBox" name="doubleSpinBox_2"/>
+             </item>
+             <item row="1" column="0">
+              <widget class="QLabel" name="label_2">
+               <property name="text">
+                <string>TextLabel</string>
+               </property>
+              </widget>
+             </item>
+             <item row="2" column="0">
+              <widget class="QLabel" name="label_3">
+               <property name="text">
+                <string>TextLabel</string>
+               </property>
+              </widget>
+             </item>
+             <item row="2" column="1">
+              <widget class="QDoubleSpinBox" name="doubleSpinBox_3"/>
+             </item>
+            </layout>
+           </widget>
+          </widget>
+          <widget class="QWidget" name="tab_2">
+           <attribute name="title">
+            <string>Tab 2</string>
+           </attribute>
+          </widget>
+         </widget>
+        </item>
+        <item row="3" column="0">
+         <widget class="QLabel" name="label_sim_no_loaded">
           <property name="text">
-           <string>Load Simulation</string>
+           <string/>
           </property>
          </widget>
         </item>

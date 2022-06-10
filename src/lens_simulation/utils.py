@@ -5,6 +5,7 @@ import logging
 import datetime
 import time
 
+import pandas as pd
 import plotly.express as px
 import os
 import json
@@ -156,7 +157,7 @@ def plot_array_2D(array: np.ndarray, title="", facecolor="#ffffff", tickstyle="s
     axes.locator_params(nbins=4)
 
     # reposition scientific notation on x axis
-    if tickstyle is not "plain":
+    if tickstyle != "plain":
         x_ext = axes.xaxis.get_offset_text()
         x_ext.set_x(1.2)
 
@@ -356,6 +357,73 @@ def load_simulation_config(config_filename: str = "config.yaml") -> dict:
 
     return config
 
+
+
+def load_simulation_data(path):
+    """Load all simulation metadata into a single dataframe"""
+    metadata = load_metadata(path)
+
+    # individual stage metadata
+    df_stages = pd.DataFrame.from_dict(metadata["stages"])
+    df_stages["stage"] = df_stages.index + 1
+
+    df_lens = pd.DataFrame.from_dict(metadata["lenses"])
+    df_lens = df_lens.rename(columns={"name": "lens"})
+
+    # TODO: remove
+    df_medium = pd.DataFrame.from_dict(metadata["mediums"])
+    df_medium = df_medium.rename(columns={"name": "medium"})
+
+    # common metadata
+    df_beam = pd.DataFrame.from_dict([metadata["beam"]])
+    df_beam = df_beam.add_prefix("beam_")
+    df_parameters = pd.DataFrame.from_dict([metadata["sim_parameters"]])
+    df_options = pd.DataFrame.from_dict([metadata["options"]])
+    df_common = pd.concat([df_beam, df_parameters, df_options], axis=1)
+    df_common["petname"] = metadata["petname"]
+
+
+    # join dataframes
+    df_join = pd.merge(df_stages, df_lens, on="lens")
+    df_join["petname"] = metadata["petname"]
+    df_join = pd.merge(df_join, df_common, on="petname")
+
+
+    # common parameters
+    df_join["sim_id"] = metadata["sim_id"]
+    df_join["run_id"] = metadata["run_id"]
+    df_join["run_petname"] = metadata["run_petname"]
+    df_join["log_dir"] = metadata["log_dir"]
+    df_join["path"] = os.path.join(metadata["log_dir"], metadata["petname"])
+    df_join["started"] = metadata["started"]
+    df_join["finished"] = metadata["finished"]
+
+    return df_join
+
+
+def load_run_simulation_data(directory):
+    """Join all simulations metadata into a single dataframe
+
+    Args:
+        directory (_type_): _description_
+    """
+    sim_directories = [os.path.join(directory, path) for path in os.listdir(directory) if os.path.isdir(os.path.join(directory, path))] 
+
+    df = pd.DataFrame() 
+
+    for path in sim_directories:
+
+        df_join = load_simulation_data(path)
+
+        df = pd.concat([df, df_join],ignore_index=True).reset_index()
+
+    return df
+
+
+
+
+
+################
 
 def _calculate_num_of_pixels(width: float, pixel_size: float, odd: bool = True) -> int:
     """Calculate the number of pixels for a given width and pixel size
