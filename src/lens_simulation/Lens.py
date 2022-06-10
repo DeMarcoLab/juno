@@ -557,7 +557,8 @@ def generate_lens(lens_config: dict, medium: Medium, parameters) -> Lens:
 
     # load a custom lens profile
     if lens_config["custom"]:
-        lens.load_profile(fname=lens_config["custom"])
+        lens.load_profile(fname=lens_config["custom"],
+        pixel_size=parameters.pixel_size)
 
     # generate the profile from the configuration
     else:
