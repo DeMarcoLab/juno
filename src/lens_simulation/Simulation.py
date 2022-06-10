@@ -239,26 +239,9 @@ def generate_lenses(lenses: list, simulation_mediums: dict, parameters: Simulati
             raise ValueError("Lens Medium not found in simulation mediums")
 
         # generate lens from config
-        lens = generate_lens(lens_config=lens_config, medium=simulation_mediums[lens_config["medium"]])
-
-        # check lens fits in the simulation
-        if lens.diameter > parameters.sim_width or lens.diameter > parameters.sim_height:
-            raise ValueError(
-                f"Lens diameter must be smaller than the simulation size: lens: {lens.diameter:.2e}m, sim: {parameters.sim_width:.2e}mx{parameters.sim_height:.2e}m"
-            )
-
-        # load a custom lens profile
-        if lens_config["custom"]:
-            lens.load_profile(fname=lens_config["custom"])
-
-        # generate the profile from the configuration
-        else:
-            lens.generate_profile(
-                pixel_size=parameters.pixel_size,
-                length=lens_config["length"]
-            )
-
-        lens = apply_modifications(lens, lens_config, parameters)
+        lens = generate_lens(lens_config=lens_config, 
+                        medium=simulation_mediums[lens_config["medium"]], 
+                        parameters=parameters)
 
         simulation_lenses[lens_config["name"]] = lens
 
@@ -662,6 +645,13 @@ def save_result_plots(
 
         fig = utils.plot_lens_profile_slices(result.lens)
         utils.save_figure(fig, fname=os.path.join(save_path, "lens_slices.png"))
+
+    # save propagation gifs
+    try:
+        utils.save_propagation_gif(save_path)
+        utils.save_propagation_slices_gif(save_path)
+    except:
+        pass
 
 def invert_lens_and_output_medium(stage: SimulationStage, previous_stage: SimulationStage, parameters: SimulationParameters) -> SimulationStage:
     """Invert the lens profile, and swap the stage and lens mediums to create an 'inverse' lens

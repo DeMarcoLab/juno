@@ -138,7 +138,7 @@ def plot_lens_profile_2D(lens: Lens, title="", facecolor="#ffffff", tickstyle="s
         aperture = np.ma.array(lens.aperture, mask=[lens.aperture == 0])
         axes.contourf(aperture, hatches=["x"], extent=extent, cmap="gray")
 
-    return fig
+    return fig  
 
 
 def plot_array_2D(array: np.ndarray, title="", facecolor="#ffffff", tickstyle="sci", cmap=None, extent=None, colorbar_ticks=None):
