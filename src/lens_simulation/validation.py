@@ -32,6 +32,7 @@ def _validate_default_lens_config(lens_config: dict) -> dict:
     lens_config["aperture"] = None if "aperture" not in lens_config else lens_config["aperture"]
     lens_config["escape_path"] = None if "escape_path" not in lens_config else lens_config["escape_path"]
     lens_config["lens_type"] = "Spherical" if "lens_type" not in lens_config else lens_config["lens_type"].title()
+    lens_config["inverted"] = False if "inverted" not in lens_config else lens_config["inverted"]
 
 
     # validate lens modifications
@@ -45,6 +46,8 @@ def _validate_default_lens_config(lens_config: dict) -> dict:
 
 
 def _validate_default_lens_modification_config(config: dict) -> dict:
+
+    # not providing defaults, checking types
 
     if config["grating"] is not None:
         if "width" not in config["grating"]:
@@ -60,6 +63,14 @@ def _validate_default_lens_modification_config(config: dict) -> dict:
         if "centred" not in config["grating"]:
             raise ValueError(f"Lens grating config requires centred. None provided.")
 
+        # type validation                         
+        config["grating"]["width"] = float(config["grating"]["width"])
+        config["grating"]["distance"] = float(config["grating"]["distance"])
+        config["grating"]["depth"] = float(config["grating"]["depth"])
+        config["grating"]["x"] = bool(config["grating"]["x"])
+        config["grating"]["y"] = bool(config["grating"]["y"])
+        config["grating"]["centred"] = bool(config["grating"]["centred"])
+
     if config["truncation"] is not None:
         if "height" not in config["truncation"]:
             raise ValueError(f"Lens truncation config requires height. None provided.")
@@ -70,6 +81,12 @@ def _validate_default_lens_modification_config(config: dict) -> dict:
         if "aperture" not in config["truncation"]:
             raise ValueError(f"Lens truncation config requires aperture. None provided.")
 
+        # type validation                         
+        config["truncation"]["height"] = float(config["truncation"]["height"])
+        config["truncation"]["radius"] = float(config["truncation"]["radius"])
+        config["truncation"]["type"] = str(config["truncation"]["type"])
+        config["truncation"]["aperture"] = bool(config["truncation"]["aperture"])
+
     if config["aperture"] is not None:
         if "inner" not in config["aperture"]:
             raise ValueError(f"Lens aperture config requires inner. None provided.")
@@ -79,6 +96,12 @@ def _validate_default_lens_modification_config(config: dict) -> dict:
             raise ValueError(f"Lens aperture config requires type. None provided.")
         if "invert" not in config["aperture"]:
             raise ValueError(f"Lens aperture config requires invert. None provided.")
+
+        # type validation                         
+        config["aperture"]["inner"] = float(config["aperture"]["inner"])
+        config["aperture"]["outer"] = float(config["aperture"]["outer"])
+        config["aperture"]["type"] = str(config["aperture"]["type"])
+        config["aperture"]["invert"] = bool(config["aperture"]["invert"])
 
     return config
 
