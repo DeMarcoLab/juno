@@ -42,10 +42,6 @@ class GUILensCreator(LensCreator.Ui_LensCreator, QtWidgets.QMainWindow):
         self.create_initial_lens_dict()
         self.create_base_lens()
         self.update_UI()
-        # self.update_general_UI()
-        # self.update_grating_UI()
-        # self.update_truncation_UI()
-        # self.update_aperture_UI()
         self.generate_profile()
 
         self.center_window()
@@ -82,6 +78,7 @@ class GUILensCreator(LensCreator.Ui_LensCreator, QtWidgets.QMainWindow):
             if value.__class__ is QtWidgets.QTabWidget
         ]
 
+        # this removes the live update checkbox triggering live_update_profile
         self.checkBox_LiveUpdate.toggled.disconnect()
 
     ### Generation methods ###
@@ -155,25 +152,25 @@ class GUILensCreator(LensCreator.Ui_LensCreator, QtWidgets.QMainWindow):
         self.lens_dict["inverted"] = False
         self.lens_dict["escape_path"] = None
 
-        # self.lens_dict["grating"] = dict()
-        # self.lens_dict["grating"]["x"] = True
-        # self.lens_dict["grating"]["y"] = False
-        # self.lens_dict["grating"]["width"] = 1.e-6
-        # self.lens_dict["grating"]["distance"] = 2.e-6
-        # self.lens_dict["grating"]["depth"] = 3.e-6
-        # self.lens_dict["grating"]["centered"] = True
+        self.lens_dict["grating"] = dict()
+        self.lens_dict["grating"]["x"] = True
+        self.lens_dict["grating"]["y"] = False
+        self.lens_dict["grating"]["width"] = 1.e-6
+        self.lens_dict["grating"]["distance"] = 2.e-6
+        self.lens_dict["grating"]["depth"] = 3.e-6
+        self.lens_dict["grating"]["centred"] = True
 
-        # self.lens_dict["truncation"] = dict()
-        # self.lens_dict["truncation"]["height"] = 3.e-6
-        # self.lens_dict["truncation"]["radius"] = 50.e-6
-        # self.lens_dict["truncation"]["type"] = "radial"
-        # self.lens_dict["truncation"]["aperture"] = False
+        self.lens_dict["truncation"] = dict()
+        self.lens_dict["truncation"]["height"] = 9.e-6
+        self.lens_dict["truncation"]["radius"] = 19.e-6
+        self.lens_dict["truncation"]["type"] = "height"
+        self.lens_dict["truncation"]["aperture"] = False
 
-        # self.lens_dict["aperture"] = dict()
-        # self.lens_dict["aperture"]["inner"] = 20.e-6
-        # self.lens_dict["aperture"]["outer"] = 40.e-6
-        # self.lens_dict["aperture"]["type"] = "radial"
-        # self.lens_dict["aperture"]["invert"] = False
+        self.lens_dict["aperture"] = dict()
+        self.lens_dict["aperture"]["inner"] = 20.e-6
+        self.lens_dict["aperture"]["outer"] = 40.e-6
+        self.lens_dict["aperture"]["type"] = "radial"
+        self.lens_dict["aperture"]["invert"] = False
 
         return
 
@@ -260,7 +257,7 @@ class GUILensCreator(LensCreator.Ui_LensCreator, QtWidgets.QMainWindow):
         # TODO: change to 2 checkboxes
         self.checkBox_GratingDirectionX.setChecked(self.lens_dict["grating"]["x"])
         self.checkBox_GratingDirectionY.setChecked(self.lens_dict["grating"]["y"])
-        self.checkBox_GratingCentered.setChecked(self.lens_dict["grating"]["centered"])
+        self.checkBox_GratingCentred.setChecked(self.lens_dict["grating"]["centred"])
 
     def load_grating_UI(self):
         # UI -> Config | Grating Settings #
@@ -280,8 +277,8 @@ class GUILensCreator(LensCreator.Ui_LensCreator, QtWidgets.QMainWindow):
             self.doubleSpinBox_GratingDepth.value() * self.units
         )
         self.lens_dict["grating"][
-            "centered"
-        ] = self.checkBox_GratingCentered.isChecked()
+            "centred"
+        ] = self.checkBox_GratingCentred.isChecked()
 
     def update_truncation_UI(self):
         # Config -> UI | Truncation Settings #
@@ -534,13 +531,13 @@ class GUILensCreator(LensCreator.Ui_LensCreator, QtWidgets.QMainWindow):
 
     def update_masks(self):
         """Helper function for generate_profile"""
-        if self.groupBox_Gratings.isChecked():
+        if self.lens_dict["grating"] is not None:
             self.update_grating_mask()
 
-        if self.groupBox_Truncation.isChecked():
+        if self.lens_dict["truncation"] is not None:
             self.update_truncation_mask()
 
-        if self.groupBox_Aperture.isChecked():
+        if self.lens_dict["aperture"] is not None:
             self.update_custom_aperture_mask()
 
     def update_grating_mask(self):
@@ -562,8 +559,9 @@ class GUILensCreator(LensCreator.Ui_LensCreator, QtWidgets.QMainWindow):
             width=self.lens_dict["grating"]["width"],
             distance=self.lens_dict["grating"]["distance"],
             depth=self.lens_dict["grating"]["depth"],
-            axis=self.lens_dict["grating"]["axis"],
-            centred=self.lens_dict["grating"]["centered"],
+            #TODO: check if axis does anything, don't think it does
+            axis=5,
+            centred=self.lens_dict["grating"]["centred"],
         )
 
         try:
@@ -599,7 +597,7 @@ class GUILensCreator(LensCreator.Ui_LensCreator, QtWidgets.QMainWindow):
 
         try:
             self.lens.create_truncation_mask(
-                truncation_height=self.lens_dict["truncation"]["value"],
+                truncation_height=self.lens_dict["truncation"]["height"],
                 radius=self.lens_dict["truncation"]["radius"],
                 type=self.lens_dict["truncation"]["type"],
                 aperture=self.checkBox_TruncationAperture.isChecked(),
@@ -636,7 +634,8 @@ class GUILensCreator(LensCreator.Ui_LensCreator, QtWidgets.QMainWindow):
                 inner_m=self.lens_dict["aperture"]["inner"],
                 outer_m=self.lens_dict["aperture"]["outer"],
                 type=self.lens_dict["aperture"]["type"],
-                inverted=self.lens_dict["aperture"]["inverted"],
+                #TODO: make inverted standard
+                inverted=self.lens_dict["aperture"]["invert"],
             )
         except Exception as e:
             self.display_error_message(traceback.format_exc())
