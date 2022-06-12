@@ -44,7 +44,8 @@ class GUILensCreator(LensCreator.Ui_LensCreator, QtWidgets.QMainWindow):
         self.update_grating_UI()
         self.update_truncation_UI()
         self.update_aperture_UI()
-
+        self.pushButton_SaveProfile.clicked.connect(self.save_profile)
+        self.comboBox_Units.currentIndexChanged.connect(self.update_units)
         # self.generate_profile()
 
         self.center_window()
@@ -123,20 +124,20 @@ class GUILensCreator(LensCreator.Ui_LensCreator, QtWidgets.QMainWindow):
             lens_type=self.lens_type,
         )
 
-    ### I/O methods ###
-
-    def load_profile2(self):
-        filename, _ = QtWidgets.QFileDialog.getOpenFileName(
-            self,
-            "Load Profile",
-            filter="All types (*.yml *.yaml *.npy) ;;Yaml config (*.yml *.yaml) ;;Numpy array (*.npy)",
+    def create_base_lens(self):
+        # generate Lens object from self.lens_dict
+        # TODO: replace with generate_lens function
+        self.lens = Lens(
+            diameter=self.lens_dict["diameter"],
+            height=self.lens_dict["height"],
+            exponent=self.lens_dict["exponent"],
+            medium=self.lens_dict["medium"],
+            lens_type=self.lens_dict["lens_type"],
         )
-
-        if filename is "":
-            return
-
-        if filename.endswith(".npy"):
-            self.create_lens_dict(filename)
+        self.lens.generate_profile(
+            pixel_size=self.lens_dict["pixel_size"],
+            length=self.lens_dict["length"],
+        )
 
     def create_lens_dict(self, filename=None):
         self.lens_dict["name"] = "Lens"
@@ -154,43 +155,30 @@ class GUILensCreator(LensCreator.Ui_LensCreator, QtWidgets.QMainWindow):
         self.lens_dict["inverted"] = False
         self.lens_dict["escape_path"] = None
 
-        # self.lens_dict["grating"] = dict()
-        # self.lens_dict["grating"]["x"] = True
-        # self.lens_dict["grating"]["y"] = False
-        # self.lens_dict["grating"]["width"] = 1.e-6
-        # self.lens_dict["grating"]["distance"] = 2.e-6
-        # self.lens_dict["grating"]["depth"] = 3.e-6
-        # self.lens_dict["grating"]["centered"] = True
+        self.lens_dict["grating"] = dict()
+        self.lens_dict["grating"]["x"] = True
+        self.lens_dict["grating"]["y"] = False
+        self.lens_dict["grating"]["width"] = 1.e-6
+        self.lens_dict["grating"]["distance"] = 2.e-6
+        self.lens_dict["grating"]["depth"] = 3.e-6
+        self.lens_dict["grating"]["centered"] = True
 
-        # self.lens_dict["truncation"] = dict()
-        # self.lens_dict["truncation"]["height"] = 3.e-6
-        # self.lens_dict["truncation"]["radius"] = 50.e-6
-        # self.lens_dict["truncation"]["type"] = "radial"
-        # self.lens_dict["truncation"]["aperture"] = False
+        self.lens_dict["truncation"] = dict()
+        self.lens_dict["truncation"]["height"] = 3.e-6
+        self.lens_dict["truncation"]["radius"] = 50.e-6
+        self.lens_dict["truncation"]["type"] = "radial"
+        self.lens_dict["truncation"]["aperture"] = False
 
-        # self.lens_dict["aperture"] = dict()
-        # self.lens_dict["aperture"]["inner"] = 20.e-6
-        # self.lens_dict["aperture"]["outer"] = 40.e-6
-        # self.lens_dict["aperture"]["type"] = "radial"
-        # self.lens_dict["aperture"]["invert"] = False
+        self.lens_dict["aperture"] = dict()
+        self.lens_dict["aperture"]["inner"] = 20.e-6
+        self.lens_dict["aperture"]["outer"] = 40.e-6
+        self.lens_dict["aperture"]["type"] = "radial"
+        self.lens_dict["aperture"]["invert"] = False
 
-    def create_base_lens(self):
-        # generate Lens object from self.lens_dict
-        # TODO: replace with generate_lens function
-        self.lens = Lens(
-            diameter=self.lens_dict["diameter"],
-            height=self.lens_dict["height"],
-            exponent=self.lens_dict["exponent"],
-            medium=self.lens_dict["medium"],
-            lens_type=self.lens_dict["lens_type"],
-        )
-        self.lens.generate_profile(
-            pixel_size=self.lens_dict["pixel_size"],
-            length=self.lens_dict["length"],
-        )
+    ### UI <-> Config methods ###
 
     def update_general_UI(self):
-        # General settings #
+        # Config -> UI | General settings #
         self.lineEdit_LensName.setText(self.lens_dict["name"])
         self.doubleSpinBox_LensMedium.setValue(self.lens_dict["medium"])
         self.doubleSpinBox_LensExponent.setValue(self.lens_dict["exponent"])
@@ -208,8 +196,21 @@ class GUILensCreator(LensCreator.Ui_LensCreator, QtWidgets.QMainWindow):
         else:
             self.checkBox_InvertedProfile.setChecked(False)
 
+    def load_general_UI(self):
+        # UI -> Config | General settings #
+        self.lens_dict["name"] = self.lineEdit_LensName.text()
+        self.lens_dict["medium"] = self.doubleSpinBox_LensMedium.value()
+        self.lens_dict["exponent"] = self.doubleSpinBox_LensExponent.value()
+        self.lens_dict["diameter"] = self.format_float(self.doubleSpinBox_LensDiameter.value() * self.units)
+        self.lens_dict["lens_type"] = self.comboBox_LensType.currentText()
+        self.lens_dict["length"] = self.format_float(self.doubleSpinBox_LensLength.value() * self.units)
+        self.lens_dict["height"] = self.format_float(self.doubleSpinBox_LensLength.value() * self.units)
+        self.lens_dict["pixel_size"] = self.format_float(self.doubleSpinBox_PixelSize.value() * self.units)
+        self.lens_dict["escape_path"] = self.doubleSpinBox_LensEscapePath.value()
+        self.lens_dict["inverted"] = self.checkBox_InvertedProfile.isChecked()
+
     def update_grating_UI(self):
-        # Grating settings #
+        # Config -> UI | Grating settings #
         if self.lens_dict["grating"] is None:
             self.groupBox_Gratings.setChecked(False)
             return
@@ -224,8 +225,21 @@ class GUILensCreator(LensCreator.Ui_LensCreator, QtWidgets.QMainWindow):
         self.checkBox_GratingDirectionY.setChecked(self.lens_dict["grating"]["y"])
         self.checkBox_GratingCentered.setChecked(self.lens_dict["grating"]["centered"])
 
+    def load_grating_UI(self):
+        # UI -> Config | Grating Settings #
+        if not self.groupBox_Gratings.isChecked():
+            self.lens_dict["grating"] = None
+            return
+        self.lens_dict["grating"] = dict()
+        self.lens_dict["grating"]["x"] = self.checkBox_GratingDirectionX.isChecked()
+        self.lens_dict["grating"]["y"] = self.checkBox_GratingDirectionY.isChecked()
+        self.lens_dict["grating"]["width"] = self.format_float(self.doubleSpinBox_GratingWidth.value() * self.units)
+        self.lens_dict["grating"]["distance"] = self.format_float(self.doubleSpinBox_GratingDistance.value() * self.units)
+        self.lens_dict["grating"]["depth"] = self.format_float(self.doubleSpinBox_GratingDepth.value() * self.units)
+        self.lens_dict["grating"]["centered"] = self.checkBox_GratingCentered.isChecked()
+
     def update_truncation_UI(self):
-        # Truncation settings #
+        # Config -> UI | Truncation Settings #
         if self.lens_dict["truncation"] is None:
             self.groupBox_Truncation.setChecked(False)
             return
@@ -241,7 +255,22 @@ class GUILensCreator(LensCreator.Ui_LensCreator, QtWidgets.QMainWindow):
 
         self.checkBox_TruncationAperture.setChecked(self.lens_dict["truncation"]["aperture"])
 
+    def load_truncation_UI(self):
+        # UI -> Config | Truncation Settings #
+        if not self.groupBox_Truncation.isChecked():
+            self.lens_dict["truncation"] = None
+            return
+        self.lens_dict["truncation"] = dict()
+        self.lens_dict["truncation"]["height"] = self.format_float(self.doubleSpinBox_TruncationValue.value() * self.units)
+        self.lens_dict["truncation"]["radius"] = self.format_float(self.doubleSpinBox_TruncationRadius.value() * self.units)
+        self.lens_dict["truncation"]["aperture"] = self.checkBox_TruncationAperture.isChecked()
+        if self.comboBox_TruncationMode.currentText() == "Radius":
+            self.lens_dict["truncation"]["type"] = "radial"
+        else:
+            self.lens_dict["truncation"]["type"] = "value"
+
     def update_aperture_UI(self):
+        # Config -> UI | Aperture settings #
         if self.lens_dict["aperture"] is None:
             self.groupBox_Aperture.setChecked(False)
             return
@@ -257,12 +286,38 @@ class GUILensCreator(LensCreator.Ui_LensCreator, QtWidgets.QMainWindow):
         self.doubleSpinBox_ApertureInner.setValue(self.lens_dict["aperture"]["inner"])
         self.doubleSpinBox_ApertureOuter.setValue(self.lens_dict["aperture"]["outer"])
 
+    def load_aperture_UI(self):
+        # UI -> Config | Aperture Settings #
+        if not self.groupBox_Aperture.isChecked():
+            self.lens_dict["aperture"] = None
+            return
+        self.lens_dict["aperture"] = dict()
+        self.lens_dict["aperture"]["inner"] = self.format_float(self.doubleSpinBox_ApertureInner.value() * self.units)
+        self.lens_dict["aperture"]["outer"] = self.format_float(self.doubleSpinBox_ApertureOuter.value() * self.units)
+        self.lens_dict["aperture"]["invert"] = self.checkBox_ApertureInverted.isChecked()
+        if self.comboBox_ApertureMode.currentText() == "Circle":
+            self.lens_dict["aperture"]["type"] = "radial"
+        else:
+            self.lens_dict["aperture"]["type"] = "square"
 
+    def format_float(self, num):
+        # np format_float_scientific() might be the same?
+        return float(f'{num:4e}')
 
+    ### I/O methods ###
 
+    def load_profile2(self):
+        filename, _ = QtWidgets.QFileDialog.getOpenFileName(
+            self,
+            "Load Profile",
+            filter="All types (*.yml *.yaml *.npy) ;;Yaml config (*.yml *.yaml) ;;Numpy array (*.npy)",
+        )
 
+        if filename is "":
+            return
 
-
+        if filename.endswith(".npy"):
+            self.create_lens_dict(filename)
 
     def load_profile(self):
         """Loads a custom lens profile (numpy.ndarray) through Qt's file opening system"""
@@ -327,20 +382,17 @@ class GUILensCreator(LensCreator.Ui_LensCreator, QtWidgets.QMainWindow):
         else:
             return
 
+    def save_profile(self):
+        self.load_aperture_UI()
+        self.load_truncation_UI()
+        self.load_general_UI()
+        self.load_grating_UI()
+        print(self.lens_dict)
+
     ### Update methods ###
 
-    def live_update_profile(self):
-        if self.checkBox_LiveUpdate.isChecked():
-            try:
-                self.checkBox_LiveUpdate.setChecked(False)
-                self.generate_profile()
-                self.checkBox_LiveUpdate.setChecked(True)
-            except Exception as e:
-                self.display_error_message(traceback.format_exc())
-
-    # def update_UI_parameters(self):
-
     def update_profile_parameters(self):
+        """Helper function for generate_profile"""
         # read lens type so that we can generate the profile
         self.lens_type = lens_type_dict[self.comboBox_LensType.currentText()]
         self.pixel_size = self.doubleSpinBox_PixelSize.value() * self.units
@@ -355,6 +407,7 @@ class GUILensCreator(LensCreator.Ui_LensCreator, QtWidgets.QMainWindow):
             self.lens_length = self.doubleSpinBox_LensLength.value() * self.units
 
     def update_masks(self):
+        """Helper function for generate_profile"""
         if self.groupBox_Gratings.isChecked():
             self.update_grating_mask()
 
@@ -534,7 +587,7 @@ class GUILensCreator(LensCreator.Ui_LensCreator, QtWidgets.QMainWindow):
         )
 
     def update_frame(self, label, pc, image, ndim, mask):
-        """Helper function to update individual image frame"""
+        """Helper function for update_image_frames"""
         if label.layout() is None:
             label.setLayout(QtWidgets.QVBoxLayout())
         if pc is not None:
@@ -548,6 +601,18 @@ class GUILensCreator(LensCreator.Ui_LensCreator, QtWidgets.QMainWindow):
         label.layout().addWidget(pc)
 
         return pc
+
+    def update_units(self):
+        self.units = units_dict[self.comboBox_Units.currentIndex()]
+
+    def live_update_profile(self):
+        if self.checkBox_LiveUpdate.isChecked():
+            try:
+                self.checkBox_LiveUpdate.setChecked(False)
+                self.generate_profile()
+                self.checkBox_LiveUpdate.setChecked(True)
+            except Exception as e:
+                self.display_error_message(traceback.format_exc())
 
     ### Window methods ###
 
