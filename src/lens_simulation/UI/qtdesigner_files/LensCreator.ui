@@ -869,7 +869,7 @@
                   </widget>
                  </item>
                  <item>
-                  <widget class="QFrame" name="frame_InvertedProfile_2">
+                  <widget class="QFrame" name="frame_LensEscapePath">
                    <property name="enabled">
                     <bool>true</bool>
                    </property>
@@ -1208,7 +1208,7 @@
                   </widget>
                  </item>
                  <item>
-                  <widget class="QFrame" name="frame_GratingCentered">
+                  <widget class="QFrame" name="frame_GratingCentred">
                    <property name="enabled">
                     <bool>true</bool>
                    </property>
@@ -1226,19 +1226,19 @@
                    </property>
                    <layout class="QHBoxLayout" name="horizontalLayout_12">
                     <item>
-                     <widget class="QLabel" name="label_GratingCentered">
+                     <widget class="QLabel" name="label_GratingCentred">
                       <property name="text">
-                       <string>Grating Centered</string>
+                       <string>Grating Centred</string>
                       </property>
                      </widget>
                     </item>
                     <item>
-                     <widget class="QCheckBox" name="checkBox_GratingCentered">
+                     <widget class="QCheckBox" name="checkBox_GratingCentred">
                       <property name="enabled">
                        <bool>true</bool>
                       </property>
                       <property name="text">
-                       <string>Centered</string>
+                       <string>Centred</string>
                       </property>
                       <property name="checked">
                        <bool>true</bool>
