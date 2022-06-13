@@ -116,8 +116,8 @@ def _validate_default_beam_config(config: dict) -> dict:
 
     # default settings
     config["distance_mode"] = config["distance_mode"].title() if "distance_mode" in config else "Direct"
-    config["beam_spread"] = config["beam_spread"].title() if "beam_spread" in config else "Plane"
-    config["beam_shape"] = config["beam_shape"].title() if "beam_shape" in config else "Square"
+    config["spread"] = config["spread"].title() if "spread" in config else "Plane"
+    config["shape"] = config["shape"].title() if "shape" in config else "Square"
 
 
     config["position_x"] = config["position_x"] if "position_x" in config else 0.0
@@ -133,16 +133,6 @@ def _validate_default_beam_config(config: dict) -> dict:
     config["lens_type"] = config["lens_type"].title() if "lens_type" in config else "Spherical"
 
     return config
-
-# def _validate_default_medium_config(medium_config: dict) -> dict:
-
-#     if "name" not in medium_config:
-#         raise ValueError(f"Medium config requires name. None provided.")
-    
-#     if "refractive_index" not in medium_config:
-#         raise ValueError(f"Medium config requires refractive_index. None provided.")
-
-#     return medium_config
 
 def _validate_simulation_stage_list(stages: list, simulation_lenses: dict) -> None:
     """Validate that all lenses and mediums have been defined, and all simulation stages have been

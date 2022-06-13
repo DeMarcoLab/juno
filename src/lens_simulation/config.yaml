@@ -12,8 +12,8 @@ options:
   # debug: false
 beam:
   # distance_mode: "direct"   # "Direct", "Width", "Focal"
-  # beam_spread: "plane"      # "Plane", "Converging", "Diverging"
-  # beam_shape: "square"      # "Square", "Circular", "Rectangular"
+  # spread: "plane"      # "Plane", "Converging", "Diverging"
+  # shape: "square"      # "Square", "Circular", "Rectangular"
   width: 300.e-6
   height: 50.e-6
   position_x: 50.e-6

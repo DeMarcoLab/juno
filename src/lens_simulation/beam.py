@@ -299,8 +299,8 @@ def load_beam_config(config: dict) -> BeamSettings:
 
     beam_settings = BeamSettings(
         distance_mode=DistanceMode[config["distance_mode"]],
-        beam_spread=BeamSpread[config["beam_spread"]], 
-        beam_shape=BeamShape[config["beam_shape"]],
+        beam_spread=BeamSpread[config["spread"]], 
+        beam_shape=BeamShape[config["shape"]],
         width=config["width"],
         height= config["height"],
         position_x=config["position_x"],
