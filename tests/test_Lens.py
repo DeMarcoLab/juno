@@ -182,7 +182,7 @@ def test_truncation_by_radius(spherical_lens):
     lens.create_truncation_mask(radius=truncation_radius, type="radial")
     lens.apply_masks(truncation=True)
 
-    assert np.isclose(np.max(lens.profile), 15.e-6, atol=0.25e-6), "Maximum value should be 15e-6"
+    assert np.isclose(np.max(lens.profile), 15.e-6, atol=0.5e-6), "Maximum value should be 15e-6"
 
 
 # def test_aperture(spherical_lens):

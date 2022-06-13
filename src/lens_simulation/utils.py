@@ -363,16 +363,14 @@ def load_simulation_data(path):
     """Load all simulation metadata into a single dataframe"""
     metadata = load_metadata(path)
 
+    # QUERY: add prefix for lens_ and stage_ ? might need to adjust config
+
     # individual stage metadata
     df_stages = pd.DataFrame.from_dict(metadata["stages"])
     df_stages["stage"] = df_stages.index + 1
 
     df_lens = pd.DataFrame.from_dict(metadata["lenses"])
     df_lens = df_lens.rename(columns={"name": "lens"})
-
-    # TODO: remove
-    df_medium = pd.DataFrame.from_dict(metadata["mediums"])
-    df_medium = df_medium.rename(columns={"name": "medium"})
 
     # common metadata
     df_beam = pd.DataFrame.from_dict([metadata["beam"]])

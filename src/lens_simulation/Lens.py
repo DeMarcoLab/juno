@@ -1,3 +1,4 @@
+from cmath import exp
 from dataclasses import dataclass
 
 import numpy as np
@@ -25,12 +26,18 @@ class LensType(Enum):
     Cylindrical = 1
     Spherical = 2
 
-# @dataclass
-# class LensSettings:
+@dataclass
+class LensSettings:
+    diameter: float
+    height: float
+    exponent: float
+    medium: Medium
+    lens_type: LensType = LensType.Spherical
+    length: float = None
 
 class Lens:
     def __init__(
-        self, diameter: float, height: float, exponent: float, medium: Medium = Medium(), lens_type: LensType = LensType.Spherical
+        self, diameter: float, height: float, exponent: float, medium: Medium = Medium(), lens_type: LensType = LensType.Spherical, settings: LensSettings = None
     ) -> None:
 
         # lens properties
@@ -40,6 +47,14 @@ class Lens:
         self.medium = medium
         self.length = diameter
         self.lens_type = lens_type
+
+        # lens properties (TODO: change over)
+        # self.diameter = settings.diameter
+        # self.height = settings.height
+        # self.exponent = settings.exponent
+        # self.medium = settings.medium
+        # self.length = settings.diameter
+        # self.lens_type = settings.lens_type
 
         # lens profile
         self.profile = None
@@ -541,6 +556,16 @@ def generate_lens(lens_config: dict, medium: Medium, pixel_size: float) -> Lens:
 
     lens_config = validation._validate_default_lens_config(lens_config)
 
+    # TODO: change over
+    lens_settings = LensSettings(
+        diameter=lens_config["diameter"],
+        height=lens_config["height"],
+        exponent=lens_config["exponent"],
+        medium=medium,
+        lens_type=LensType[lens_config["lens_type"]]
+    )
+
+
     lens = Lens(diameter=lens_config["diameter"],
                 height=lens_config["height"],
                 exponent=lens_config["exponent"],
@@ -550,8 +575,9 @@ def generate_lens(lens_config: dict, medium: Medium, pixel_size: float) -> Lens:
 
     # load a custom lens profile
     if lens_config["custom"]:
-        lens.load_profile(fname=lens_config["custom"],
-        pixel_size=pixel_size)
+        lens.load_profile(
+            fname=lens_config["custom"],
+            pixel_size=pixel_size)
 
     # generate the profile from the configuration
     else:
