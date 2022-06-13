@@ -11,7 +11,7 @@ from scipy import fftpack
 from tqdm import tqdm
 
 from lens_simulation import utils
-from lens_simulation.Lens import Lens, LensType, GratingSettings
+from lens_simulation.Lens import Lens, LensType, GratingSettings, generate_lens
 from lens_simulation.Medium import Medium
 from lens_simulation.structures import (
     SimulationOptions,
@@ -75,17 +75,14 @@ class Simulation:
 
     def setup_simulation(self, config: dict):
 
-        # generate all mediums for simulation
-        simulation_mediums = generate_mediums(config["mediums"])
-
         # generate all lenses for the simulations
-        simulation_lenses = generate_lenses(config["lenses"], simulation_mediums, self.parameters)
+        simulation_lenses = generate_lenses(config["lenses"], self.parameters)
 
         # validate sim, lens and medium setup 
-        stages_config = validation._validate_simulation_stage_list(config["stages"], simulation_mediums, simulation_lenses)
+        stages_config = validation._validate_simulation_stage_list(config["stages"], simulation_lenses)
 
         # generate all simulation stages
-        self.sim_stages = generate_simulation_stages(stages_config, simulation_mediums, simulation_lenses, config, self.parameters)
+        self.sim_stages = generate_simulation_stages(stages_config, simulation_lenses, config, self.parameters)
 
     def run_simulation(self):
         """Run the simulation propagation over all simulation stages."""
@@ -137,7 +134,7 @@ class Simulation:
         config["finished"] = utils.current_timestamp()
         utils.save_metadata(config, options.log_dir)
 
-def generate_simulation_stages(stages: list, simulation_mediums: dict, simulation_lenses: dict, config: dict, parameters: SimulationParameters) -> list:
+def generate_simulation_stages(stages: list, simulation_lenses: dict, config: dict, parameters: SimulationParameters) -> list:
     """Generate the list of simulation stages
 
     Args:
@@ -178,7 +175,7 @@ def generate_simulation_stages(stages: list, simulation_mediums: dict, simulatio
         
         sim_stage = SimulationStage(
             lens=simulation_lenses[stage["lens"]],
-            output=simulation_mediums[stage["output"]],
+            output=Medium(stage["output"], parameters.sim_wavelength),
             n_slices=stage["n_slices"],
             step_size=stage["step_size"],
             start_distance=stage["start_distance"],
@@ -217,30 +214,18 @@ def calculate_start_and_finish_distance(stage: SimulationStage):
         
     return stage 
 
-def generate_mediums(mediums: list):
-    """Generate all the mediums for the simulation"""
-
-    simulation_mediums = {}
-    for med in mediums:
-
-        simulation_mediums[med["name"]] = Medium(med["refractive_index"])
-
-    return simulation_mediums
-
-def generate_lenses(lenses: list, simulation_mediums: dict, parameters: SimulationParameters):
+def generate_lenses(lenses: list, parameters: SimulationParameters):
     """Generate all the lenses for the simulation"""
-
-    from lens_simulation.Lens import generate_lens, test_escape_path_fits_inside_simulation  
     
     simulation_lenses = {}
     for lens_config in lenses:
 
-        if lens_config["medium"] not in simulation_mediums:
-            raise ValueError("Lens Medium not found in simulation mediums")
+        medium = Medium(refractive_index=lens_config["medium"], 
+                wavelength=parameters.sim_wavelength)
 
         # generate lens from config
         lens = generate_lens(lens_config=lens_config, 
-                        medium=simulation_mediums[lens_config["medium"]], 
+                        medium=medium, 
                         pixel_size=parameters.pixel_size)
 
         # check lens fits in the simulation

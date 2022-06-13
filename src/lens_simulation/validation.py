@@ -134,25 +134,23 @@ def _validate_default_beam_config(config: dict) -> dict:
 
     return config
 
-def _validate_default_medium_config(medium_config: dict) -> dict:
+# def _validate_default_medium_config(medium_config: dict) -> dict:
 
-    if "name" not in medium_config:
-        raise ValueError(f"Medium config requires name. None provided.")
+#     if "name" not in medium_config:
+#         raise ValueError(f"Medium config requires name. None provided.")
     
-    if "refractive_index" not in medium_config:
-        raise ValueError(f"Medium config requires refractive_index. None provided.")
+#     if "refractive_index" not in medium_config:
+#         raise ValueError(f"Medium config requires refractive_index. None provided.")
 
-    return medium_config
+#     return medium_config
 
-def _validate_simulation_stage_list(stages: list, simulation_mediums: dict, simulation_lenses: dict) -> None:
+def _validate_simulation_stage_list(stages: list, simulation_lenses: dict) -> None:
     """Validate that all lenses and mediums have been defined, and all simulation stages have been
     defined correctly.
     """
 
     for stage in stages:
         # validate all lens, mediums exist, 
-        if  stage["output"] not in simulation_mediums:
-            raise ValueError(f"{stage['output']} has not been defined in the configuration")
         if stage["lens"] not in simulation_lenses:
             raise ValueError(f"{stage['lens']} has not been defined in the configuration")
 
@@ -170,6 +168,9 @@ def _validate_default_simulation_stage_config(stage_config: dict) -> dict:
         raise ValueError(f"Stage config requires start_distance. None provided.")
     if "finish_distance" not in stage_config:
         raise ValueError(f"Stage config requires finish_distance. None provided.")
+    if "output" not in stage_config:
+        raise ValueError(f"Stage config requires output. None provided.")
+    
 
     # default settings
     stage_config["n_slices"] = None if "n_slices" not in stage_config else stage_config["n_slices"]
@@ -225,7 +226,6 @@ def _validate_simulation_config(config: dict):
     OPTIONS_KEY = "options"
     BEAM_KEY = "beam"
     LENS_KEY = "lenses"
-    MEDIUM_KEY = "mediums"
     STAGE_KEY = "stages"
 
     if SIM_PARAMETERS_KEY not in config:
@@ -248,12 +248,6 @@ def _validate_simulation_config(config: dict):
 
     for lens_config in config[LENS_KEY]:
         lens_config = _validate_default_lens_config(lens_config)
-
-    if MEDIUM_KEY not in config:
-        raise ValueError(f"Simulation config requires {MEDIUM_KEY}. Not provided.")
-
-    for medium_config in config[MEDIUM_KEY]:
-            _validate_default_medium_config(medium_config)
 
     if STAGE_KEY not in config:
         raise ValueError(f"Simulation config requires {STAGE_KEY}. Not provided.")

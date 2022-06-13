@@ -10,10 +10,10 @@ from enum import Enum
 # TODO: comparison not working for dataclass?
 @dataclass
 class Medium:
-    def __init__(self, refractive_index: float = 1.0) -> None:
+    def __init__(self, refractive_index: float = 1.0, wavelength: float = 488.e-9) -> None:
         self.refractive_index = refractive_index
-        self.wavelength_medium: float = 488e-9 / self.refractive_index
-        self.wave_number: float = 2 * np.pi / self.wavelength_medium
+        self.wavelength: float = wavelength / refractive_index
+        self.wave_number: float = 2 * np.pi / wavelength
 
 
 @dataclass

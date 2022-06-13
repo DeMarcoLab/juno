@@ -129,8 +129,7 @@ class SimulationRunner:
                     "log_dir": self.data_path, 
                     "sim_parameters": self.config["sim_parameters"],
                     "beam": self.config["beam"],
-                    "options": self.config["options"],
-                    "mediums": self.config["mediums"], 
+                    "options": self.config["options"], 
                     "lenses": lens_combination,
                     "stages": stage_combination
                 }
