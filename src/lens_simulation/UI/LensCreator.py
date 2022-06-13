@@ -97,6 +97,9 @@ class GUILensCreator(LensCreator.Ui_LensCreator, QtWidgets.QMainWindow):
         """Generates a profile based on the inputs to the GUI"""
         # generate the lens based off the parameters selected in GUI
         # TODO: move this?
+
+        # self.update_units()
+
         self.frame_TruncationAperture.setEnabled(
             self.lens_dict["truncation"] is not None
             and self.lens_dict["aperture"] is not None
@@ -213,7 +216,7 @@ class GUILensCreator(LensCreator.Ui_LensCreator, QtWidgets.QMainWindow):
             self.lens_dict["diameter"] / self.units
         )
         # set length to diameter for spherical lenses
-        if self.lens_dict["lens_type"] == LensType.Spherical:
+        if self.lens_dict["lens_type"] is LensType.Spherical:
             self.doubleSpinBox_LensLength.setValue(
                 self.lens_dict["diameter"] / self.units
             )
@@ -223,6 +226,8 @@ class GUILensCreator(LensCreator.Ui_LensCreator, QtWidgets.QMainWindow):
                 self.lens_dict["length"] / self.units
             )
             self.frame_LensLength.setEnabled(True)
+            self.doubleSpinBox_LensLength.setEnabled(True)
+            self.doubleSpinBox_LensLength.setValue(12)
 
         self.doubleSpinBox_LensHeight.setValue(self.lens_dict["height"] / self.units)
         if self.lens_dict["escape_path"] is not None:
@@ -729,7 +734,46 @@ class GUILensCreator(LensCreator.Ui_LensCreator, QtWidgets.QMainWindow):
         return pc
 
     def update_units(self):
+        old_units = self.units
+
         self.units = units_dict[self.comboBox_Units.currentIndex()]
+
+        unit_conversion = self.units/old_units
+
+        print(unit_conversion)
+
+        self.lens_dict["pixel_size"] *= unit_conversion
+        self.lens_dict["diameter"] *= unit_conversion
+        self.lens_dict["height"] *= unit_conversion
+        self.lens_dict["length"] *= unit_conversion
+
+        # self.doubleSpinBox_GratingWidth.setValue(self.doubleSpinBox_GratingWidth.value()*unit_conversion)
+        # self.doubleSpinBox_GratingDistance.setValue(self.doubleSpinBox_GratingDistance.value()*unit_conversion)
+        # self.doubleSpinBox_GratingDepth.setValue(self.doubleSpinBox_GratingDepth.value()*unit_conversion)
+
+        if self.lens_dict["grating"] is not None:
+            self.lens_dict["grating"]["width"] *= unit_conversion
+            self.lens_dict["grating"]["distance"] *= unit_conversion
+            self.lens_dict["grating"]["depth"] *= unit_conversion
+
+        # self.doubleSpinBox_TruncationRadius.setValue(self.doubleSpinBox_TruncationRadius.value()*unit_conversion)
+        # self.doubleSpinBox_TruncationValue.setValue(self.doubleSpinBox_TruncationValue.value()*unit_conversion)
+
+        if self.lens_dict["truncation"] is not None:
+            self.lens_dict["truncation"]["radius"] *= unit_conversion
+            self.lens_dict["truncation"]["height"] *= unit_conversion
+
+        # self.doubleSpinBox_ApertureInner.setValue(self.doubleSpinBox_ApertureInner.value()*unit_conversion)
+        # self.doubleSpinBox_ApertureOuter.setValue(self.doubleSpinBox_ApertureOuter.value()*unit_conversion)
+
+        if self.lens_dict["aperture"] is not None:
+            self.lens_dict["aperture"]["inner"] *= unit_conversion
+            self.lens_dict["aperture"]["outer"] *= unit_conversion
+
+        # modify values that rely on units to new unit system
+
+
+
 
     def live_update_profile(self):
         if self.checkBox_LiveUpdate.isChecked():

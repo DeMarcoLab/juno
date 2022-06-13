@@ -892,7 +892,7 @@ class Ui_LensCreator(object):
         LensCreator.setStatusBar(self.statusbar)
 
         self.retranslateUi(LensCreator)
-        self.tabWidget.setCurrentIndex(1)
+        self.tabWidget.setCurrentIndex(0)
         QtCore.QMetaObject.connectSlotsByName(LensCreator)
 
     def retranslateUi(self, LensCreator):
