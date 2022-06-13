@@ -397,12 +397,11 @@ class Lens:
             + self.sim_aperture_mask
         ).astype(bool)
 
-    def create_escape_path(self, parameters, ep: float) -> None:
+    def create_escape_path(self, ep: float) -> None:
         """Create the escape path for the lens
 
         Args:
             lens (Lens): lens
-            parameters (SimulationParameters): simulation parameters
             ep (float): escape path percentage
 
         Returns:
@@ -419,9 +418,6 @@ class Lens:
 
         # TODO: decide if we want independent escape path amounts.
         ep_h, ep_w = calculate_escape_path_dimensions(self, ep)
-
-        # check if escape path fits within the simulation size
-        test_escape_path_fits_inside_simulation(self, parameters, ep)
 
         ESCAPE_PATH_VALUE = 0
 
@@ -532,7 +528,7 @@ def calculate_grating_coords(
     return np.ravel(grating_coords)
 
 
-def generate_lens(lens_config: dict, medium: Medium, parameters) -> Lens:
+def generate_lens(lens_config: dict, medium: Medium, pixel_size: float) -> Lens:
     """Generate a lens from a dictionary configuration
 
     Args:
@@ -551,38 +547,33 @@ def generate_lens(lens_config: dict, medium: Medium, parameters) -> Lens:
                 medium=medium,
                 lens_type=LensType[lens_config["lens_type"]])
 
-    # check lens fits in the simulation
-    if lens.diameter > parameters.sim_width or lens.diameter > parameters.sim_height:
-        raise ValueError(
-            f"Lens diameter must be smaller than the simulation size: lens: {lens.diameter:.2e}m, sim: {parameters.sim_width:.2e}mx{parameters.sim_height:.2e}m"
-        )
 
     # load a custom lens profile
     if lens_config["custom"]:
         lens.load_profile(fname=lens_config["custom"],
-        pixel_size=parameters.pixel_size)
+        pixel_size=pixel_size)
 
     # generate the profile from the configuration
     else:
         lens.generate_profile(
-            pixel_size=parameters.pixel_size,
+            pixel_size=pixel_size,
             length=lens_config["length"]
         )
 
-    lens = apply_modifications(lens, lens_config, parameters)
+    lens = apply_modifications(lens, lens_config)
 
     return lens
 
 
 
-def apply_modifications(lens: Lens, lens_config: dict, parameters) -> Lens:
+def apply_modifications(lens: Lens, lens_config: dict) -> Lens:
     """Apply all lens modifications defined in config"""
 
     if lens_config["inverted"] is True:
         lens.invert_profile()
 
     if lens_config["escape_path"] is not None:
-        lens.create_escape_path(parameters, lens_config["escape_path"])
+        lens.create_escape_path(lens_config["escape_path"])
 
     if lens_config["grating"] is not None:
         grating_settings = GratingSettings(
@@ -632,31 +623,6 @@ def calculate_escape_path_dimensions(lens: Lens, ep: float):
     ep_h, ep_w = int(lens_h * (1 + ep)), int(lens_w * (1 + ep))
 
     return (ep_h, ep_w)
-
-
-def test_escape_path_fits_inside_simulation(lens: Lens, parameters, ep: float):
-    from lens_simulation import utils
-    from lens_simulation.structures import SimulationParameters
-
-    n_pixels_sim_height = utils._calculate_num_of_pixels(
-        parameters.sim_height, parameters.pixel_size
-    )
-    n_pixels_sim_width = utils._calculate_num_of_pixels(
-        parameters.sim_width, parameters.pixel_size
-    )
-
-    # calculate the escape path dimensions
-    ep_h, ep_w = calculate_escape_path_dimensions(lens, ep)
-
-    if ep_h > n_pixels_sim_height:
-        raise ValueError(
-            f"The given escape path is outside the simulation size: ep: {ep_h}px, sim: {n_pixels_sim_height}px"
-        )
-
-    if ep_w > n_pixels_sim_width:
-        raise ValueError(
-            f"The given escape path is outside the simulation size: ep: {ep_w}px, sim: {n_pixels_sim_width}px"
-        )
 
 
 def check_modification_masks(lens):

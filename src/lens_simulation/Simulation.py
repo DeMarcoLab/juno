@@ -230,7 +230,7 @@ def generate_mediums(mediums: list):
 def generate_lenses(lenses: list, simulation_mediums: dict, parameters: SimulationParameters):
     """Generate all the lenses for the simulation"""
 
-    from lens_simulation.Lens import apply_modifications, generate_lens  
+    from lens_simulation.Lens import generate_lens, test_escape_path_fits_inside_simulation  
     
     simulation_lenses = {}
     for lens_config in lenses:
@@ -241,13 +241,21 @@ def generate_lenses(lenses: list, simulation_mediums: dict, parameters: Simulati
         # generate lens from config
         lens = generate_lens(lens_config=lens_config, 
                         medium=simulation_mediums[lens_config["medium"]], 
-                        parameters=parameters)
+                        pixel_size=parameters.pixel_size)
 
+        # check lens fits in the simulation
+        if lens.diameter > parameters.sim_width or lens.diameter > parameters.sim_height:
+            raise ValueError(
+                f"Lens diameter must be smaller than the simulation size: lens: {lens.diameter:.2e}m, sim: {parameters.sim_width:.2e}mx{parameters.sim_height:.2e}m"
+            )
+
+        # check the escape path fits within then simulation
+        if lens_config["escape_path"] is not None:
+            test_escape_path_fits_inside_simulation(lens, parameters, lens_config["escape_path"])
+        
         simulation_lenses[lens_config["name"]] = lens
 
     return simulation_lenses
-
-
 
 
 
@@ -686,3 +694,30 @@ def invert_lens_and_output_medium(stage: SimulationStage, previous_stage: Simula
     stage.lens_inverted = True
 
     return stage
+
+
+
+def test_escape_path_fits_inside_simulation(lens: Lens, parameters, ep: float):
+    from lens_simulation import utils
+    from lens_simulation.structures import SimulationParameters
+    from lens_simulation.Lens import calculate_escape_path_dimensions
+
+    n_pixels_sim_height = utils._calculate_num_of_pixels(
+        parameters.sim_height, parameters.pixel_size
+    )
+    n_pixels_sim_width = utils._calculate_num_of_pixels(
+        parameters.sim_width, parameters.pixel_size
+    )
+
+    # calculate the escape path dimensions
+    ep_h, ep_w = calculate_escape_path_dimensions(lens, ep)
+
+    if ep_h > n_pixels_sim_height:
+        raise ValueError(
+            f"The given escape path is outside the simulation size: ep: {ep_h}px, sim: {n_pixels_sim_height}px"
+        )
+
+    if ep_w > n_pixels_sim_width:
+        raise ValueError(
+            f"The given escape path is outside the simulation size: ep: {ep_w}px, sim: {n_pixels_sim_width}px"
+        )
