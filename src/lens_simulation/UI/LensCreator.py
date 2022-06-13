@@ -1,22 +1,15 @@
+import os
 import sys
 import traceback
 
-import yaml
-
 import lens_simulation.UI.qtdesigner_files.LensCreator as LensCreator
 import numpy as np
-from lens_simulation.Lens import (
-    GratingSettings,
-    Lens,
-    LensType,
-    Medium,
-    generate_lens,
-    apply_modifications,
-)
-from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
+import yaml
+from lens_simulation import constants, utils
+from lens_simulation.Lens import GratingSettings, LensType, Medium, generate_lens
 from matplotlib import pyplot as plt
+from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
 from PyQt5 import QtCore, QtGui, QtWidgets
-from lens_simulation import constants, utils, validation
 
 lens_type_dict = {"Cylindrical": LensType.Cylindrical, "Spherical": LensType.Spherical}
 
@@ -111,7 +104,11 @@ class GUILensCreator(LensCreator.Ui_LensCreator, QtWidgets.QMainWindow):
         self.lens_dict["aperture"] = None
 
     def create_lens(self):
-        self.lens = generate_lens(lens_config=self.lens_dict, medium=Medium(self.lens_dict["medium"]), pixel_size=self.lens_dict["pixel_size"])
+        self.lens = generate_lens(
+            lens_config=self.lens_dict,
+            medium=Medium(self.lens_dict["medium"]),
+            pixel_size=self.lens_dict["pixel_size"],
+        )
 
         if self.lens_dict["inverted"]:
             self.lens.invert_profile()
@@ -150,7 +147,7 @@ class GUILensCreator(LensCreator.Ui_LensCreator, QtWidgets.QMainWindow):
             self.lens_dict["diameter"] / self.units
         )
         # set length to diameter for spherical lenses
-        if self.lens_dict["lens_type"] is "Spherical":
+        if self.lens_dict["lens_type"] == "Spherical":
             self.doubleSpinBox_LensLength.setValue(
                 self.lens_dict["diameter"] / self.units
             )
@@ -161,7 +158,6 @@ class GUILensCreator(LensCreator.Ui_LensCreator, QtWidgets.QMainWindow):
             )
             self.frame_LensLength.setEnabled(True)
             self.doubleSpinBox_LensLength.setEnabled(True)
-            self.doubleSpinBox_LensLength.setValue(12)
 
         self.doubleSpinBox_LensHeight.setValue(self.lens_dict["height"] / self.units)
         if self.lens_dict["escape_path"] is not None:
@@ -179,7 +175,11 @@ class GUILensCreator(LensCreator.Ui_LensCreator, QtWidgets.QMainWindow):
         self.lens_dict["medium"] = self.doubleSpinBox_LensMedium.value()
         self.lens_dict["exponent"] = self.doubleSpinBox_LensExponent.value()
         self.lens_dict["lens_type"] = self.comboBox_LensType.currentText()
-        self.lens_dict["escape_path"] = self.doubleSpinBox_LensEscapePath.value()
+
+        if self.doubleSpinBox_LensEscapePath.value() == 0:
+            self.lens_dict["escape_path"] = None
+        else:
+            self.lens_dict["escape_path"] = self.doubleSpinBox_LensEscapePath.value()
         self.lens_dict["inverted"] = self.checkBox_InvertedProfile.isChecked()
 
         self.lens_dict["diameter"] = self.format_float(
@@ -293,8 +293,12 @@ class GUILensCreator(LensCreator.Ui_LensCreator, QtWidgets.QMainWindow):
         else:
             self.comboBox_ApertureMode.setCurrentText("Square")
 
-        self.doubleSpinBox_ApertureInner.setValue(self.lens_dict["aperture"]["inner"])
-        self.doubleSpinBox_ApertureOuter.setValue(self.lens_dict["aperture"]["outer"])
+        self.doubleSpinBox_ApertureOuter.setValue(
+            self.lens_dict["aperture"]["outer"] / self.units
+        )
+        self.doubleSpinBox_ApertureInner.setValue(
+            self.lens_dict["aperture"]["inner"] / self.units
+        )
 
     def update_config_aperture(self):
         # UI -> Config | Aperture Settings #
@@ -400,7 +404,7 @@ class GUILensCreator(LensCreator.Ui_LensCreator, QtWidgets.QMainWindow):
         if filename.endswith(".npy"):
             try:
                 self.create_new_lens_dict(filename)
-                self.update_UI()
+                # self.update_UI()
                 self.update_UI_limits()
                 self.create_lens()
             except Exception as e:
@@ -411,220 +415,28 @@ class GUILensCreator(LensCreator.Ui_LensCreator, QtWidgets.QMainWindow):
                 # get the status of live update to restore it post loading
                 was_live = self.checkBox_LiveUpdate.isChecked()
 
-            # turn off live update to avoid memory issues
+                # turn off live update to avoid memory issues
                 self.checkBox_LiveUpdate.setChecked(False)
                 self.lens_dict = utils.load_yaml_config(filename)
+                self.update_UI_limits()
                 self.update_UI()
                 self.update_UI_limits()
+                self.update_UI()
                 self.create_lens()
                 self.checkBox_LiveUpdate.setChecked(was_live)
             except Exception as e:
                 self.display_error_message(traceback.format_exc())
 
-    def load_profile2(self):
-        """Loads a custom lens profile (numpy.ndarray) through Qt's file opening system"""
-        filename, _ = QtWidgets.QFileDialog.getOpenFileName(
-            self,
-            "Load Profile",
-            filter="All types (*.yml *.yaml *.npy) ;;Yaml config (*.yml *.yaml) ;;Numpy array (*.npy)",
-        )
-
-        if filename is "":
-            return
-
-        if filename.endswith(".npy"):
-            self.create_base_lens()
-            self.lens.load_profile(
-                fname=filename,
-                pixel_size=self.doubleSpinBox_PixelSize.value() * self.units,
-            )
-
-            self.update_image_frames()
-            self.checkBox_LiveUpdate.setChecked(False)
-
-        elif filename.endswith((".yml", ".yaml")):
-            try:
-                lens_config = utils.load_yaml_config(filename)
-                self.lens = generate_lens(
-                    lens_config=lens_config, medium=Medium(lens_config["medium"])
-                )
-            except Exception as e:
-                self.display_error_message(traceback.format_exc())
-
-            print(lens_config)
-
-            # get the status of live update to restore it post loading
-            was_live = self.checkBox_LiveUpdate.isChecked()
-
-            # turn off live update to avoid memory issues
-            self.checkBox_LiveUpdate.setChecked(False)
-
-            self.comboBox_LensType.setCurrentText(self.lens.lens_type.name)
-
-            self.doubleSpinBox_LensDiameter.setValue(self.lens.diameter / self.units)
-
-            # default loaded generating profiles to be 1000x1000 pixels
-            self.doubleSpinBox_PixelSize.setValue(self.lens.diameter / self.units / 50)
-            self.doubleSpinBox_LensHeight.setValue(self.lens.height / self.units)
-
-            if self.lens.lens_type is LensType.Spherical:
-                # if the lens is spherical, default length to diameter
-                self.doubleSpinBox_LensLength.setValue(self.lens.diameter / self.units)
-            else:
-                # if no length is given for a cylindrical lens, default length to 1 pixel
-                self.doubleSpinBox_LensLength.setValue(self.lens.length / self.units)
-
-            self.doubleSpinBox_LensMedium.setValue(lens_config["medium"])
-            self.doubleSpinBox_LensExponent.setValue(self.lens.exponent)
-
-            # generate the profile
-            self.generate_profile()
-            self.checkBox_LiveUpdate.setChecked(was_live)
-
-        else:
-            return
-
     def save_profile(self):
-        filename = QtWidgets.QFileDialog.getExistingDirectory(
-            self,
-            "Save Profile",
-        )
+        filename = QtWidgets.QFileDialog.getExistingDirectory(self, "Save Profile",)
 
         if filename == "":
             return
 
-        import os
-        with open(os.path.join(filename, self.lens_dict["name"] + ".yaml"), 'w') as f:
+        with open(os.path.join(filename, self.lens_dict["name"] + ".yaml"), "w") as f:
             yaml.safe_dump(self.lens_dict, f, sort_keys=False)
-        # print(os.path.join(filename, self.lens_dict["name"] + ".yaml"))
 
     ### Update methods ###
-
-    # def update_profile_parameters(self):
-    #     """Helper function for generate_profile"""
-    #     # read lens type so that we can generate the profile
-    #     # self.lens_type = lens_type_dict[self.comboBox_LensType.currentText()]
-    #     # self.pixel_size = self.doubleSpinBox_PixelSize.value() * self.units
-
-    #     # set minimums to avoid erroring
-    #     # self.doubleSpinBox_LensDiameter.setMinimum(2 * self.pixel_size / self.units)
-    #     # self.doubleSpinBox_LensLength.setMinimum(1 * self.pixel_size / self.units)
-
-    #     if self.lens_type is LensType.Spherical:
-    #         self.lens_length = self.doubleSpinBox_LensDiameter.value() * self.units
-    #     else:
-    #         self.lens_length = self.doubleSpinBox_LensLength.value() * self.units
-
-    def update_masks(self):
-        """Helper function for generate_profile"""
-        if self.lens_dict["grating"] is not None:
-            self.update_grating_mask()
-
-        if self.lens_dict["truncation"] is not None:
-            self.update_truncation_mask()
-
-        if self.lens_dict["aperture"] is not None:
-            self.update_custom_aperture_mask()
-
-    def update_grating_mask(self):
-        # # Update minimums/maximums to not give user ability to error out
-        # self.doubleSpinBox_GratingDistance.setMinimum(2 * self.pixel_size / self.units)
-
-        # self.doubleSpinBox_GratingDistance.setMaximum(
-        #     (self.lens.diameter - self.pixel_size) / self.units
-        # )
-
-        # self.doubleSpinBox_GratingWidth.setMinimum(1 * self.pixel_size / self.units)
-
-        # self.doubleSpinBox_GratingWidth.setMaximum(
-        #     (self.doubleSpinBox_GratingDistance.value() * self.units - self.pixel_size)
-        #     / self.units
-        # )
-
-        try:
-            grating_settings = GratingSettings(
-                width=self.lens_dict["grating"]["width"],
-                distance=self.lens_dict["grating"]["distance"],
-                depth=self.lens_dict["grating"]["depth"],
-                # TODO: check if axis does anything, don't think it does
-                axis=5,
-                centred=self.lens_dict["grating"]["centred"],
-            )
-
-            self.lens.create_grating_mask(
-                settings=grating_settings,
-                x_axis=self.lens_dict["grating"]["x"],
-                y_axis=self.lens_dict["grating"]["y"],
-            )
-
-        except Exception as e:
-            self.display_error_message(traceback.format_exc())
-
-    def update_truncation_mask(self):
-        # truncation_mode = self.lens_dict["truncation"][
-        #     "mode"
-        # ]  # self.comboBox_TruncationMode.currentText()
-
-        # self.doubleSpinBox_TruncationValue.setMinimum(self.pixel_size / self.units)
-        # self.doubleSpinBox_TruncationValue.setMaximum(self.lens.height / self.units)
-
-        # self.doubleSpinBox_TruncationRadius.setMinimum(self.pixel_size / self.units)
-        # self.doubleSpinBox_TruncationRadius.setMaximum(
-        #     ((self.lens.diameter / 2) - self.pixel_size) / self.units
-        # )
-
-        # truncation_value = self.doubleSpinBox_TruncationValue.value() * self.units
-        # truncation_radius = self.doubleSpinBox_TruncationRadius.value() * self.units
-
-        # if truncation_mode == "Height":
-        #     truncation_mode = "value"
-        # if truncation_mode == "Radius":
-        #     truncation_mode = "radial"
-
-        try:
-            self.lens.create_truncation_mask(
-                truncation_height=self.lens_dict["truncation"]["height"],
-                radius=self.lens_dict["truncation"]["radius"],
-                type=self.lens_dict["truncation"]["type"],
-                aperture=self.checkBox_TruncationAperture.isChecked(),
-            )
-        except Exception as e:
-            self.display_error_message(traceback.format_exc())
-
-    def update_custom_aperture_mask(self):
-
-        # self.doubleSpinBox_ApertureOuter.setMinimum(self.pixel_size * 2 / self.units)
-
-        # self.doubleSpinBox_ApertureOuter.setMaximum(
-        #     ((self.lens.diameter / 2) - self.pixel_size) / self.units
-        # )
-        # self.doubleSpinBox_ApertureInner.setMinimum(self.pixel_size * 2 / self.units)
-
-        # self.doubleSpinBox_ApertureInner.setMaximum(
-        #     (self.doubleSpinBox_ApertureOuter.value() * self.units - self.pixel_size)
-        #     / self.units
-        # )
-
-        # aperture_mode = self.comboBox_ApertureMode.currentText()
-        # aperture_inner = self.doubleSpinBox_ApertureInner.value() * self.units
-        # aperture_outer = self.doubleSpinBox_ApertureOuter.value() * self.units
-        # aperture_inverted = self.checkBox_ApertureInverted.isChecked()
-
-        # if aperture_mode == "Square":
-        #     aperture_mode = "square"
-        # if aperture_mode == "Circle":
-        #     aperture_mode = "radial"
-
-        try:
-            self.lens.create_custom_aperture(
-                inner_m=self.lens_dict["aperture"]["inner"],
-                outer_m=self.lens_dict["aperture"]["outer"],
-                type=self.lens_dict["aperture"]["type"],
-                # TODO: make inverted standard
-                inverted=self.lens_dict["aperture"]["invert"],
-            )
-        except Exception as e:
-            self.display_error_message(traceback.format_exc())
 
     def update_image_frames(self):
 
@@ -701,49 +513,33 @@ class GUILensCreator(LensCreator.Ui_LensCreator, QtWidgets.QMainWindow):
 
         self.units = units_dict[self.comboBox_Units.currentIndex()]
 
-        unit_conversion = self.units/old_units
-
-        print(unit_conversion)
+        unit_conversion = self.units / old_units
 
         self.lens_dict["pixel_size"] *= unit_conversion
         self.lens_dict["diameter"] *= unit_conversion
         self.lens_dict["height"] *= unit_conversion
         self.lens_dict["length"] *= unit_conversion
 
-        # self.doubleSpinBox_GratingWidth.setValue(self.doubleSpinBox_GratingWidth.value()*unit_conversion)
-        # self.doubleSpinBox_GratingDistance.setValue(self.doubleSpinBox_GratingDistance.value()*unit_conversion)
-        # self.doubleSpinBox_GratingDepth.setValue(self.doubleSpinBox_GratingDepth.value()*unit_conversion)
-
         if self.lens_dict["grating"] is not None:
             self.lens_dict["grating"]["width"] *= unit_conversion
             self.lens_dict["grating"]["distance"] *= unit_conversion
             self.lens_dict["grating"]["depth"] *= unit_conversion
 
-        # self.doubleSpinBox_TruncationRadius.setValue(self.doubleSpinBox_TruncationRadius.value()*unit_conversion)
-        # self.doubleSpinBox_TruncationValue.setValue(self.doubleSpinBox_TruncationValue.value()*unit_conversion)
-
         if self.lens_dict["truncation"] is not None:
             self.lens_dict["truncation"]["radius"] *= unit_conversion
             self.lens_dict["truncation"]["height"] *= unit_conversion
-
-        # self.doubleSpinBox_ApertureInner.setValue(self.doubleSpinBox_ApertureInner.value()*unit_conversion)
-        # self.doubleSpinBox_ApertureOuter.setValue(self.doubleSpinBox_ApertureOuter.value()*unit_conversion)
 
         if self.lens_dict["aperture"] is not None:
             self.lens_dict["aperture"]["inner"] *= unit_conversion
             self.lens_dict["aperture"]["outer"] *= unit_conversion
 
-        # modify values that rely on units to new unit system
-
-
-
-
     def live_update_profile(self):
         if self.checkBox_LiveUpdate.isChecked():
             try:
                 self.checkBox_LiveUpdate.setChecked(False)
-                self.update_UI_limits()
                 self.update_lens_dict()
+                self.update_UI_limits()
+                self.update_UI()
                 self.create_lens()
                 self.checkBox_LiveUpdate.setChecked(True)
             except Exception as e:
