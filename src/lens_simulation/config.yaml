@@ -32,7 +32,7 @@ lenses:
     medium: 2.348
     diameter: 300.e-6
     height: 10.e-6
-    exponent: [2.0, 3.0, 0.1]
+    exponent: [2.0, 3.0, 0.5]
     lens_type:  "Spherical"     # "Cylindrical" or "Spherical 
     # escape_path: 0.1
     inverted: false
@@ -45,16 +45,16 @@ lenses:
       x: true
       y: false
       centred: true
-    # truncation: 
-    #   height: 3.e-6
-    #   radius: 50.e-6
-    #   type: radial # radial, square
-    #   aperture: false
-    # aperture:
-    #   inner: 50.e-6
-    #   outer: 100.e-6
-    #   type: radial   # radial, square
-    #   invert: false
+    truncation: 
+      height: 3.e-6
+      radius: 50.e-6
+      type: radial # radial, square
+      aperture: false
+    aperture:
+      inner: 50.e-6
+      outer: 100.e-6
+      type: radial   # radial, square
+      invert: false
   - name: lens_2
     medium: 2.348
     diameter: 300.e-6

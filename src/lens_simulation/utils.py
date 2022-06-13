@@ -372,8 +372,44 @@ def load_simulation_data(path):
     df_lens = pd.DataFrame.from_dict(metadata["lenses"])
     df_lens = df_lens.rename(columns={"name": "lens"})
 
-    # df_grating = pd.DataFrame.from_dict(df_lens["grating"])
-    # print(df_grating)
+    # lens modifications
+
+    # gratings
+    grats = []
+    for grat in list(df_lens["grating"]): 
+        if grat is None:
+            grat = {"width": None, "distance": None, "depth": None, "x": None, "y": None, "centred": None}
+
+        grats.append(grat)
+
+    df_grat = pd.DataFrame.from_dict(grats)
+    df_grat = df_grat.add_prefix("grating_")
+    df_lens = pd.concat([df_lens, df_grat], axis=1)
+
+    # truncation
+    truncs = []
+    for trunc in list(df_lens["truncation"]): 
+        if trunc is None:
+            trunc = {"height": None, "radius": None, "type": None, "aperture": None}
+
+        truncs.append(trunc)
+
+    df_trunc = pd.DataFrame.from_dict(truncs)
+    df_trunc = df_trunc.add_prefix("truncation_")
+    df_lens = pd.concat([df_lens, df_trunc], axis=1)
+    
+    # aperture
+    apertures = []
+    for aperture in list(df_lens["aperture"]): 
+        if aperture is None:
+            aperture = {"inner": None, "outer": None, "type": None, "invert": None}
+
+        apertures.append(aperture)
+
+    df_aperture = pd.DataFrame.from_dict(apertures)
+    df_aperture = df_aperture.add_prefix("aperture_")
+    df_lens = pd.concat([df_lens, df_aperture], axis=1)
+
 
 
     # common metadata
