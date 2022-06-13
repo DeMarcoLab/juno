@@ -117,7 +117,7 @@ class GUILensCreator(LensCreator.Ui_LensCreator, QtWidgets.QMainWindow):
             self.lens.apply_masks(
                 grating=self.lens_dict["grating"] is not None,
                 truncation=self.lens_dict["truncation"] is not None,
-                aperture=self.lens_dict["aperture"] is not None,
+                aperture=True#self.lens_dict["aperture"] is not None,
             )
 
             if self.lens_dict["inverted"]:  # checkBox_InvertedProfile.isChecked():
