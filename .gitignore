@@ -22,3 +22,4 @@ scripts/*
 *.err
 src/lens_simulation/lens.yaml
 .coverage
+*.yaml

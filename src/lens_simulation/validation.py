@@ -1,7 +1,7 @@
 
 
 def _validate_default_lens_config(lens_config: dict) -> dict:
-    
+
     # required settings
     if "name" not in lens_config:
         raise ValueError(f"Lens config requires name. None provided")
@@ -15,7 +15,6 @@ def _validate_default_lens_config(lens_config: dict) -> dict:
 
     if "height" not in lens_config:
         raise ValueError(f"Lens config requires height. None provided")
-    
     if "exponent" not in lens_config:
         raise ValueError(f"Lens config requires exponent. None provided")
 
@@ -63,7 +62,7 @@ def _validate_default_lens_modification_config(config: dict) -> dict:
         if "centred" not in config["grating"]:
             raise ValueError(f"Lens grating config requires centred. None provided.")
 
-        # type validation                         
+        # type validation
         config["grating"]["width"] = float(config["grating"]["width"])
         config["grating"]["distance"] = float(config["grating"]["distance"])
         config["grating"]["depth"] = float(config["grating"]["depth"])
@@ -81,7 +80,7 @@ def _validate_default_lens_modification_config(config: dict) -> dict:
         if "aperture" not in config["truncation"]:
             raise ValueError(f"Lens truncation config requires aperture. None provided.")
 
-        # type validation                         
+        # type validation
         config["truncation"]["height"] = float(config["truncation"]["height"])
         config["truncation"]["radius"] = float(config["truncation"]["radius"])
         config["truncation"]["type"] = str(config["truncation"]["type"])
@@ -97,7 +96,7 @@ def _validate_default_lens_modification_config(config: dict) -> dict:
         if "invert" not in config["aperture"]:
             raise ValueError(f"Lens aperture config requires invert. None provided.")
 
-        # type validation                         
+        # type validation
         config["aperture"]["inner"] = float(config["aperture"]["inner"])
         config["aperture"]["outer"] = float(config["aperture"]["outer"])
         config["aperture"]["type"] = str(config["aperture"]["type"])
@@ -123,7 +122,7 @@ def _validate_default_beam_config(config: dict) -> dict:
     config["position_x"] = config["position_x"] if "position_x" in config else 0.0
     config["position_y"] = config["position_y"] if "position_y" in config else 0.0
     config["theta"] = config["theta"] if "theta" in config else 0.0
-    config["numerical_aperture"] = config["numerical_aperture"] if "numerical_aperture" in config else None 
+    config["numerical_aperture"] = config["numerical_aperture"] if "numerical_aperture" in config else None
     config["tilt_x"] = config["tilt_x"] if "tilt_x" in config else 0.0
     config["tilt_y"] = config["tilt_y"] if "tilt_y" in config else 0.0
     config["source_distance"] = config["source_distance"] if "source_distance" in config else None
@@ -140,7 +139,7 @@ def _validate_simulation_stage_list(stages: list, simulation_lenses: dict) -> No
     """
 
     for stage in stages:
-        # validate all lens, mediums exist, 
+        # validate all lens, mediums exist,
         if stage["lens"] not in simulation_lenses:
             raise ValueError(f"{stage['lens']} has not been defined in the configuration")
 
@@ -150,7 +149,7 @@ def _validate_simulation_stage_list(stages: list, simulation_lenses: dict) -> No
     return stages
 
 def _validate_default_simulation_stage_config(stage_config: dict) -> dict:
-   
+
     # required settings
     if "n_slices" not in stage_config and "step_size" not in stage_config:
         raise ValueError(f"Stage config requires n_slices or step_size")
@@ -160,7 +159,7 @@ def _validate_default_simulation_stage_config(stage_config: dict) -> dict:
         raise ValueError(f"Stage config requires finish_distance. None provided.")
     if "output" not in stage_config:
         raise ValueError(f"Stage config requires output. None provided.")
-    
+
 
     # default settings
     stage_config["n_slices"] = None if "n_slices" not in stage_config else stage_config["n_slices"]
@@ -201,7 +200,7 @@ def _validate_simulation_options_config(config: dict) -> dict:
     # required_settings
     if "log_dir" not in config:
         raise ValueError("Options config requires log_dir. None provided.")
-    
+
     # default settings
     config["save_plot"] = True if "save_plot" not in config else config["save_plot"]
     config["save"] = False if "save" not in config else config["save"]
@@ -225,7 +224,7 @@ def _validate_simulation_config(config: dict):
 
     if OPTIONS_KEY not in config:
         raise ValueError(f"Simulation config requires {OPTIONS_KEY}. Not provided.")
-    
+
     _validate_simulation_options_config(config[OPTIONS_KEY])
 
     if BEAM_KEY not in config:
