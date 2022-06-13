@@ -4,19 +4,14 @@ import traceback
 
 from enum import Enum, auto
 import glob
-from importlib_metadata import metadata
 import lens_simulation
 import os
-from nbformat import from_dict
-from numpy import int64
-
-import pandas as pd
 
 from lens_simulation import utils
 
 import lens_simulation.UI.qtdesigner_files.VisualiseResults as VisualiseResults
 from PyQt5 import QtCore, QtGui, QtWidgets
-from PyQt5.QtWidgets import QGroupBox, QGridLayout, QLabel, QVBoxLayout
+from PyQt5.QtWidgets import QGroupBox, QGridLayout, QLabel, QVBoxLayout, QPushButton, QLineEdit, QComboBox
 from PyQt5.QtGui import QImage, QPixmap, QMovie
 import numpy as np
 
@@ -38,6 +33,7 @@ class GUIVisualiseResults(VisualiseResults.Ui_MainWindow, QtWidgets.QMainWindow)
         self.setStatusBar(self.statusBar)
         self.setWindowTitle("Simulation Results")
 
+        self.SIMULATION_LOADED = False
         self.df = None
 
         self.setup_connections()
@@ -45,16 +41,17 @@ class GUIVisualiseResults(VisualiseResults.Ui_MainWindow, QtWidgets.QMainWindow)
         self.showNormal()
     
     def setup_connections(self):
-
+        
+        # load data
         self.pushButton_load_simulation.clicked.connect(self.load_simulation)
-        # self.doubleSpinBox.valueChanged.connect(self.filter_dataframe)
 
-        self.comboBox_column.currentIndexChanged.connect(self.set_column_value)
-        # self.comboBox_value.currentIndexChanged.connect(self.filter_dataframe)
-        self.pushButton_filter_data.clicked.connect(self.filter_dataframe_line)
+        # filter data
+        self.label_filter_title.setVisible(False)
+        self.frame_filter.setVisible(False)
+        self.pushButton_filter_data.clicked.connect(self.filter_by_each_filter)
         self.pushButton_reset_data.clicked.connect(self.load_dataframe)
+        self.spinBox_num_filters.valueChanged.connect(self.update_filter_display)
 
-        self.comboBox_modifier.addItems([modifier.name for modifier in MODIFIER])
 
     def load_simulation(self):
 
@@ -76,6 +73,11 @@ class GUIVisualiseResults(VisualiseResults.Ui_MainWindow, QtWidgets.QMainWindow)
         self.directory = directory
 
         self.load_dataframe()
+
+        self.label_filter_title.setVisible(True)
+        self.frame_filter.setVisible(True)
+
+        self.SIMULATION_LOADED = True
         
     def load_dataframe(self):
         
@@ -85,76 +87,90 @@ class GUIVisualiseResults(VisualiseResults.Ui_MainWindow, QtWidgets.QMainWindow)
         sim_paths = [os.path.join(self.directory, path) for path in self.df["petname"].unique()]
         stages = list(self.df["stage"].unique())
 
-        self.comboBox_column.addItems(list(self.df.columns))
+        self.update_filter_display()
 
         self.update_simulation_display(sim_paths, stages)
 
-    def filter_dataframe_line(self):
+    def update_column_data(self):
+
+        print("updating column data")
+
+        for widget in self.filter_widgets:
+
+            try:
+                # NOTE: need to check the order this updates in, sometimes col_name is none
+                col_name = widget[0].currentText()               
+                col_type = self.df.dtypes[col_name]
+                col_modifiers = get_valid_modifiers(col_type)
+
+                widget[1].clear()
+                widget[1].addItems(col_modifiers)
+
+                if col_type in [np.float64, np.int64]:
+                    min_val, max_val = self.df[col_name].min(), self.df[col_name].max()
+                    widget[3].setText(f"min: {min_val}, max: {max_val}")
+                else:
+                    unique_vals = list(self.df[col_name].unique())
+                    widget[3].setText(f"values: {unique_vals}")
+            except Exception as e:
+                print(e)
+    
+    def update_filter_widgets(self):
         
-        # TODO: more programmatic
-        # TODO: more filters
-        # TODO: restrict modifiers based on type?
+        for widget in self.filter_widgets:
+            
+            # # combobox_column, combobox_modifier, line_edit_value, label_min_max = widgets
+            widget[0].currentIndexChanged.connect(self.update_column_data)
+            widget[0].addItems(list(self.df.columns))
+        
+        self.label_num_filtered_simulations.setText(f"Filtered to {len(self.df)} simulation stages.")
+        self.scroll_area_filter.update()
+        
+    def filter_by_each_filter(self):
+        
+        df_filter = self.df
 
-        MODIFIER = self.comboBox_modifier.currentText()
-        TYPE = self.df.dtypes[self.filter_col]
+        for widgets in self.filter_widgets:
+            
+            try:
+                col_name = widgets[0].currentText()
+                modifier = widgets[1].currentText()
+                col_type = df_filter.dtypes[col_name]
+                value = get_column_value_by_type(widgets[2], col_type)
 
-        try:
-                
-            if TYPE == np.int64:
-                value = int(self.lineEdit_value.text())
-            if TYPE == np.float64:
-                value = float(self.lineEdit_value.text())
-            if TYPE == object:
-                value = str(self.lineEdit_value.text())
+                # TODO: check if filter val is valid?
+                # check if column exists?
 
-            df_filter = filter_dataframe_by_modifier(self.df, self.filter_col, value, MODIFIER)
-
-        except Exception as e:
-            value = "an error occured."
-            df_filter = self.df
-            # TODO: show error?
-            print(e)
-
-        print("filter dataframe")
-        print(f"TYPE: {TYPE}, MODIFIER: {MODIFIER}, VALUE: {value}")
+                df_filter = filter_dataframe_by_modifier(df_filter, col_name, value, modifier)
+            except:
+                value = "an error occured getting the value"
+            
+            print(f"Filtered to {len(df_filter)} simulation stages.")
+            print(col_name, col_type, modifier, value)
 
         sim_paths = [os.path.join(self.directory, path) for path in df_filter["petname"].unique()]
         stages = list(df_filter["stage"].unique())
 
+        self.label_num_filtered_simulations.setText(f"Filtered to {len(df_filter)} simulation stages.")
         self.update_simulation_display(sim_paths, stages)
 
-    def set_column_value(self):
+    def update_filter_display(self):
 
-        # need to cast to correct types...
-        if self.directory is None:
-            return
-        
-        self.load_dataframe()
+        print("updating filter display")
+        n_filters = int(self.spinBox_num_filters.value())
+        filterLayout, filter_widgets = draw_filter_layout(n_filters)
+        self.filter_widgets = filter_widgets
+        filterBox = QGroupBox(f"")
+        filterBox.setLayout(filterLayout)
+        self.scroll_area_filter.setWidget(filterBox)
+        self.scroll_area_filter.update()
 
-        self.filter_col = self.comboBox_column.currentText()
-
-        # TODO: change the modifiers available here? 
-
-        TYPE = self.df.dtypes[self.filter_col]
-
-
-        if TYPE in [np.float64, np.int64]:
-            MODIFIERS = [mod.name for mod in [MODIFIER.EQUAL_TO, MODIFIER.GREATER_THAN, MODIFIER.LESS_THAN]]
-
-        if TYPE in [object]:
-            MODIFIERS = [mod.name for mod in [MODIFIER.EQUAL_TO, MODIFIER.CONTAINS]]
-        
-        print(TYPE, MODIFIERS)
-        self.comboBox_modifier.clear()
-        self.comboBox_modifier.addItems(MODIFIERS)
-
-
-
-        min_val, max_val = self.df[self.filter_col].min(), self.df[self.filter_col].max()
-        self.label_min_max.setText(f"min: {min_val}, max: {max_val}")
+        self.update_filter_widgets()
 
 
     def update_simulation_display(self, sim_paths: list, stages: list):
+        
+        print("updating simulation display")
         # TODO: add option to show beams by adding stage 0 to stages... 
         runGridLayout = draw_run_layout(sim_paths, stages)
         runBox = QGroupBox(f"")
@@ -162,6 +178,27 @@ class GUIVisualiseResults(VisualiseResults.Ui_MainWindow, QtWidgets.QMainWindow)
 
         self.scroll_area.setWidget(runBox)
         self.scroll_area.update()
+
+
+def get_column_value_by_type(lineEdit, type):
+
+    if type == np.int64:
+        value = int(lineEdit.text())
+    if type == np.float64:
+        value = float(lineEdit.text())
+    if type == object:
+        value = str(lineEdit.text())
+    
+    return value
+
+def get_valid_modifiers(type):
+    if type in [np.float64, np.int64]:
+        modifiers = [mod.name for mod in [MODIFIER.EQUAL_TO, MODIFIER.GREATER_THAN, MODIFIER.LESS_THAN]]
+
+    if type in [object, bool]:
+        modifiers = [mod.name for mod in [MODIFIER.EQUAL_TO, MODIFIER.CONTAINS]]
+
+    return modifiers
 
 
 def filter_dataframe_by_modifier(df, filter_col, value, modifier):
@@ -238,10 +275,14 @@ def draw_sim_grid_layout(path, stages):
     return simGridLayout
 
 
-def draw_run_layout(sim_directories, stages):
+def draw_run_layout(sim_directories, stages, nlim=None):
     runGridLayout = QVBoxLayout()    
+
+    # limit the number of simulations shown
+    if nlim is None:
+        nlim = len(sim_directories)
     
-    for sim_path in sim_directories:
+    for sim_path in sim_directories[:nlim]:
 
         simGridLayout = draw_sim_grid_layout(sim_path, stages)
         
@@ -250,6 +291,40 @@ def draw_run_layout(sim_directories, stages):
         runGridLayout.addWidget(simBox)
         
     return runGridLayout
+
+
+def draw_filter_layout(n_filters = 5):
+
+    filterLayout = QVBoxLayout()
+    filter_widgets = []
+
+    for i in range(n_filters):
+
+
+        filterGridLayout = QGridLayout()
+        filterGridLayout.setColumnStretch(0, 2)
+        
+        combobox_filter_column = QComboBox()
+        combobox_filter_modifier = QComboBox()
+        line_edit_filter_value = QLineEdit()
+        label_min_max = QLabel()
+
+        filter_widgets.append([combobox_filter_column, combobox_filter_modifier, line_edit_filter_value, label_min_max])
+        
+        filterGridLayout.addWidget(combobox_filter_column, 0, 0, 1, 2)
+        filterGridLayout.addWidget(combobox_filter_modifier, 1, 0)
+        filterGridLayout.addWidget(line_edit_filter_value, 1, 1)
+        filterGridLayout.addWidget(label_min_max, 2, 0, 1, 2)
+        
+        filterBox = QGroupBox(f"")
+        filterBox.setLayout(filterGridLayout)
+        filterLayout.addWidget(filterBox)
+
+
+
+    return filterLayout, filter_widgets
+
+
 
 
 def main():

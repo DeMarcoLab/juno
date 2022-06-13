@@ -417,6 +417,9 @@ def load_run_simulation_data(directory):
         df_join = load_simulation_data(path)
 
         df = pd.concat([df, df_join],ignore_index=True).reset_index()
+        df = df.drop(columns=["index", "options"])
+
+    # df = df.drop(columns=["level_0", "index", "options"])
 
     return df
 
