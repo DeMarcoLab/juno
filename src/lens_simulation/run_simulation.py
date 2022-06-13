@@ -6,9 +6,9 @@ from lens_simulation import SimulationRunner
 from lens_simulation import Simulation
 from lens_simulation import utils
 
-def main(args):
+def main(config_filename):
 
-    sim_runner = SimulationRunner.SimulationRunner(args)
+    sim_runner = SimulationRunner.SimulationRunner(config_filename)
     sim_runner.initialise_simulation()
     sim_runner.setup_simulation()
     sim_runner.run_simulations()
@@ -26,8 +26,9 @@ def run_single_simulation(config_filename: str = "config.yaml"):
 
 if __name__ == "__main__":
 
-    args = os.path.join(os.path.dirname(lens_simulation.__file__), "config.yaml")
     if len(sys.argv) >= 2:
-        args = sys.argv[1]
+        config_filename = sys.argv[1]
+    else:
+        config_filename = os.path.join(os.path.dirname(lens_simulation.__file__), "config.yaml")
 
-    main(args)
+    main(config_filename)

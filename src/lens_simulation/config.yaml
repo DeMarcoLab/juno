@@ -16,7 +16,7 @@ beam:
   # shape: "square"      # "Square", "Circular", "Rectangular"
   width: 300.e-6
   height: 50.e-6
-  position_x: 50.e-6
+  position_x: 0.e-6
   position_y:  0.e-6
   # theta: 45.0
   # # numerical_aperture: null
@@ -32,19 +32,19 @@ lenses:
     medium: 2.348
     diameter: 300.e-6
     height: 10.e-6
-    exponent: [2.0] #, 2.4, 0.4]
+    exponent: [2.0, 3.0, 0.1]
     lens_type:  "Spherical"     # "Cylindrical" or "Spherical 
     # escape_path: 0.1
     inverted: false
     # length: nu
     # custom: null
-    # grating: 
-    #   width: 10.e-6
-    #   distance: 20.e-6
-    #   depth: 0.15e-6
-    #   x: true
-    #   y: false
-    #   centred: true
+    grating: 
+      width: 10.e-6
+      distance: 20.e-6
+      depth: 0.15e-6
+      x: true
+      y: false
+      centred: true
     # truncation: 
     #   height: 3.e-6
     #   radius: 50.e-6
@@ -59,7 +59,7 @@ lenses:
     medium: 2.348
     diameter: 300.e-6
     height: 10.e-6
-    exponent: [2.1]
+    exponent: [2.4]
     lens_type:  "Spherical"     # "Cylindrical" or "Spherical 
 stages:
   # - lens: lens_1
@@ -80,15 +80,16 @@ stages:
       use_equivalent_focal_distance: true
       focal_distance_start_multiple: 0.0
       focal_distance_multiple: 2.0
-  # - lens: lens_2
-  #   output: medium_2
-  #   step_size: 0.1e-3
-  #   start_distance: 0
-  #   finish_distance: 6.e-3
-  #   options:
-  #     use_equivalent_focal_distance: true
-  #     focal_distance_start_multiple: 0.0
-  #     focal_distance_multiple: 2.0
+  - lens: lens_2
+    output: 1.0
+    # step_size: 0.1e-3
+    n_slices: 10
+    start_distance: 0
+    finish_distance: 6.e-3
+    options:
+      use_equivalent_focal_distance: true
+      focal_distance_start_multiple: 0.0
+      focal_distance_multiple: 2.0
   # - lens: lens_2
   #   output: medium_2
   #   n_slices: 100

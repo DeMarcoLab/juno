@@ -13,6 +13,8 @@ from tqdm import tqdm
 from lens_simulation import Simulation, utils
 from lens_simulation import validation
 
+from copy import deepcopy
+
 # TODO: convert print to logging, and save log file
 
 class SimulationRunner:
@@ -104,6 +106,7 @@ class SimulationRunner:
                     simulation_lenses["exponent"] = lens_combo[i][1]
                     
                     lens_combination.append(simulation_lenses)
+                    del simulation_lenses
                 
                 # create stage combination
                 stage_combination = []
@@ -121,7 +124,8 @@ class SimulationRunner:
                         "options": stage["options"],
                     }
                     stage_combination.append(stage_dict)
-
+                    del stage_dict
+                
                 # generate simulation config
                 sim_config = {
                     "run_id": self.run_id, 
@@ -130,13 +134,24 @@ class SimulationRunner:
                     "sim_parameters": self.config["sim_parameters"],
                     "beam": self.config["beam"],
                     "options": self.config["options"], 
-                    "lenses": lens_combination,
-                    "stages": stage_combination
-                }
+                    "lenses": deepcopy(lens_combination),
+                    "stages": deepcopy(stage_combination)
+                } 
+                # NOTE: need to deepcopy due to way python dicts get updated...
+
 
                 self.simulation_configurations.append(sim_config)
 
-       
+                del sim_config, lens_combination, stage_combination
+
+        # BUG
+        # after all the combinations are set correctly, they all get set to the last combination value
+        # e.g. all lens exponents are set to the final exponent value...
+        # must be something to do with how dictionaries are updated?
+
+        # print("--------------------------- AFTER ---------------------------")
+        # pprint([conf["lenses"] for conf in self.simulation_configurations[-3:]])
+
         logging.info(f"Generated {len(self.simulation_configurations)} simulation configurations.")
 
         # save sim configurations
