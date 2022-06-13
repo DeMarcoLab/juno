@@ -4,6 +4,7 @@ import traceback
 
 from enum import Enum, auto
 import glob
+from typing import Union
 import lens_simulation
 import os
 
@@ -69,7 +70,7 @@ class GUIVisualiseResults(VisualiseResults.Ui_MainWindow, QtWidgets.QMainWindow)
 
         # set ui
         self.label_sim_run_name.setText(f"Run: {sim_run_name}")
-        self.label_sim_no_loaded.setText(f"{len(self.sim_directories)} simulation results loaded.")
+        self.label_sim_no_loaded.setText(f"{len(self.sim_directories)} simulations loaded.")
         self.directory = directory
 
         self.load_dataframe()
@@ -96,36 +97,26 @@ class GUIVisualiseResults(VisualiseResults.Ui_MainWindow, QtWidgets.QMainWindow)
         print("updating column data")
 
         for widget in self.filter_widgets:
-
+            
+            combo_col, combo_mod, lineedit_value, label_value = widget
             try:
                 # NOTE: need to check the order this updates in, sometimes col_name is none
-                col_name = widget[0].currentText()               
+                col_name = combo_col.currentText()               
                 col_type = self.df.dtypes[col_name]
                 col_modifiers = get_valid_modifiers(col_type)
 
-                widget[1].clear()
-                widget[1].addItems(col_modifiers)
+                combo_mod.clear()
+                combo_mod.addItems(col_modifiers)
 
                 if col_type in [np.float64, np.int64]:
                     min_val, max_val = self.df[col_name].min(), self.df[col_name].max()
-                    widget[3].setText(f"min: {min_val}, max: {max_val}")
+                    label_value.setText(f"min: {min_val}, max: {max_val}")
                 else:
                     unique_vals = list(self.df[col_name].unique())
-                    widget[3].setText(f"values: {unique_vals}")
+                    label_value.setText(f"values: {unique_vals}")
             except Exception as e:
                 print(e)
-    
-    def update_filter_widgets(self):
-        
-        for widget in self.filter_widgets:
             
-            # # combobox_column, combobox_modifier, line_edit_value, label_min_max = widgets
-            widget[0].currentIndexChanged.connect(self.update_column_data)
-            widget[0].addItems(list(self.df.columns))
-        
-        self.label_num_filtered_simulations.setText(f"Filtered to {len(self.df)} simulation stages.")
-        self.scroll_area_filter.update()
-        
     def filter_by_each_filter(self):
         
         df_filter = self.df
@@ -163,15 +154,24 @@ class GUIVisualiseResults(VisualiseResults.Ui_MainWindow, QtWidgets.QMainWindow)
         filterBox = QGroupBox(f"")
         filterBox.setLayout(filterLayout)
         self.scroll_area_filter.setWidget(filterBox)
-        self.scroll_area_filter.update()
 
-        self.update_filter_widgets()
+        # # combobox_column, combobox_modifier, line_edit_value, label_min_max = widget
+        # connect filter widgets for updates
+        for widget in self.filter_widgets:
+            widget[0].currentIndexChanged.connect(self.update_column_data)
+            widget[0].addItems(list(self.df.columns))
+        
+        self.label_num_filtered_simulations.setText(f"Filtered to {len(self.df)} simulation stages.")
+        self.scroll_area_filter.update()
 
 
     def update_simulation_display(self, sim_paths: list, stages: list):
         
         print("updating simulation display")
         # TODO: add option to show beams by adding stage 0 to stages... 
+        if self.checkBox_show_beam.isChecked():   
+            stages.insert(0, 0)
+
         runGridLayout = draw_run_layout(sim_paths, stages)
         runBox = QGroupBox(f"")
         runBox.setLayout(runGridLayout)
@@ -180,7 +180,7 @@ class GUIVisualiseResults(VisualiseResults.Ui_MainWindow, QtWidgets.QMainWindow)
         self.scroll_area.update()
 
 
-def get_column_value_by_type(lineEdit, type):
+def get_column_value_by_type(lineEdit: QLineEdit, type) -> Union[str, int, float]:
 
     if type == np.int64:
         value = int(lineEdit.text())

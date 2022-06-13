@@ -429,6 +429,10 @@ class Lens:
                 f"Lens type {self.lens_type} is not supported for escape paths."
             )
 
+        # no escape path required...
+        if ep == 0.0:
+            return
+
         lens_h, lens_w = self.profile.shape
 
         # TODO: decide if we want independent escape path amounts.

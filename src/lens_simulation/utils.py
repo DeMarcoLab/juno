@@ -372,6 +372,10 @@ def load_simulation_data(path):
     df_lens = pd.DataFrame.from_dict(metadata["lenses"])
     df_lens = df_lens.rename(columns={"name": "lens"})
 
+    # df_grating = pd.DataFrame.from_dict(df_lens["grating"])
+    # print(df_grating)
+
+
     # common metadata
     df_beam = pd.DataFrame.from_dict([metadata["beam"]])
     df_beam = df_beam.add_prefix("beam_")
