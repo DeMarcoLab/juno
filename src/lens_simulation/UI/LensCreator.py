@@ -2,6 +2,8 @@ import os
 import sys
 import traceback
 
+from sympy import DiagMatrix
+
 import lens_simulation.UI.qtdesigner_files.LensCreator as LensCreator
 import numpy as np
 import yaml
@@ -110,6 +112,10 @@ class GUILensCreator(LensCreator.Ui_LensCreator, QtWidgets.QMainWindow):
             pixel_size=self.lens_dict["pixel_size"],
         )
 
+        self.lens_dict['diameter'] = self.lens.diameter
+        self.lens_dict['pixel_size'] = self.lens.pixel_size
+        self.lens_dict['height'] = self.lens.height
+
         if self.lens_dict["inverted"]:
             self.lens.invert_profile()
 
@@ -151,13 +157,12 @@ class GUILensCreator(LensCreator.Ui_LensCreator, QtWidgets.QMainWindow):
             self.doubleSpinBox_LensLength.setValue(
                 self.lens_dict["diameter"] / self.units
             )
-            self.frame_LensLength.setEnabled(False)
         else:
             self.doubleSpinBox_LensLength.setValue(
                 self.lens_dict["length"] / self.units
             )
-            self.frame_LensLength.setEnabled(True)
-            self.doubleSpinBox_LensLength.setEnabled(True)
+        self.frame_LensLength.setEnabled(not self.lens_dict["lens_type"] == "Spherical")
+        self.doubleSpinBox_LensLength.setEnabled(not self.lens_dict["lens_type"] == "Spherical")
 
         self.doubleSpinBox_LensHeight.setValue(self.lens_dict["height"] / self.units)
         if self.lens_dict["escape_path"] is not None:
@@ -168,6 +173,15 @@ class GUILensCreator(LensCreator.Ui_LensCreator, QtWidgets.QMainWindow):
             self.checkBox_InvertedProfile.setChecked(self.lens_dict["inverted"])
         else:
             self.checkBox_InvertedProfile.setChecked(False)
+
+        # If custom lens, take some options away
+        self.frame_LensDiameter.setEnabled(self.lens_dict["custom"] is None)
+        self.frame_LensHeight.setEnabled(self.lens_dict["custom"] is None)
+        self.frame_LensLength.setEnabled(self.lens_dict["custom"] is None)
+        self.frame_LensExponent.setEnabled(self.lens_dict["custom"] is None)
+        self.frame_LensType.setEnabled(self.lens_dict["custom"] is None)
+        self.frame_InvertedProfile.setEnabled(self.lens_dict["custom"] is None)
+        self.frame_LensEscapePath.setEnabled(self.lens_dict["custom"] is None)
 
     def update_config_general(self):
         # UI -> Config | General settings #
@@ -181,7 +195,6 @@ class GUILensCreator(LensCreator.Ui_LensCreator, QtWidgets.QMainWindow):
         else:
             self.lens_dict["escape_path"] = self.doubleSpinBox_LensEscapePath.value()
         self.lens_dict["inverted"] = self.checkBox_InvertedProfile.isChecked()
-
         self.lens_dict["diameter"] = self.format_float(
             self.doubleSpinBox_LensDiameter.value() * self.units
         )
@@ -408,9 +421,9 @@ class GUILensCreator(LensCreator.Ui_LensCreator, QtWidgets.QMainWindow):
             try:
                 self.checkBox_LiveUpdate.setChecked(False)
                 self.create_new_lens_dict(filename)
-                self.update_UI()
                 self.update_UI_limits()
                 self.create_lens()
+                self.update_UI()
                 self.checkBox_LiveUpdate.setChecked(was_live)
             except Exception as e:
                 self.display_error_message(traceback.format_exc())
@@ -540,9 +553,9 @@ class GUILensCreator(LensCreator.Ui_LensCreator, QtWidgets.QMainWindow):
             try:
                 self.checkBox_LiveUpdate.setChecked(False)
                 self.update_lens_dict()
+                self.create_lens()
                 self.update_UI_limits()
                 self.update_UI()
-                self.create_lens()
                 self.checkBox_LiveUpdate.setChecked(True)
             except Exception as e:
                 self.display_error_message(traceback.format_exc())
