@@ -1,8 +1,6 @@
 import os
 import sys
 import traceback
-from regex import P
-
 
 import lens_simulation.UI.qtdesigner_files.LensCreator as LensCreator
 import numpy as np
