@@ -1,6 +1,7 @@
 import os
 import sys
 import traceback
+from regex import P
 
 from sympy import DiagMatrix
 
@@ -448,7 +449,8 @@ class GUILensCreator(LensCreator.Ui_LensCreator, QtWidgets.QMainWindow):
         if filename == "":
             return
 
-        print(filename)
+        self.lens_dict["name"] = os.path.basename(filename).split('.')[0]
+        self.lineEdit_LensName.setText(self.lens_dict["name"])
 
         with open(filename, "w") as f:
             yaml.safe_dump(self.lens_dict, f, sort_keys=False)
