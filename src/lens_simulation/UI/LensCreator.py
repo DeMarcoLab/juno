@@ -628,9 +628,8 @@ class _ImageCanvas(FigureCanvasQTAgg, QtWidgets.QWidget):
                 image = axes.plot(image)
 
             else:
-                max_height = np.amax(lens.profile)
                 self.fig = utils.plot_lens_profile_slices(
-                    lens=lens, max_height=max_height, title="", facecolor="#f0f0f0"
+                    lens=lens, max_height=lens.height, title="", facecolor="#f0f0f0"
                 )
 
         FigureCanvasQTAgg.__init__(self, self.fig)
