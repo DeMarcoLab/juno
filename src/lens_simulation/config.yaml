@@ -32,7 +32,7 @@ lenses:
     medium: 2.348
     diameter: 300.e-6
     height: 10.e-6
-    exponent: [2.0, 3.0, 0.5]
+    exponent: [2.0, 3.0, 0.1]
     lens_type:  "Spherical"     # "Cylindrical" or "Spherical 
     # escape_path: 0.1
     inverted: false
