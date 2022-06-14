@@ -401,20 +401,22 @@ class GUILensCreator(LensCreator.Ui_LensCreator, QtWidgets.QMainWindow):
         if filename is "":
             return
 
+        # get the status of live update to restore it post loading
+        was_live = self.checkBox_LiveUpdate.isChecked()
+
         if filename.endswith(".npy"):
             try:
+                self.checkBox_LiveUpdate.setChecked(False)
                 self.create_new_lens_dict(filename)
-                # self.update_UI()
+                self.update_UI()
                 self.update_UI_limits()
                 self.create_lens()
+                self.checkBox_LiveUpdate.setChecked(was_live)
             except Exception as e:
                 self.display_error_message(traceback.format_exc())
 
         else:
             try:
-                # get the status of live update to restore it post loading
-                was_live = self.checkBox_LiveUpdate.isChecked()
-
                 # turn off live update to avoid memory issues
                 self.checkBox_LiveUpdate.setChecked(False)
                 self.lens_dict = utils.load_yaml_config(filename)
