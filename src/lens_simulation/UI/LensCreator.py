@@ -443,12 +443,14 @@ class GUILensCreator(LensCreator.Ui_LensCreator, QtWidgets.QMainWindow):
                 self.display_error_message(traceback.format_exc())
 
     def save_profile(self):
-        filename = QtWidgets.QFileDialog.getExistingDirectory(self, "Save Profile",)
+        filename, ext = QtWidgets.QFileDialog.getSaveFileName(self, "Save Profile", self.lens_dict["name"], filter="Yaml config (*.yml *.yaml)")
 
         if filename == "":
             return
 
-        with open(os.path.join(filename, self.lens_dict["name"] + ".yaml"), "w") as f:
+        print(filename)
+
+        with open(filename, "w") as f:
             yaml.safe_dump(self.lens_dict, f, sort_keys=False)
 
     ### Update methods ###
