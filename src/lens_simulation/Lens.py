@@ -132,6 +132,10 @@ class Lens:
         self.pixel_size = pixel_size
         self.profile = arr
 
+        self.length = pixel_size * arr.shape[0]
+        self.diameter = pixel_size * arr.shape[1]
+        self.height = np.max(arr)
+
         return self.profile
 
     def extrude_profile(self, length: float, n_pixels: int) -> np.ndarray:
