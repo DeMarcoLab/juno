@@ -640,7 +640,7 @@ def apply_modifications(lens: Lens, lens_config: dict) -> Lens:
     use_aperture = True if lens_config["aperture"] is not None else False
 
     lens.apply_masks(
-        grating=use_grating, truncation=use_truncation, aperture=use_aperture,
+        grating=use_grating, truncation=use_truncation, aperture=True,
     )
 
     return lens
