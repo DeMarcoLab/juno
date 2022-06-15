@@ -86,7 +86,7 @@ class Beam:
         pixel_size = sim_parameters.pixel_size
         sim_width = sim_parameters.sim_width
         sim_height = sim_parameters.sim_height
-        self.ouput_medium = Medium(self.settings.output_medium, sim_parameters.sim_wavelength)
+        self.output_medium = Medium(self.settings.output_medium, sim_parameters.sim_wavelength)
 
         # validation
         if self.width > sim_width:
@@ -112,7 +112,7 @@ class Beam:
 
             if self.shape is BeamShape.Circular:
                 lens.profile = (lens.profile != 0) * 1 # removes corner areas from lens
-                        
+
             if self.shape is BeamShape.Rectangular:
 
                 height_px = utils._calculate_num_of_pixels(self.height, pixel_size, odd=True)
@@ -161,7 +161,7 @@ class Beam:
 
         # calculate padding parameters
         beam_position = self.position
-        
+
         # when sim height 2px less than sim_width
         pad_height = (int(sim_height/pixel_size)-lens.profile.shape[0])//2 + 1    # px
         pad_width = (int(sim_width/pixel_size)-lens.profile.shape[1])//2 + 1    # px
