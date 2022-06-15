@@ -74,8 +74,6 @@ class Beam:
 
         self.tilt: list[float] = [settings.tilt_x, settings.tilt_y]
 
-        self.output_medium = settings.output_medium
-
         self.settings: BeamSettings = settings # TODO: remove?
 
     def __repr__(self) -> str:
@@ -88,6 +86,7 @@ class Beam:
         pixel_size = sim_parameters.pixel_size
         sim_width = sim_parameters.sim_width
         sim_height = sim_parameters.sim_height
+        self.ouput_medium = Medium(self.settings.output_medium, sim_parameters.sim_wavelength)
 
         # validation
         if self.width > sim_width:
