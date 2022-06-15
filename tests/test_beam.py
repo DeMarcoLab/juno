@@ -12,7 +12,7 @@ def beam_settings():
     return BeamSettings(
         distance_mode=DistanceMode.Direct,
         beam_spread=BeamSpread.Plane, 
-        beam_shape=BeamShape.Square,
+        beam_shape=BeamShape.Rectangular,
         width= 10e-6,
         height= 5e-6,
         position_x=0,
@@ -77,7 +77,7 @@ def test_beam_plane_wave_has_constant_width(beam_settings):
 def test_beam_generate_profile_plane_square(beam_settings, sim_parameters):
 
     # plane - square
-    beam_settings.beam_shape = BeamShape.Square
+    beam_settings.beam_shape = BeamShape.Rectangular
     beam_settings.beam_spread = BeamSpread.Plane
     beam = Beam(beam_settings)
     beam.generate_profile(sim_parameters)

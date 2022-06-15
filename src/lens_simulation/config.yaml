@@ -13,9 +13,9 @@ options:
 beam:
   # distance_mode: "direct"   # "Direct", "Width", "Focal"
   # spread: "plane"      # "Plane", "Converging", "Diverging"
-  # shape: "square"      # "Square", "Circular", "Rectangular"
-  width: 300.e-6
-  height: 50.e-6
+  shape: "rectangular"      # "Square", "Circular", "Rectangular"
+  width: 100.e-6
+  height: 500.e-6
   position_x: 0.e-6
   position_y:  0.e-6
   # theta: 45.0
@@ -26,7 +26,6 @@ beam:
   # # final_width: 10.0e-6
   # # focal_multiple: null
   # n_slices: 10
-  # lens_type:  "Spherical"     # "Cylindrical" or "Spherical 
 lenses:
   - name: lens_1
     medium: 2.348

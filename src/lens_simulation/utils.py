@@ -586,3 +586,49 @@ def plot_lens_modifications(lens):
 
     return fig
 
+def plot_simulation_setup(config):
+
+    arr = None
+    sim_height = config["sim_parameters"]["sim_height"]
+    pixel_size = config["sim_parameters"]["pixel_size"]
+    sim_n_pixels_h = _calculate_num_of_pixels(sim_height, pixel_size, True)
+
+    for conf in config["stages"]:
+        
+        # get stage info
+        output_medium = conf["output"]
+        sd = conf["start_distance"]
+        fd = conf["finish_distance"]
+        total = fd - sd
+        n_pixels = _calculate_num_of_pixels(total, pixel_size, True)
+        
+        # get lens info
+        lens_name = conf["lens"]
+        for lc in config["lenses"]:
+            if lens_name == lc["name"]:
+                lens_height = lc["height"]
+                lens_medium = lc["medium"]
+                break
+        
+        lens_n_pixels_z = _calculate_num_of_pixels(lens_height, pixel_size, True) 
+
+        # create arr
+        output = np.ones(shape=(sim_n_pixels_h, n_pixels)) * output_medium
+        lens = np.ones(shape=(sim_n_pixels_h, lens_n_pixels_z)) * lens_medium
+
+        if arr is None:
+            arr = arr = np.hstack([lens, output])
+        else:
+            arr = np.hstack([arr, lens, output])
+
+
+    # create plot
+    fig = plt.figure(figsize=(15, 2))
+    plt.imshow(arr, cmap="plasma")
+    clb = plt.colorbar()
+    clb.ax.set_title("Medium")
+    plt.title("Simulation Stages")
+    plt.xlabel("Propagation Distance (px)")
+    plt.ylabel("Simulation Height (px)")
+    # TODO: correct the propagation distances to mm
+    return fig

@@ -116,7 +116,7 @@ def _validate_default_beam_config(config: dict) -> dict:
     # default settings
     config["distance_mode"] = config["distance_mode"].title() if "distance_mode" in config else "Direct"
     config["spread"] = config["spread"].title() if "spread" in config else "Plane"
-    config["shape"] = config["shape"].title() if "shape" in config else "Square"
+    config["shape"] = config["shape"].title() if "shape" in config else "Circular"
 
 
     config["position_x"] = config["position_x"] if "position_x" in config else 0.0
@@ -130,6 +130,7 @@ def _validate_default_beam_config(config: dict) -> dict:
     config["focal_multiple"] = config["focal_multiple"] if "focal_multiple" in config else None
     config["n_slices"] = config["n_slices"] if "n_slices" in config else 10
     config["lens_type"] = config["lens_type"].title() if "lens_type" in config else "Spherical"
+    config["output_medium"] = config["output_medium"] if "output_medium" in config else 1.0
 
     return config
 
