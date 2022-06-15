@@ -1,15 +1,15 @@
-from distutils.log import error
 import sys
 import traceback
 
 from enum import Enum, auto
 import glob
-from typing import Union
-from venv import create
 import lens_simulation
 import os
+import yaml
+
 
 from lens_simulation import utils
+import matplotlib.pyplot as plt
 
 import lens_simulation.UI.qtdesigner_files.SimulationSetup as SimulationSetup
 from PyQt5 import QtCore, QtGui, QtWidgets
@@ -33,7 +33,6 @@ from pathlib import Path
 from pprint import pprint
 
 from lens_simulation import validation
-from PyQt5.QtWidgets import QMessageBox
 
 from lens_simulation.constants import (
     MICRON_TO_METRE,
@@ -41,7 +40,6 @@ from lens_simulation.constants import (
     NANO_TO_METRE,
     METRE_TO_NANO,
 )
-from requests import delete
 
 
 # TODO: validate loaded configs
@@ -76,6 +74,10 @@ class GUISimulationSetup(SimulationSetup.Ui_MainWindow, QtWidgets.QMainWindow):
         )
         self.pushButton_sim_beam.clicked.connect(self.load_beam_config)
 
+        self.pushButton_save_sim_config.clicked.connect(self.save_simulation_config)
+
+        self.actionLoad_Config.triggered.connect(self.load_simulation_config)
+
     def update_all_displays(self):
 
         self.update_stage_input_display()
@@ -90,8 +92,6 @@ class GUISimulationSetup(SimulationSetup.Ui_MainWindow, QtWidgets.QMainWindow):
             float(self.doubleSpinBox_sim_wavelength.value()) * NANO_TO_METRE
         )
         sim_amplitude = float(self.doubleSpinBox_sim_amplitude.value())
-
-        sim_num_stages = int(self.spinBox_sim_num_stages.value())
 
         self.simulation_config["sim_parameters"] = {
             "A": sim_amplitude,
@@ -115,8 +115,6 @@ class GUISimulationSetup(SimulationSetup.Ui_MainWindow, QtWidgets.QMainWindow):
 
         for stage_no, widgets in enumerate(self.input_widgets, 1):
 
-            print("STAGE_NO: ", stage_no, "CHECKED: ", widgets[14].isChecked())
-
             if widgets[14].isChecked():
                 widgets[9].setText("Focal Distance Start Multiple")
                 widgets[11].setText("Focal Distance Finish Multiple")
@@ -124,11 +122,35 @@ class GUISimulationSetup(SimulationSetup.Ui_MainWindow, QtWidgets.QMainWindow):
                 widgets[9].setText("Start Distance")
                 widgets[11].setText("Finish Distance")
 
+    def save_simulation_config(self):
+
+        # open file dialog
+        sim_config_filename, _ = QFileDialog.getSaveFileName(self,"Save Simulation Config","","Yaml files (*.yaml, *.yml)")
+        if sim_config_filename:          
+            # set name
+
+            # same as yaml file
+            with open(sim_config_filename, "w") as f:
+                yaml.safe_dump(self.simulation_config, f)
+
+            self.statusBar.showMessage(f"Simulation config saved to {sim_config_filename}")
+
+    def load_simulation_config(self):
+        
+        # open file dialog
+        sim_config_filename, _ = QFileDialog.getOpenFileName(self,"Load Simulation Config","","Yaml files (*.yaml, *.yml)")
+        if sim_config_filename:          
+            
+            config = utils.load_config(sim_config_filename)
+            
+            self.statusBar.showMessage(f"Simulation config loaded from {sim_config_filename}")
+
+            pprint(config)
+
     def generate_simulation_config(self):
         print("generating simulation config")
 
         self.update_simulation_config()
-
         self.read_stage_input_values()
 
         print("-" * 50)
@@ -140,6 +162,8 @@ class GUISimulationSetup(SimulationSetup.Ui_MainWindow, QtWidgets.QMainWindow):
             print("Configuration is valid.")
             self.draw_simulation_stage_display()
 
+            self.pushButton_save_sim_config.setEnabled(True)
+
         except Exception as e:
             display_error_message(f"Invalid simulation config. \n{e}")
 
@@ -147,7 +171,6 @@ class GUISimulationSetup(SimulationSetup.Ui_MainWindow, QtWidgets.QMainWindow):
         # beam selected
         # lenses selected
         # required fields...?
-        # TODO: save the config... where?
 
     def draw_simulation_stage_display(self):
 
@@ -158,7 +181,6 @@ class GUISimulationSetup(SimulationSetup.Ui_MainWindow, QtWidgets.QMainWindow):
         groupBox_stage_display.setLayout(stage_layout)
         self.scrollArea_stage_display.setWidget(groupBox_stage_display)
         self.scrollArea_stage_display.update()
-
 
 
     def read_stage_input_values(self):
@@ -288,14 +310,26 @@ def create_stage_structure_display(config):
 
     layout = QGridLayout()
 
+
+    # simulation setup
+    fig = utils.plot_simulation_setup(config)
+    sim_setup_fname  = os.path.join(tmp_directory, "sim_setup.png")
+    utils.save_figure(fig, sim_setup_fname)
+    plt.close(fig)
+
+    sim_label = QLabel()
+    sim_label.setPixmap(QPixmap(sim_setup_fname))
+
+    layout.addWidget(sim_label, 0, 0, 1, len(config["stages"]) + 1)
+
     # beam
     beam_label = QLabel()
     beam_label.setText("I'm a Beam (side-on).")
 
     beam_top_down_label = QLabel()
     beam_top_down_label.setText("I'm a Beam (top-down).")
-    layout.addWidget(beam_label, 0, 0)
-    layout.addWidget(beam_top_down_label, 1, 0)
+    layout.addWidget(beam_label, 1, 0)
+    layout.addWidget(beam_top_down_label, 2, 0)
 
     display_widgets = [[beam_label, beam_top_down_label]]
 
@@ -318,7 +352,6 @@ def create_stage_structure_display(config):
             if conf["name"] == lens_name:
                 lens_config = conf
    
-
         from lens_simulation.Lens import generate_lens
         from lens_simulation.Medium import Medium
 
@@ -331,10 +364,12 @@ def create_stage_structure_display(config):
         fig = utils.plot_lens_profile_slices(lens, max_height=lens.height)
         side_on_fname = os.path.join(tmp_directory, "side_on_profile.png")
         utils.save_figure(fig, side_on_fname)
+        plt.close(fig)
 
         fig = utils.plot_lens_profile_2D(lens)
         top_down_fname = os.path.join(tmp_directory, "top_down_profile.png")
         utils.save_figure(fig, top_down_fname)
+        plt.close(fig)
 
         img = np.random.rand(400,400,3).astype(np.uint8) * 255
         output_img = np.ones_like(img) * output
@@ -345,8 +380,8 @@ def create_stage_structure_display(config):
         stage_top_down_label = QLabel()
         stage_top_down_label.setPixmap(QPixmap(top_down_fname).scaled(300, 300)) #array_to_qlabel(lens.profile)
                 
-        layout.addWidget(stage_label, 0, i)
-        layout.addWidget(stage_top_down_label, 1, i)
+        layout.addWidget(stage_label, 1, i)
+        layout.addWidget(stage_top_down_label, 2, i)
 
         display_widgets.append([stage_label, stage_top_down_label])
 
@@ -388,16 +423,19 @@ def create_stage_input_display(stage_no):
     step_size_label = QLabel()
     step_size_label.setText(f"Step Size")
     step_size_spinbox = QDoubleSpinBox()
+    step_size_spinbox.setDecimals(6)
 
     # start distance
     start_distance_label = QLabel()
     start_distance_label.setText(f"Start Distance")
     start_distance_spinbox = QDoubleSpinBox()
+    start_distance_spinbox.setDecimals(6)
 
     # finish distance
     finish_distance_label = QLabel()
     finish_distance_label.setText(f"Finish Distance")
     finish_distance_spinbox = QDoubleSpinBox()
+    finish_distance_spinbox.setDecimals(6)
 
     # options
     #   use focal distance

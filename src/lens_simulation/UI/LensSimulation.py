@@ -13,6 +13,7 @@ import  lens_simulation.UI.qtdesigner_files.LensSimulation as LensSimulation
 from lens_simulation.UI.LensCreator import GUILensCreator
 from lens_simulation.UI.SimulationSetup import GUISimulationSetup
 from lens_simulation.UI.VisualiseResults import GUIVisualiseResults
+from lens_simulation.UI.BeamCreator import GUIBeamCreator
 
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtWidgets import (
@@ -70,6 +71,7 @@ class GUILensSimulation(LensSimulation.Ui_MainWindow, QtWidgets.QMainWindow):
     def launch_beam_creation(self):
 
         print("launch beam creation")
+        self.beam_creator = GUIBeamCreator()
 
 
     def launch_setup_simulation(self):
