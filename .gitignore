@@ -24,6 +24,4 @@ src/lens_simulation/lens.yaml
 .coverage
 *.yaml
 # *.png
-**/tmp/*.png
-src/lens_simulation/tmp/side_on_profile.png
-src/lens_simulation/tmp/top_down_profile.png
+src/lens_simulation/tmp/*

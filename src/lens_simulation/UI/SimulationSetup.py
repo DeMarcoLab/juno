@@ -125,7 +125,10 @@ class GUISimulationSetup(SimulationSetup.Ui_MainWindow, QtWidgets.QMainWindow):
     def save_simulation_config(self):
 
         # open file dialog
-        sim_config_filename, _ = QFileDialog.getSaveFileName(self,"Save Simulation Config","","Yaml files (*.yaml, *.yml)")
+        sim_config_filename, _ = QFileDialog.getSaveFileName(self,
+                    caption="Save Simulation Config", 
+                    directory=os.path.dirname(lens_simulation.__file__),
+                    filter="Yaml files (*.yml, *.yaml)")
         if sim_config_filename:          
             # set name
 
@@ -136,9 +139,13 @@ class GUISimulationSetup(SimulationSetup.Ui_MainWindow, QtWidgets.QMainWindow):
             self.statusBar.showMessage(f"Simulation config saved to {sim_config_filename}")
 
     def load_simulation_config(self):
-        
+        print("loading simulation config")
         # open file dialog
-        sim_config_filename, _ = QFileDialog.getOpenFileName(self,"Load Simulation Config","","Yaml files (*.yaml, *.yml)")
+        sim_config_filename, _ = QFileDialog.getOpenFileName(self,
+                    caption="Load Simulation Config", 
+                    directory=os.path.dirname(lens_simulation.__file__),
+                    filter="Yaml files (*.yml, *.yaml)"
+                    )
         if sim_config_filename:          
             
             config = utils.load_config(sim_config_filename)
@@ -147,9 +154,57 @@ class GUISimulationSetup(SimulationSetup.Ui_MainWindow, QtWidgets.QMainWindow):
 
             pprint(config)
 
+            print("loaded config")
+            # TODO: how to handle partial configs??? throw error?
+
+            # load config values into UI....
+            self.simulation_config = config
+
+            # set sim parameters
+            self.doubleSpinBox_pixel_size.setValue(float(config["sim_parameters"]["pixel_size"]) * METRE_TO_MICRON)
+            self.doubleSpinBox_sim_width.setValue(float(config["sim_parameters"]["sim_width"])* METRE_TO_MICRON)
+            self.doubleSpinBox_sim_height.setValue(float(config["sim_parameters"]["sim_height"]) * METRE_TO_MICRON)
+            self.doubleSpinBox_sim_wavelength.setValue(float(config["sim_parameters"]["sim_wavelength"]) * METRE_TO_NANO)
+            self.doubleSpinBox_sim_amplitude.setValue(float(config["sim_parameters"]["A"]))
+
+            # set sim optiosn
+            self.lineEdit_log_dir.setText(str(config["options"]["log_dir"]))
+            self.checkBox_save_plot.setChecked(bool(config["options"]["save_plot"]))
+            self.checkBox_save_raw.setChecked(bool(config["options"]["save"]))
+
+            # set beam
+            self.pushButton_sim_beam.setText("beam")
+
+            # set n stages
+            self.spinBox_sim_num_stages.setValue(int(len(config["stages"])))
+
+            # update each stage info
+
+            for i, stage_config in enumerate(config["stages"]):
+
+                widgets = self.input_widgets[i]
+                widgets[2].setText(str(stage_config["lens"]))
+                widgets[4].setValue(float(stage_config["output"]))
+                widgets[6].setValue(int(stage_config["n_slices"]))
+                widgets[8].setValue(float(stage_config["step_size"]))
+                widgets[10].setValue(float(stage_config["start_distance"]))
+                widgets[12].setValue(float(stage_config["finish_distance"]))
+
+                if stage_config["options"] is not None:
+                    widgets[14].setChecked(bool(stage_config["options"]["use_equivalent_focal_distance"]))
+
+                    if widgets[14].isChecked():
+                        widgets[10].setValue(float(stage_config["options"]["focal_distance_start_multiple"]))
+                        widgets[12].setValue(float(stage_config["options"]["focal_distance_multiple"]))               
+                
+
+            self.SIMULATION_CONFIG_LOADED = True
+
     def generate_simulation_config(self):
         print("generating simulation config")
 
+        # TODO: need to check if things are loaded...
+        
         self.update_simulation_config()
         self.read_stage_input_values()
 
@@ -195,9 +250,18 @@ class GUISimulationSetup(SimulationSetup.Ui_MainWindow, QtWidgets.QMainWindow):
             output = float(widgets[4].value())
             n_slices = int(widgets[6].value())
             step_size = float(widgets[8].value())
-            start_distance = float(widgets[10].value())
-            finish_distance = float(widgets[12].value())
+            
             use_focal_distance = bool(widgets[14].isChecked())
+            if use_focal_distance:
+                start_distance = 0.0
+                finish_distance = 0.5e-3
+                focal_distance_start_multiple = float(widgets[10].value())
+                focal_distance_multiple = float(widgets[12].value())
+            else:
+                start_distance = float(widgets[10].value())
+                finish_distance = float(widgets[12].value())
+                focal_distance_start_multiple = 0.0
+                focal_distance_multiple = 0.0
 
             stage_config = {
                 "lens": lens_name,
@@ -208,8 +272,8 @@ class GUISimulationSetup(SimulationSetup.Ui_MainWindow, QtWidgets.QMainWindow):
                 "finish_distance": finish_distance,
                 "options": {
                     "use_equivalent_focal_distance": use_focal_distance,
-                    "focal_distance_start_multiple": start_distance,
-                    "focal_distance_multiple": finish_distance,
+                    "focal_distance_start_multiple": focal_distance_start_multiple,
+                    "focal_distance_multiple": focal_distance_multiple,
                 },
             }
 
@@ -310,6 +374,7 @@ def create_stage_structure_display(config):
 
     layout = QGridLayout()
 
+    # TODO: need to account for focal distance multiple.... otherwise it gets too large to plot
 
     # simulation setup
     fig = utils.plot_simulation_setup(config)
