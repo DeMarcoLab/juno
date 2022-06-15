@@ -59,7 +59,8 @@ class SimulationRunner:
             # ref: https://stackoverflow.com/questions/798854/all-combinations-of-a-list-of-lists
             parameters_combinations = list(itertools.product(*lens_params))
             all_lens_params.append(parameters_combinations)
-            
+        
+        pprint(all_lens_params)
 
         # TODO: support sweeping through lens, and output for stages e.g. lens: [lens_2, lens_3, ...]
         all_stage_params = []
@@ -121,7 +122,9 @@ class SimulationRunner:
                         "finish_distance": stage_combo[j][1],
                         "n_slices": stage["n_slices"],
                         "step_size": stage["step_size"],
-                        "options": stage["options"],
+                        "use_equivalent_focal_distance": stage["use_equivalent_focal_distance"],
+                        "focal_distance_start_multiple": stage["focal_distance_start_multiple"],
+                        "focal_distance_multiple": stage["focal_distance_multiple"]
                     }
                     stage_combination.append(stage_dict)
                     del stage_dict
@@ -178,6 +181,25 @@ class SimulationRunner:
         self.config["finished"] = utils.current_timestamp()
         utils.save_metadata(self.config, self.data_path)
 
+
+
+def generate_parameter_sweep_v2(start:float, stop:float, step_size:float) -> np.ndarray:
+
+    if stop is None or step_size is None:
+        return [start]
+
+    if step_size == 0.0:
+        raise ValueError("Step Size cannot be zero.")
+
+    if start >= stop:
+        raise ValueError(f"Start parameter {start} cannot be greater than stop parameter {stop}")
+
+    if (stop - start) + 0.0001e-6 < step_size:
+        raise ValueError(f"Step size is larger than parameter range. {start}, {stop}, {step_size}")
+
+    n_steps = ceil((stop - start) / (step_size)) + 1 # TODO: validate this
+
+    return np.linspace(start, stop, n_steps)
 
 
 
