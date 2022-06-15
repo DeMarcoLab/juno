@@ -7,7 +7,7 @@ from enum import Enum, auto
 
 import logging
 
-from lens_simulation.Medium import Medium 
+from lens_simulation.Medium import Medium
 from lens_simulation.Lens import Lens, LensType
 from lens_simulation.structures import SimulationParameters
 from lens_simulation import validation
@@ -29,7 +29,7 @@ class BeamShape(Enum):
     Rectangular = auto()
 
 ############
-# Bsp/ DM:      Direct      Width       Focal   
+# Bsp/ DM:      Direct      Width       Focal
 # Plane:          Y                       N
 # Converging:     Y                       Y
 # Diverging:      Y                       Y
@@ -45,7 +45,7 @@ class BeamSettings:
     position_x: 0.0
     position_y: 0.0
     theta: float = 0.0                      # degrees
-    numerical_aperture: float = None        
+    numerical_aperture: float = None
     tilt_x: float = 0.0
     tilt_y: float = 0.0                     # degrees
     source_distance: float = None
@@ -81,7 +81,7 @@ class Beam:
         self.settings: BeamSettings = settings # TODO: remove?
 
     def __repr__(self) -> str:
-        
+
         return f"""Beam: {self.settings}"""
 
 
@@ -124,13 +124,13 @@ class Beam:
 
         # diverging/converging cases
         elif self.spread in [BeamSpread.Converging, BeamSpread.Diverging]:
-            
+
             if self.theta == 0.0:
                 self.theta = theta_from_NA(self.settings.numerical_aperture, self.output_medium)
 
             # calculate the equivalent focal distance of the required convergence angle
             self.focal_distance = focal_distance_from_theta(beam=lens, theta=self.theta)
-            
+
             # calculate and set the height of the apertures 'virtual' lens, re-generate the profile with new height
             lens.height = height_from_focal_distance(lens, output_medium=self.output_medium, focal_distance=self.focal_distance)
 
@@ -152,16 +152,16 @@ class Beam:
         self.start_distance, self.finish_distance = self.calculate_propagation_distance()
 
     def position_and_pad_beam(self, lens: Lens, parameters: SimulationParameters):
-        
+
         pixel_size = parameters.pixel_size
         sim_width = parameters.sim_width
         sim_height = parameters.sim_height
 
         # set up the part of the lens square that isn't the lens for aperturing
-        non_lens_profile = lens.profile == 0 
+        non_lens_profile = lens.profile == 0
         aperturing_value = -1 #-1e-9 # NOTE: needs to be a relatively large value for numerical comparison # QUERY why not zero, parts of lens at zero might not be apertures e.g. escape path...
         lens.profile[non_lens_profile] = aperturing_value # the non-lens-profile is the size of the lens before padding...
-        
+
         # calculate padding parameters
         beam_position = self.position
         
@@ -174,12 +174,12 @@ class Beam:
 
         # pad the profile to the sim width (Top - Bottom - Left - Right)
         lens.profile = np.pad(lens.profile, ((pad_height + relative_position_y, pad_height - relative_position_y),
-                                                    (pad_width + relative_position_x, pad_width - relative_position_x)), 
+                                                    (pad_width + relative_position_x, pad_width - relative_position_x)),
                                                     mode="constant", constant_values=aperturing_value)
         # assign lens
         self.lens = lens
         self.lens.non_lens_mask = (lens.profile == aperturing_value).astype(bool)
-        
+
         # reset apertures back to zero height
         self.lens.profile[self.lens.non_lens_mask] = 0
 
@@ -215,7 +215,7 @@ class Beam:
             raise TypeError(f"Unsupported DistanceMode for calculated propagation distance: {self.distance_mode}")
 
         return start_distance, finish_distance
-    
+
 
 def validate_beam_configuration(settings: BeamSettings):
     """Validate the user has passed the correct parameters for the given configuration"""
@@ -240,7 +240,7 @@ def validate_beam_configuration(settings: BeamSettings):
         logging.info(f"Only BeamShape.Circular is supported for {settings.beam_spread}. The beam_shape has been set to {settings.beam_shape}.")
 
         # QUERY?
-        if settings.theta == 0.0: 
+        if settings.theta == 0.0:
             if settings.numerical_aperture is None:
                 raise ValueError(f"A non-zero theta or numerical aperture must be provided for a {settings.beam_spread} beam.")
 
@@ -290,13 +290,13 @@ def load_beam_config(config: dict) -> BeamSettings:
     Returns:
         BeamSettings: beam configuration as BeamSettings
     """
-    
-   
+
+
     config = validation._validate_default_beam_config(config)
 
     beam_settings = BeamSettings(
         distance_mode=DistanceMode[config["distance_mode"]],
-        beam_spread=BeamSpread[config["spread"]], 
+        beam_spread=BeamSpread[config["spread"]],
         beam_shape=BeamShape[config["shape"]],
         width=config["width"],
         height= config["height"],
@@ -320,7 +320,7 @@ def generate_beam(config: dict, parameters: SimulationParameters):
 
     Args:
         config (dict): beam configuration
-        parameters (SimulationParameters): global simulation parameters 
+        parameters (SimulationParameters): global simulation parameters
 
     Returns:
         Beam: initial simulation beam

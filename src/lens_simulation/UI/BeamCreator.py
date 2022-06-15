@@ -31,10 +31,10 @@ beam_spread_dict = {
 
 beam_shape_dict = {
     "Circular": 0,
-    "Square": 1,
-    "Rectangular": 2,
+    "Rectangular": 1,
 }
 
+# TODO: Add amplitude
 
 class GUIBeamCreator(BeamCreator.Ui_BeamCreator, QtWidgets.QMainWindow):
     def __init__(self, parent_gui=None):
@@ -53,7 +53,7 @@ class GUIBeamCreator(BeamCreator.Ui_BeamCreator, QtWidgets.QMainWindow):
 
         self.create_new_beam_dict()
         self.update_UI()
-
+        self.create_beam()
         self.setup_connections()
 
         self.center_window()
@@ -109,16 +109,18 @@ class GUIBeamCreator(BeamCreator.Ui_BeamCreator, QtWidgets.QMainWindow):
         self.beam_dict["n_slices"] = 10
         self.beam_dict["lens_type"] = "Spherical"
 
+    def create_beam(self):
         self.parameters = SimulationParameters(
             A=10000,
             pixel_size=self.sim_dict["pixel_size"],
             sim_width=self.sim_dict["width"],
             sim_height=self.sim_dict["height"],
             sim_wavelength=self.sim_dict["wavelength"]
+            # TODO: add wavelength
         )
 
-    def create_beam(self):
         self.beam = generate_beam(config=self.beam_dict, parameters=self.parameters)
+        self.update_image_frames()
 
 
     ### UI <-> Config methods ###
@@ -131,8 +133,6 @@ class GUIBeamCreator(BeamCreator.Ui_BeamCreator, QtWidgets.QMainWindow):
         self.update_config_distance()
         self.update_config_tilt()
         self.update_config_sim()
-        print(self.beam_dict)
-        # print(self.sim_dict)
 
     def update_UI(self):
         self.update_UI_general()
@@ -181,7 +181,6 @@ class GUIBeamCreator(BeamCreator.Ui_BeamCreator, QtWidgets.QMainWindow):
         self.comboBox_BeamShape.clear()
         if self.beam_dict["spread"].title() == "Plane":
             self.comboBox_BeamShape.addItem("Circular")
-            self.comboBox_BeamShape.addItem("Square")
             self.comboBox_BeamShape.addItem("Rectangular")
             self.comboBox_BeamShape.setCurrentIndex(beam_shape_dict[self.beam_dict["shape"].title()])
         else:
@@ -196,15 +195,14 @@ class GUIBeamCreator(BeamCreator.Ui_BeamCreator, QtWidgets.QMainWindow):
         else:
             self.beam_dict["shape"] = self.comboBox_BeamShape.currentText()
 
-
     def update_UI_convergence_angle(self):
         # Config -> UI | Angle settings #
-        if self.beam_dict["spread"] == "plane":
+        if self.beam_dict["spread"].title() == "Plane":
             self.frame_BeamAngle.setEnabled(False)
         else:
             self.frame_BeamAngle.setEnabled(True)
 
-        if self.beam_dict["theta"] is not None:
+        if self.beam_dict["theta"] is not None and self.beam_dict["theta"] != 0.:
             self.comboBox_BeamAngle.setCurrentText("Theta")
             self.doubleSpinBox_BeamAngle.setValue(self.beam_dict["theta"]
             )
@@ -216,12 +214,13 @@ class GUIBeamCreator(BeamCreator.Ui_BeamCreator, QtWidgets.QMainWindow):
     def update_config_convergence_angle(self):
         # UI -> config | Angle settings #
         if self.comboBox_BeamAngle.currentText() == "Numerical Aperture":
-            self.beam_dict["theta"] = None
+            self.beam_dict["theta"] = 0.
             self.beam_dict["numerical_aperture"] = self.doubleSpinBox_BeamAngle.value()
+            print(self.beam_dict)
             return
 
         self.beam_dict["theta"] = self.doubleSpinBox_BeamAngle.value()
-        self.beam_dict["numerical_aperture"] = None
+        self.beam_dict["numerical_aperture"] = 0.
 
     def update_UI_distance(self):
         # Config -> UI | Distance settings #
@@ -273,17 +272,55 @@ class GUIBeamCreator(BeamCreator.Ui_BeamCreator, QtWidgets.QMainWindow):
         # np format_float_scientific() might be the same?
         return float(f"{num:4e}")
 
+    ### Update methods ###
+
+    def update_image_frames(self):
+        plt.close("all")
+
+        self.pc_Profile = self.update_frame(
+            label=self.label_Profile,
+            pc=self.pc_Profile,
+            image=self.beam.lens.profile,
+            ndim=2,
+            mask=False,
+        )
+
+        # self.pc_Convergence = self.update_frame(
+        #     label=self.label_ProfileMask,
+        #     pc=self.pc_ProfileMask,
+        #     image=profile_mask_image,
+        #     ndim=2,
+        #     mask=True,
+        # )
+
+    def update_frame(self, label, pc, image, ndim, mask):
+        """Helper function for update_image_frames"""
+        if label.layout() is None:
+            label.setLayout(QtWidgets.QVBoxLayout())
+        if pc is not None:
+            label.layout().removeWidget(pc)
+            pc.deleteLater()
+
+        pc = _ImageCanvas(
+            parent=label, image=image, lens=self.beam.lens, ndim=ndim, mask=mask
+        )
+
+        label.layout().addWidget(pc)
+
+        return pc
+
     def live_update_profile(self):
         if self.checkBox_LiveUpdate.isChecked():
             try:
                 self.checkBox_LiveUpdate.setChecked(False)
                 self.update_beam_dict()
-                # self.create_beam()
-                # self.update_UI_limits()
+                self.create_beam()
                 self.update_UI()
                 self.checkBox_LiveUpdate.setChecked(True)
             except Exception as e:
                 self.display_error_message(traceback.format_exc())
+
+    ### Window methods ###
 
     def center_window(self):
         """Centers the window in the display"""
@@ -303,6 +340,58 @@ class GUIBeamCreator(BeamCreator.Ui_BeamCreator, QtWidgets.QMainWindow):
         self.error_dialog.showNormal()
         self.error_dialog.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
         self.error_dialog.exec_()
+
+class _ImageCanvas(FigureCanvasQTAgg, QtWidgets.QWidget):
+    def __init__(self, parent=None, image=None, lens=None, ndim=2, mask=False):
+
+        if ndim == 2:
+            colorbar_ticks = None
+            if mask:
+                if image is None:
+                    image = np.zeros(shape=lens.profile.shape)
+                    colorbar_ticks = [0]
+                func_ = utils.plot_array_2D
+                thing_to_plot = image
+            else:
+                func_ = utils.plot_lens_profile_2D
+                thing_to_plot = lens
+
+            self.fig = func_(
+                thing_to_plot,
+                facecolor="#f0f0f0",
+                extent=[
+                    -lens.diameter / 2,
+                    lens.diameter / 2,
+                    -lens.length / 2,
+                    lens.length / 2,
+                ],
+                colorbar_ticks=colorbar_ticks,
+            )
+
+        elif ndim == 1:
+            if mask:
+                if image is None:
+                    image = np.zeros(shape=lens.profile.shape[0])
+
+                self.fig = plt.figure()
+                self.fig.set_facecolor("#f0f0f0")
+                gridspec = self.fig.add_gridspec(1, 1)
+                axes = self.fig.add_subplot(gridspec[0], title="")
+                axes.ticklabel_format(
+                    axis="both", style="sci", scilimits=(0, 0), useMathText=True
+                )
+                axes.locator_params(nbins=4)
+
+                image = axes.plot(image)
+
+            else:
+                self.fig = utils.plot_lens_profile_slices(
+                    lens=lens, max_height=lens.height, title="", facecolor="#f0f0f0"
+                )
+
+        FigureCanvasQTAgg.__init__(self, self.fig)
+        self.setParent(parent)
+
 
 def main():
     """Launch the `piescope_gui` main application window."""
