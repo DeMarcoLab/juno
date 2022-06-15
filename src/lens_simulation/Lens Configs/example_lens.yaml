@@ -1,11 +1,15 @@
 name: example_lens
 medium: 2.348
+# pixel_size: 1.e-6
 diameter: 300.e-6
+length: 1.e-6
 height: 5.e-6
 exponent: 2.0
-lens_type:  "Spherical"     # "Cylindrical" or "Spherical
+lens_type:  "Cylindrical"     # "Cylindrical" or "Spherical
+# escape_path: 0.
+# inverted: null
+# custom: null
 
-# escape_path: 0.1
 # length: nu
 # custom: null
 # grating:

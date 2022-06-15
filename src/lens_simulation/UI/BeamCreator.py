@@ -62,7 +62,7 @@ class GUIBeamCreator(BeamCreator.Ui_BeamCreator, QtWidgets.QMainWindow):
 
     def setup_connections(self):
         # self.pushButton_LoadProfile.clicked.connect(self.load_profile)
-        # self.pushButton_GenerateProfile.clicked.connect(self.create_lens)
+        self.pushButton_GenerateProfile.clicked.connect(self.create_beam)
         # self.pushButton_SaveProfile.clicked.connect(self.save_profile)
 
         # self.comboBox_Units.currentIndexChanged.connect(self.update_units)
@@ -273,6 +273,38 @@ class GUIBeamCreator(BeamCreator.Ui_BeamCreator, QtWidgets.QMainWindow):
     def format_float(self, num):
         # np format_float_scientific() might be the same?
         return float(f"{num:4e}")
+
+    ### I/O methods ###
+
+    def load_profile(self):
+        filename, _ = QtWidgets.QFileDialog.getOpenFileName(
+            self,
+            "Load Profile",
+            filter="Yaml config (*.yml *.yaml)",
+        )
+
+        if filename is "":
+            return
+
+        # get the status of live update to restore it post loading
+        was_live = self.checkBox_LiveUpdate.isChecked()
+        try:
+            # turn off live update to avoid memory issues
+            self.checkBox_LiveUpdate.setChecked(False)
+            # TODO: check how to validate for beam
+            self.beam_dict = utils.load_yaml_config(filename)
+            # validate_beam_configuration
+
+
+
+            self.update_UI_limits()
+            self.update_UI()
+            self.update_UI_limits()
+            self.update_UI()
+            self.create_beam()
+            self.checkBox_LiveUpdate.setChecked(was_live)
+        except Exception as e:
+            self.display_error_message(traceback.format_exc())
 
     ### Update methods ###
 

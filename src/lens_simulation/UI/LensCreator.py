@@ -41,9 +41,9 @@ class GUILensCreator(LensCreator.Ui_LensCreator, QtWidgets.QMainWindow):
 
         # creat initial lens config
         self.create_new_lens_dict()
-        self.update_UI()
-        self.update_UI_limits()
         self.create_lens()
+        self.update_UI_limits()
+        self.update_UI()
 
         self.setup_connections()
 
@@ -97,7 +97,7 @@ class GUILensCreator(LensCreator.Ui_LensCreator, QtWidgets.QMainWindow):
         self.lens_dict["height"] = 10.0e-6
         self.lens_dict["pixel_size"] = 0.1e-6
         self.lens_dict["custom"] = filename
-        self.lens_dict["inverted"] = False
+        self.lens_dict["inverted"] = True
         self.lens_dict["escape_path"] = None
         self.lens_dict["grating"] = None
         self.lens_dict["truncation"] = None
@@ -163,15 +163,17 @@ class GUILensCreator(LensCreator.Ui_LensCreator, QtWidgets.QMainWindow):
         self.doubleSpinBox_LensLength.setEnabled(not self.lens_dict["lens_type"] == "Spherical")
 
         self.doubleSpinBox_LensHeight.setValue(self.lens_dict["height"] / self.units)
+
+        if "escape_path" not in self.lens_dict: self.lens_dict["escape_path"] = None
         if self.lens_dict["escape_path"] is not None:
             self.doubleSpinBox_LensEscapePath.setValue(self.lens_dict["escape_path"])
         else:
             self.doubleSpinBox_LensEscapePath.setValue(0.0)
-        if self.lens_dict["inverted"] is not None:
-            self.checkBox_InvertedProfile.setChecked(self.lens_dict["inverted"])
-        else:
-            self.checkBox_InvertedProfile.setChecked(False)
 
+        if "inverted" not in self.lens_dict: self.lens_dict["inverted"] = False
+        self.checkBox_InvertedProfile.setChecked(self.lens_dict["inverted"])
+
+        if "custom" not in self.lens_dict: self.lens_dict["custom"] = None
         # If custom lens, take some options away
         self.frame_LensDiameter.setEnabled(self.lens_dict["custom"] is None)
         self.frame_LensHeight.setEnabled(self.lens_dict["custom"] is None)
@@ -208,6 +210,9 @@ class GUILensCreator(LensCreator.Ui_LensCreator, QtWidgets.QMainWindow):
 
     def update_UI_grating(self):
         # Config -> UI | Grating settings #
+        if "grating" not in self.lens_dict:
+            self.lens_dict["grating"] = None
+
         if self.lens_dict["grating"] is None:
             self.groupBox_Gratings.setChecked(False)
             return
@@ -249,6 +254,9 @@ class GUILensCreator(LensCreator.Ui_LensCreator, QtWidgets.QMainWindow):
 
     def update_UI_truncation(self):
         # Config -> UI | Truncation Settings #
+        if "truncation" not in self.lens_dict:
+            self.lens_dict["truncation"] = None
+
         if self.lens_dict["truncation"] is None:
             self.groupBox_Truncation.setChecked(False)
             return
@@ -292,6 +300,9 @@ class GUILensCreator(LensCreator.Ui_LensCreator, QtWidgets.QMainWindow):
 
     def update_UI_aperture(self):
         # Config -> UI | Aperture settings #
+        if "aperture" not in self.lens_dict:
+            self.lens_dict["aperture"] = None
+
         if self.lens_dict["aperture"] is None:
             self.groupBox_Aperture.setChecked(False)
             return
@@ -333,6 +344,9 @@ class GUILensCreator(LensCreator.Ui_LensCreator, QtWidgets.QMainWindow):
 
     def update_UI_limits(self):
         """Method to update limits all at once from dict"""
+        if "pixel_size" not in self.lens_dict:
+            self.lens_dict["pixel_size"] = 1 * self.units
+
         self.doubleSpinBox_LensDiameter.setMinimum(
             2 * self.lens_dict["pixel_size"] / self.units
         )
@@ -419,8 +433,9 @@ class GUILensCreator(LensCreator.Ui_LensCreator, QtWidgets.QMainWindow):
             try:
                 self.checkBox_LiveUpdate.setChecked(False)
                 self.create_new_lens_dict(filename)
-                self.update_UI_limits()
+                self.lens_dict["pixel_size"] = 1 * self.units
                 self.create_lens()
+                self.update_UI_limits()
                 self.update_UI()
                 self.checkBox_LiveUpdate.setChecked(was_live)
             except Exception as e:
@@ -431,11 +446,12 @@ class GUILensCreator(LensCreator.Ui_LensCreator, QtWidgets.QMainWindow):
                 # turn off live update to avoid memory issues
                 self.checkBox_LiveUpdate.setChecked(False)
                 self.lens_dict = utils.load_yaml_config(filename)
-                self.update_UI_limits()
-                self.update_UI()
-                self.update_UI_limits()
-                self.update_UI()
+                self.lens_dict["pixel_size"] = 1 * self.units
                 self.create_lens()
+                self.update_UI_limits()
+                self.update_UI()
+                self.update_UI_limits()
+                self.update_UI()
                 self.checkBox_LiveUpdate.setChecked(was_live)
             except Exception as e:
                 self.display_error_message(traceback.format_exc())
