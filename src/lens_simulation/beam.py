@@ -11,6 +11,8 @@ from lens_simulation.Medium import Medium
 from lens_simulation.Lens import Lens, LensType
 from lens_simulation.structures import SimulationParameters
 from lens_simulation import validation
+from lens_simulation import utils
+
 
 class BeamSpread(Enum):
     Plane = auto()
@@ -24,7 +26,6 @@ class DistanceMode(Enum):
 
 class BeamShape(Enum):
     Circular = auto()
-    Square = auto()
     Rectangular = auto()
 
 ############
@@ -51,7 +52,7 @@ class BeamSettings:
     final_width: float = None
     focal_multiple: float = None
     n_slices: int = 10
-    lens_type: LensType = LensType.Spherical
+    output_medium: float = 1.0
 
 
 
@@ -75,8 +76,7 @@ class Beam:
 
         self.tilt: list[float] = [settings.tilt_x, settings.tilt_y]
 
-        self.output_medium = Medium(1.33)
-        self.lens_type = settings.lens_type
+        self.output_medium = settings.output_medium
 
         self.settings: BeamSettings = settings # TODO: remove?
 
@@ -90,7 +90,6 @@ class Beam:
         pixel_size = sim_parameters.pixel_size
         sim_width = sim_parameters.sim_width
         sim_height = sim_parameters.sim_height
-        lens_type = self.lens_type
 
         # validation
         if self.width > sim_width:
@@ -107,7 +106,6 @@ class Beam:
             height=100,                     # arbitrary non-zero
             exponent=2,                     # must be 2 for focusing
             medium=Medium(100),              # arbitrary non-zero
-            lens_type= lens_type
         )
 
         lens.generate_profile(pixel_size=pixel_size)
@@ -117,19 +115,12 @@ class Beam:
 
             if self.shape is BeamShape.Circular:
                 lens.profile = (lens.profile != 0) * 1 # removes corner areas from lens
-            
-            if self.shape is BeamShape.Square:
-                lens.profile = np.ones(shape=lens.profile.shape)
-            
+                        
             if self.shape is BeamShape.Rectangular:
 
-                from lens_simulation import utils
                 height_px = utils._calculate_num_of_pixels(self.height, pixel_size, odd=True)
                 width_px = utils._calculate_num_of_pixels(self.width, pixel_size, odd=True)
-                rect = np.ones(shape=(height_px, width_px))
-
-                # pad to sim width
-                lens.profile = utils.pad_to_equal_size(rect, lens.profile, value=0)
+                lens.profile = np.ones(shape=(height_px, width_px))
 
         # diverging/converging cases
         elif self.spread in [BeamSpread.Converging, BeamSpread.Diverging]:
@@ -173,8 +164,11 @@ class Beam:
         
         # calculate padding parameters
         beam_position = self.position
+        
+        # when sim height 2px less than sim_width
         pad_height = (int(sim_height/pixel_size)-lens.profile.shape[0])//2 + 1    # px
         pad_width = (int(sim_width/pixel_size)-lens.profile.shape[1])//2 + 1    # px
+
         relative_position_x = int(beam_position[1]/pixel_size)                  # px
         relative_position_y = int(beam_position[0]/pixel_size)                  # px
 
@@ -250,12 +244,9 @@ def validate_beam_configuration(settings: BeamSettings):
             if settings.numerical_aperture is None:
                 raise ValueError(f"A non-zero theta or numerical aperture must be provided for a {settings.beam_spread} beam.")
 
-
-            
-
     # beam shape
     # non-rectangular beams are symmetric
-    if settings.beam_shape in [BeamShape.Circular, BeamShape.Square]:
+    if settings.beam_shape in [BeamShape.Circular]:
         settings.height = settings.width
         logging.info(f"The beam_shape ({settings.beam_shape}) requires a symmetric beam. The beam height has been set to the beam width: {settings.width:.2e}m ")
 
@@ -319,7 +310,7 @@ def load_beam_config(config: dict) -> BeamSettings:
         final_width=config["final_width"],
         focal_multiple=config["focal_multiple"],
         n_slices=config["n_slices"],
-        lens_type=LensType[config["lens_type"]]
+        output_medium=config["output_medium"]
     )
 
     return beam_settings
