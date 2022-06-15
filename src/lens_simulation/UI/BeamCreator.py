@@ -324,10 +324,8 @@ class GUIBeamCreator(BeamCreator.Ui_BeamCreator, QtWidgets.QMainWindow):
             self.beam_dict = utils.load_yaml_config(filename)
             self.create_new_sim_dict()
             self.create_beam()
-            self.update_UI()
             self.update_UI_limits()
             self.update_UI()
-            self.update_UI_limits()
 
             self.checkBox_LiveUpdate.setChecked(was_live)
         except Exception as e:
