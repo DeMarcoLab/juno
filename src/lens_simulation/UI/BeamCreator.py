@@ -61,7 +61,7 @@ class GUIBeamCreator(BeamCreator.Ui_BeamCreator, QtWidgets.QMainWindow):
     ### Setup methods ###
 
     def setup_connections(self):
-        # self.pushButton_LoadProfile.clicked.connect(self.load_profile)
+        self.pushButton_LoadProfile.clicked.connect(self.load_profile)
         self.pushButton_GenerateProfile.clicked.connect(self.create_beam)
         # self.pushButton_SaveProfile.clicked.connect(self.save_profile)
 
@@ -294,14 +294,14 @@ class GUIBeamCreator(BeamCreator.Ui_BeamCreator, QtWidgets.QMainWindow):
             # TODO: check how to validate for beam
             self.beam_dict = utils.load_yaml_config(filename)
             # validate_beam_configuration
-
-
-
-            self.update_UI_limits()
-            self.update_UI()
-            self.update_UI_limits()
-            self.update_UI()
             self.create_beam()
+            # self.update_UI_limits()
+            self.update_UI()
+            # self.update_UI_limits()
+            self.update_UI()
+
+
+
             self.checkBox_LiveUpdate.setChecked(was_live)
         except Exception as e:
             self.display_error_message(traceback.format_exc())
