@@ -135,7 +135,8 @@ def plot_lens_profile_2D(lens: Lens, title="", facecolor="#ffffff", tickstyle="s
 
     axes = fig.axes[0]
 
-    if lens.aperture is not None:
+    # weird bug with (1, 1) shape as array is false
+    if lens.aperture is not None and lens.aperture.shape[0] != 1 and lens.aperture.shape[1] != 1:
         aperture = np.ma.array(lens.aperture, mask=[lens.aperture == 0])
         axes.contourf(aperture, hatches=["x"], extent=extent, cmap="gray")
 
@@ -376,7 +377,7 @@ def load_simulation_data(path):
 
     # gratings
     grats = []
-    for grat in list(df_lens["grating"]): 
+    for grat in list(df_lens["grating"]):
         if grat is None:
             grat = {"width": None, "distance": None, "depth": None, "x": None, "y": None, "centred": None}
 
@@ -388,7 +389,7 @@ def load_simulation_data(path):
 
     # truncation
     truncs = []
-    for trunc in list(df_lens["truncation"]): 
+    for trunc in list(df_lens["truncation"]):
         if trunc is None:
             trunc = {"height": None, "radius": None, "type": None, "aperture": None}
 
@@ -397,10 +398,10 @@ def load_simulation_data(path):
     df_trunc = pd.DataFrame.from_dict(truncs)
     df_trunc = df_trunc.add_prefix("truncation_")
     df_lens = pd.concat([df_lens, df_trunc], axis=1)
-    
+
     # aperture
     apertures = []
-    for aperture in list(df_lens["aperture"]): 
+    for aperture in list(df_lens["aperture"]):
         if aperture is None:
             aperture = {"inner": None, "outer": None, "type": None, "invert": None}
 
@@ -448,9 +449,9 @@ def load_run_simulation_data(directory):
     Args:
         directory (_type_): _description_
     """
-    sim_directories = [os.path.join(directory, path) for path in os.listdir(directory) if os.path.isdir(os.path.join(directory, path))] 
+    sim_directories = [os.path.join(directory, path) for path in os.listdir(directory) if os.path.isdir(os.path.join(directory, path))]
 
-    df = pd.DataFrame() 
+    df = pd.DataFrame()
 
     for path in sim_directories:
 
@@ -594,14 +595,14 @@ def plot_simulation_setup(config):
     sim_n_pixels_h = _calculate_num_of_pixels(sim_height, pixel_size, True)
 
     for conf in config["stages"]:
-        
+
         # get stage info
         output_medium = conf["output"]
         sd = conf["start_distance"]
         fd = conf["finish_distance"]
         total = fd - sd
         n_pixels = _calculate_num_of_pixels(total, pixel_size, True)
-        
+
         # get lens info
         lens_name = conf["lens"]
         for lc in config["lenses"]:
@@ -609,8 +610,8 @@ def plot_simulation_setup(config):
                 lens_height = lc["height"]
                 lens_medium = lc["medium"]
                 break
-        
-        lens_n_pixels_z = _calculate_num_of_pixels(lens_height, pixel_size, True) 
+
+        lens_n_pixels_z = _calculate_num_of_pixels(lens_height, pixel_size, True)
 
         # create arr
         output = np.ones(shape=(sim_n_pixels_h, n_pixels)) * output_medium
