@@ -1,14 +1,11 @@
 from dataclasses import dataclass, field
-import matplotlib.pyplot as plt
 import numpy as np
-from pytest import param
-from scipy import fftpack
 from enum import Enum, auto
 
 import logging
 
 from lens_simulation.Medium import Medium
-from lens_simulation.Lens import Lens, LensType
+from lens_simulation.Lens import Lens
 from lens_simulation.structures import SimulationParameters
 from lens_simulation import validation
 from lens_simulation import utils
@@ -52,6 +49,7 @@ class BeamSettings:
     final_width: float = None
     focal_multiple: float = None
     n_slices: int = 10
+    step_size: float = None
     output_medium: float = 1.0
 
 
@@ -310,6 +308,7 @@ def load_beam_config(config: dict) -> BeamSettings:
         final_width=config["final_width"],
         focal_multiple=config["focal_multiple"],
         n_slices=config["n_slices"],
+        step_size=config["step_size"],
         output_medium=config["output_medium"]
     )
 

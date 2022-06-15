@@ -118,6 +118,11 @@ def _validate_default_beam_config(config: dict) -> dict:
     config["spread"] = config["spread"].title() if "spread" in config else "Plane"
     config["shape"] = config["shape"].title() if "shape" in config else "Circular"
 
+    if "n_slices" not in config and "step_size" not in config:
+        config["n_slices"] = 10
+
+    config["n_slices"] = config["n_slices"] if "n_slices" in config else None
+    config["step_size"] = config["step_size"] if "step_size" in config else None
 
     config["position_x"] = config["position_x"] if "position_x" in config else 0.0
     config["position_y"] = config["position_y"] if "position_y" in config else 0.0
@@ -128,7 +133,6 @@ def _validate_default_beam_config(config: dict) -> dict:
     config["source_distance"] = config["source_distance"] if "source_distance" in config else None
     config["final_width"] = config["final_width"] if "final_width" in config else None
     config["focal_multiple"] = config["focal_multiple"] if "focal_multiple" in config else None
-    config["n_slices"] = config["n_slices"] if "n_slices" in config else 10
     config["lens_type"] = config["lens_type"].title() if "lens_type" in config else "Spherical"
     config["output_medium"] = config["output_medium"] if "output_medium" in config else 1.0
 
