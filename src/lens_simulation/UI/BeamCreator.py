@@ -118,6 +118,7 @@ class GUIBeamCreator(BeamCreator.Ui_BeamCreator, QtWidgets.QMainWindow):
         self.beam_dict["focal_multiple"] = None
         self.beam_dict["n_slices"] = 10
         self.beam_dict["output_medium"] = 1.
+        # This only exists because config yaml loading gives it the lens value
         self.beam_dict["lens_type"] = "Spherical"
 
     def create_beam(self):
