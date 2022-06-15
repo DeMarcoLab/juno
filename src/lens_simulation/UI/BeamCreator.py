@@ -64,7 +64,7 @@ class GUIBeamCreator(BeamCreator.Ui_BeamCreator, QtWidgets.QMainWindow):
     def setup_connections(self):
         self.pushButton_LoadProfile.clicked.connect(self.load_profile)
         self.pushButton_GenerateProfile.clicked.connect(self.create_beam)
-        # self.pushButton_SaveProfile.clicked.connect(self.save_profile)
+        self.pushButton_SaveProfile.clicked.connect(self.save_profile)
 
         # self.comboBox_Units.currentIndexChanged.connect(self.update_units)
 
@@ -90,9 +90,9 @@ class GUIBeamCreator(BeamCreator.Ui_BeamCreator, QtWidgets.QMainWindow):
         if self.beam_dict["spread"].title() != "Plane":
             self.beam_dict["shape"] = "Circular"
         if self.beam_dict["shape"].title() == "Circular":
-            sim_dimensions = self.beam_dict["width"] + 2*max(self.beam_dict["position_x"], self.beam_dict["position_y"])
+            sim_dimensions = self.beam_dict["width"] + 2*max(abs(self.beam_dict["position_x"]), abs(self.beam_dict["position_y"]))
         else:
-            sim_dimensions = max(self.beam_dict["width"] + 2*self.beam_dict["position_x"], self.beam_dict["height"] + 2*self.beam_dict["position_y"])
+            sim_dimensions = max(self.beam_dict["width"] + 2*abs(self.beam_dict["position_x"]), self.beam_dict["height"] + 2*abs(self.beam_dict["position_y"]))
         self.sim_dict["width"] = sim_dimensions
         self.sim_dict["height"] = sim_dimensions
         self.sim_dict["wavelength"] = 488.0e-9
@@ -307,7 +307,7 @@ class GUIBeamCreator(BeamCreator.Ui_BeamCreator, QtWidgets.QMainWindow):
             # validate_beam_configuration
             # self.update_UI_limits()
             # self.update_UI_limits()
-            self.update_UI()
+            # self.update_UI()
 
             self.checkBox_LiveUpdate.setChecked(was_live)
         except Exception as e:

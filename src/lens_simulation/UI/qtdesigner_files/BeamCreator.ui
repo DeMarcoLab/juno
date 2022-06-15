@@ -1214,6 +1214,31 @@
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
  </widget>
+ <tabstops>
+  <tabstop>comboBox_Units</tabstop>
+  <tabstop>doubleSpinBox_Width</tabstop>
+  <tabstop>doubleSpinBox_Height</tabstop>
+  <tabstop>doubleSpinBox_ShiftX</tabstop>
+  <tabstop>doubleSpinBox_ShiftY</tabstop>
+  <tabstop>spinBox_NSlices</tabstop>
+  <tabstop>doubleSpinBox_StepSize</tabstop>
+  <tabstop>doubleSpinBox_OutputMedium</tabstop>
+  <tabstop>doubleSpinBox_PixelSize</tabstop>
+  <tabstop>doubleSpinBox_SimWidth</tabstop>
+  <tabstop>doubleSpinBox_SimHeight</tabstop>
+  <tabstop>comboBox_BeamSpread</tabstop>
+  <tabstop>comboBox_BeamShape</tabstop>
+  <tabstop>comboBox_BeamAngle</tabstop>
+  <tabstop>doubleSpinBox_BeamAngle</tabstop>
+  <tabstop>comboBox_DistanceMode</tabstop>
+  <tabstop>doubleSpinBox_Distance</tabstop>
+  <tabstop>doubleSpinBox_BeamTiltX</tabstop>
+  <tabstop>doubleSpinBox_BeamTiltY</tabstop>
+  <tabstop>lineEdit_LensName</tabstop>
+  <tabstop>pushButton_GenerateProfile</tabstop>
+  <tabstop>pushButton_LoadProfile</tabstop>
+  <tabstop>pushButton_SaveProfile</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
 </ui>

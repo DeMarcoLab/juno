@@ -486,6 +486,28 @@ class Ui_BeamCreator(object):
 
         self.retranslateUi(BeamCreator)
         QtCore.QMetaObject.connectSlotsByName(BeamCreator)
+        BeamCreator.setTabOrder(self.comboBox_Units, self.doubleSpinBox_Width)
+        BeamCreator.setTabOrder(self.doubleSpinBox_Width, self.doubleSpinBox_Height)
+        BeamCreator.setTabOrder(self.doubleSpinBox_Height, self.doubleSpinBox_ShiftX)
+        BeamCreator.setTabOrder(self.doubleSpinBox_ShiftX, self.doubleSpinBox_ShiftY)
+        BeamCreator.setTabOrder(self.doubleSpinBox_ShiftY, self.spinBox_NSlices)
+        BeamCreator.setTabOrder(self.spinBox_NSlices, self.doubleSpinBox_StepSize)
+        BeamCreator.setTabOrder(self.doubleSpinBox_StepSize, self.doubleSpinBox_OutputMedium)
+        BeamCreator.setTabOrder(self.doubleSpinBox_OutputMedium, self.doubleSpinBox_PixelSize)
+        BeamCreator.setTabOrder(self.doubleSpinBox_PixelSize, self.doubleSpinBox_SimWidth)
+        BeamCreator.setTabOrder(self.doubleSpinBox_SimWidth, self.doubleSpinBox_SimHeight)
+        BeamCreator.setTabOrder(self.doubleSpinBox_SimHeight, self.comboBox_BeamSpread)
+        BeamCreator.setTabOrder(self.comboBox_BeamSpread, self.comboBox_BeamShape)
+        BeamCreator.setTabOrder(self.comboBox_BeamShape, self.comboBox_BeamAngle)
+        BeamCreator.setTabOrder(self.comboBox_BeamAngle, self.doubleSpinBox_BeamAngle)
+        BeamCreator.setTabOrder(self.doubleSpinBox_BeamAngle, self.comboBox_DistanceMode)
+        BeamCreator.setTabOrder(self.comboBox_DistanceMode, self.doubleSpinBox_Distance)
+        BeamCreator.setTabOrder(self.doubleSpinBox_Distance, self.doubleSpinBox_BeamTiltX)
+        BeamCreator.setTabOrder(self.doubleSpinBox_BeamTiltX, self.doubleSpinBox_BeamTiltY)
+        BeamCreator.setTabOrder(self.doubleSpinBox_BeamTiltY, self.lineEdit_LensName)
+        BeamCreator.setTabOrder(self.lineEdit_LensName, self.pushButton_GenerateProfile)
+        BeamCreator.setTabOrder(self.pushButton_GenerateProfile, self.pushButton_LoadProfile)
+        BeamCreator.setTabOrder(self.pushButton_LoadProfile, self.pushButton_SaveProfile)
 
     def retranslateUi(self, BeamCreator):
         _translate = QtCore.QCoreApplication.translate
