@@ -952,7 +952,7 @@
                  <item>
                   <widget class="QFrame" name="frame_Title_Gratings">
                    <property name="enabled">
-                    <bool>true</bool>
+                    <bool>false</bool>
                    </property>
                    <property name="maximumSize">
                     <size>
@@ -979,7 +979,7 @@
                     <item>
                      <widget class="QLabel" name="label_PropertyName_Gratings">
                       <property name="enabled">
-                       <bool>true</bool>
+                       <bool>false</bool>
                       </property>
                       <property name="text">
                        <string>Property Name</string>
@@ -992,7 +992,7 @@
                     <item>
                      <widget class="QLabel" name="label_PropertyValue_Gratings">
                       <property name="enabled">
-                       <bool>true</bool>
+                       <bool>false</bool>
                       </property>
                       <property name="text">
                        <string>Property Value</string>
@@ -1131,7 +1131,7 @@
                  <item>
                   <widget class="QFrame" name="frame_GratingDirectionX">
                    <property name="enabled">
-                    <bool>true</bool>
+                    <bool>false</bool>
                    </property>
                    <property name="maximumSize">
                     <size>
@@ -1156,7 +1156,7 @@
                     <item>
                      <widget class="QCheckBox" name="checkBox_GratingDirectionX">
                       <property name="enabled">
-                       <bool>true</bool>
+                       <bool>false</bool>
                       </property>
                       <property name="text">
                        <string> X Axis</string>
@@ -1172,7 +1172,7 @@
                  <item>
                   <widget class="QFrame" name="frame_GratingDirectionY">
                    <property name="enabled">
-                    <bool>true</bool>
+                    <bool>false</bool>
                    </property>
                    <property name="maximumSize">
                     <size>
@@ -1197,7 +1197,7 @@
                     <item>
                      <widget class="QCheckBox" name="checkBox_GratingDirectionY">
                       <property name="enabled">
-                       <bool>true</bool>
+                       <bool>false</bool>
                       </property>
                       <property name="text">
                        <string> Y Axis</string>
@@ -1213,7 +1213,7 @@
                  <item>
                   <widget class="QFrame" name="frame_GratingCentred">
                    <property name="enabled">
-                    <bool>true</bool>
+                    <bool>false</bool>
                    </property>
                    <property name="maximumSize">
                     <size>
@@ -1238,7 +1238,7 @@
                     <item>
                      <widget class="QCheckBox" name="checkBox_GratingCentred">
                       <property name="enabled">
-                       <bool>true</bool>
+                       <bool>false</bool>
                       </property>
                       <property name="text">
                        <string>Centred</string>
@@ -1295,7 +1295,7 @@
                  <item>
                   <widget class="QFrame" name="frame_Title_Truncation">
                    <property name="enabled">
-                    <bool>true</bool>
+                    <bool>false</bool>
                    </property>
                    <property name="maximumSize">
                     <size>
@@ -1322,7 +1322,7 @@
                     <item>
                      <widget class="QLabel" name="label_PropertyName_Truncation">
                       <property name="enabled">
-                       <bool>true</bool>
+                       <bool>false</bool>
                       </property>
                       <property name="text">
                        <string>Property Name</string>
@@ -1335,7 +1335,7 @@
                     <item>
                      <widget class="QLabel" name="label_PropertyValue_Truncation">
                       <property name="enabled">
-                       <bool>true</bool>
+                       <bool>false</bool>
                       </property>
                       <property name="text">
                        <string>Property Value</string>
@@ -1504,7 +1504,7 @@
                  <item>
                   <widget class="QFrame" name="frame_Title_Aperture">
                    <property name="enabled">
-                    <bool>true</bool>
+                    <bool>false</bool>
                    </property>
                    <property name="maximumSize">
                     <size>
@@ -1531,7 +1531,7 @@
                     <item>
                      <widget class="QLabel" name="label_PropertyName_Aperture">
                       <property name="enabled">
-                       <bool>true</bool>
+                       <bool>false</bool>
                       </property>
                       <property name="text">
                        <string>Property Name</string>
@@ -1544,7 +1544,7 @@
                     <item>
                      <widget class="QLabel" name="label_PropertyValue_Aperture">
                       <property name="enabled">
-                       <bool>true</bool>
+                       <bool>false</bool>
                       </property>
                       <property name="text">
                        <string>Property Value</string>
@@ -1675,7 +1675,7 @@
                  <item>
                   <widget class="QFrame" name="frame_ApertureInverted">
                    <property name="enabled">
-                    <bool>true</bool>
+                    <bool>false</bool>
                    </property>
                    <property name="maximumSize">
                     <size>
@@ -1700,7 +1700,7 @@
                     <item>
                      <widget class="QCheckBox" name="checkBox_ApertureInverted">
                       <property name="enabled">
-                       <bool>true</bool>
+                       <bool>false</bool>
                       </property>
                       <property name="text">
                        <string>Inverted</string>
@@ -1716,7 +1716,7 @@
                  <item>
                   <widget class="QFrame" name="frame_TruncationAperture">
                    <property name="enabled">
-                    <bool>true</bool>
+                    <bool>false</bool>
                    </property>
                    <property name="maximumSize">
                     <size>
@@ -1734,7 +1734,7 @@
                     <item>
                      <widget class="QLabel" name="label_TruncationAperture">
                       <property name="enabled">
-                       <bool>true</bool>
+                       <bool>false</bool>
                       </property>
                       <property name="text">
                        <string>Truncation Aperture</string>
@@ -1744,7 +1744,7 @@
                     <item>
                      <widget class="QCheckBox" name="checkBox_TruncationAperture">
                       <property name="enabled">
-                       <bool>true</bool>
+                       <bool>false</bool>
                       </property>
                       <property name="text">
                        <string>Aperture</string>
@@ -2274,6 +2274,40 @@
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
  </widget>
+ <tabstops>
+  <tabstop>tabWidget</tabstop>
+  <tabstop>doubleSpinBox_PixelSize</tabstop>
+  <tabstop>doubleSpinBox_LensDiameter</tabstop>
+  <tabstop>doubleSpinBox_LensLength</tabstop>
+  <tabstop>doubleSpinBox_LensHeight</tabstop>
+  <tabstop>doubleSpinBox_LensExponent</tabstop>
+  <tabstop>doubleSpinBox_LensMedium</tabstop>
+  <tabstop>comboBox_LensType</tabstop>
+  <tabstop>checkBox_InvertedProfile</tabstop>
+  <tabstop>doubleSpinBox_LensEscapePath</tabstop>
+  <tabstop>groupBox_Gratings</tabstop>
+  <tabstop>doubleSpinBox_GratingWidth</tabstop>
+  <tabstop>doubleSpinBox_GratingDistance</tabstop>
+  <tabstop>doubleSpinBox_GratingDepth</tabstop>
+  <tabstop>checkBox_GratingDirectionX</tabstop>
+  <tabstop>checkBox_GratingDirectionY</tabstop>
+  <tabstop>checkBox_GratingCentred</tabstop>
+  <tabstop>groupBox_Truncation</tabstop>
+  <tabstop>comboBox_TruncationMode</tabstop>
+  <tabstop>doubleSpinBox_TruncationValue</tabstop>
+  <tabstop>doubleSpinBox_TruncationRadius</tabstop>
+  <tabstop>groupBox_Aperture</tabstop>
+  <tabstop>comboBox_ApertureMode</tabstop>
+  <tabstop>doubleSpinBox_ApertureInner</tabstop>
+  <tabstop>doubleSpinBox_ApertureOuter</tabstop>
+  <tabstop>checkBox_ApertureInverted</tabstop>
+  <tabstop>checkBox_TruncationAperture</tabstop>
+  <tabstop>comboBox_Units</tabstop>
+  <tabstop>lineEdit_LensName</tabstop>
+  <tabstop>pushButton_GenerateProfile</tabstop>
+  <tabstop>pushButton_LoadProfile</tabstop>
+  <tabstop>pushButton_SaveProfile</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
 </ui>

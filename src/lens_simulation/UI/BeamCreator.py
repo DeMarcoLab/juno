@@ -51,8 +51,11 @@ class GUIBeamCreator(BeamCreator.Ui_BeamCreator, QtWidgets.QMainWindow):
         self.pc_Convergence = None
 
         self.create_new_beam_dict()
-        self.update_UI()
+        self.create_new_sim_dict()
         self.create_beam()
+        self.update_UI_limits()
+        self.update_UI()
+
         self.setup_connections()
 
         self.center_window()
@@ -61,11 +64,11 @@ class GUIBeamCreator(BeamCreator.Ui_BeamCreator, QtWidgets.QMainWindow):
     ### Setup methods ###
 
     def setup_connections(self):
-        # self.pushButton_LoadProfile.clicked.connect(self.load_profile)
+        self.pushButton_LoadProfile.clicked.connect(self.load_profile)
         self.pushButton_GenerateProfile.clicked.connect(self.create_beam)
-        # self.pushButton_SaveProfile.clicked.connect(self.save_profile)
+        self.pushButton_SaveProfile.clicked.connect(self.save_profile)
 
-        # self.comboBox_Units.currentIndexChanged.connect(self.update_units)
+        self.comboBox_Units.currentIndexChanged.connect(self.update_units)
 
         # connect each of the lens parameter selectors to update profile in live view
         [
@@ -81,21 +84,30 @@ class GUIBeamCreator(BeamCreator.Ui_BeamCreator, QtWidgets.QMainWindow):
 
     ### Generation methods ###
 
-    def create_new_beam_dict(self):
+    def create_new_sim_dict(self):
         # dummy sim
         self.sim_dict = dict()
         self.sim_dict["pixel_size"] = 1.0e-6
-        self.sim_dict["width"] = 500.0e-6
-        self.sim_dict["height"] = 500.0e-6
+
+        if self.beam_dict["spread"].title() != "Plane":
+            self.beam_dict["shape"] = "Circular"
+        if self.beam_dict["shape"].title() == "Circular":
+            # sim_dimensions = self.beam_dict["width"] + 2*max(abs(self.beam_dict["position_x"]), abs(self.beam_dict["position_y"]))
+            sim_dimensions = max(self.beam_dict["width"] + 2*abs(self.beam_dict["position_x"]), self.beam_dict["width"] + 2*abs(self.beam_dict["position_y"]))
+        else:
+            sim_dimensions = max(self.beam_dict["width"] + 2*abs(self.beam_dict["position_x"]), self.beam_dict["height"] + 2*abs(self.beam_dict["position_y"]))
+        self.sim_dict["width"] = sim_dimensions
+        self.sim_dict["height"] = sim_dimensions
         self.sim_dict["wavelength"] = 488.0e-9
 
+    def create_new_beam_dict(self):
         self.beam_dict = dict()
         self.beam_dict["name"] = "Beam"
         self.beam_dict["distance_mode"] = "direct"
         self.beam_dict["spread"] = "plane"
         self.beam_dict["shape"] = "rectangular"
-        self.beam_dict["width"] = 300.0e-6
-        self.beam_dict["height"] = 50.0e-6
+        self.beam_dict["width"] = 50.0e-6
+        self.beam_dict["height"] = 120.0e-6
         self.beam_dict["position_x"] = 0.0e-6
         self.beam_dict["position_y"] = 0.0e-6
         self.beam_dict["theta"] = 1. # Degrees
@@ -105,8 +117,10 @@ class GUIBeamCreator(BeamCreator.Ui_BeamCreator, QtWidgets.QMainWindow):
         self.beam_dict["source_distance"] = 200.e-6
         self.beam_dict["final_width"] = None
         self.beam_dict["focal_multiple"] = None
-        self.beam_dict["n_slices"] = 10
+        # self.beam_dict["n_slices"] = 10
+        self.beam_dict["step_size"] = 3.3e-6
         self.beam_dict["output_medium"] = 1.
+        # This only exists because config yaml loading gives it the lens value
         self.beam_dict["lens_type"] = "Spherical"
 
     def create_beam(self):
@@ -125,7 +139,7 @@ class GUIBeamCreator(BeamCreator.Ui_BeamCreator, QtWidgets.QMainWindow):
 
     ### UI <-> Config methods ###
 
-    def update_beam_dict(self):
+    def update_config(self):
         self.update_config_general()
         self.update_config_beam_spread()
         self.update_config_beam_shape()
@@ -146,7 +160,14 @@ class GUIBeamCreator(BeamCreator.Ui_BeamCreator, QtWidgets.QMainWindow):
     def update_UI_general(self):
         # Config -> UI | General settings #
         self.lineEdit_LensName.setText(self.beam_dict["name"])
-        self.spinBox_NSlices.setValue(self.beam_dict["n_slices"])
+        if self.beam_dict["n_slices"] != 0:
+            self.doubleSpinBox_DistanceMethod.setDecimals(0)
+            self.comboBox_DistanceMethod.setCurrentText("# Slices")
+            self.doubleSpinBox_DistanceMethod.setValue(self.beam_dict["n_slices"])
+        elif self.beam_dict["step_size"] != 0:
+            self.comboBox_DistanceMethod.setCurrentText("Step Size")
+            self.doubleSpinBox_DistanceMethod.setDecimals(2)
+            self.doubleSpinBox_DistanceMethod.setValue(self.beam_dict["step_size"]/self.units)
         self.doubleSpinBox_ShiftX.setValue(self.beam_dict["position_x"]/self.units)
         self.doubleSpinBox_ShiftY.setValue(self.beam_dict["position_y"]/self.units)
         self.doubleSpinBox_Width.setValue(self.beam_dict["width"]/self.units)
@@ -158,7 +179,13 @@ class GUIBeamCreator(BeamCreator.Ui_BeamCreator, QtWidgets.QMainWindow):
     def update_config_general(self):
         # UI -> config | General settings #
         self.beam_dict["name"] = self.lineEdit_LensName.text()
-        self.beam_dict["n_slices"] = self.spinBox_NSlices.value()
+        if self.comboBox_DistanceMethod.currentText() == "# Slices":
+            self.beam_dict["n_slices"] = self.doubleSpinBox_DistanceMethod.value()
+            self.beam_dict["step_size"] = 0
+        else:
+            self.beam_dict["n_slices"] = 0
+            self.beam_dict["step_size"] = self.doubleSpinBox_DistanceMethod.value() * self.units
+
         self.beam_dict["position_x"] = self.format_float(self.doubleSpinBox_ShiftX.value() * self.units)
         self.beam_dict["position_y"] = self.format_float(self.doubleSpinBox_ShiftY.value() * self.units)
         self.beam_dict["width"] = self.format_float(self.doubleSpinBox_Width.value() * self.units)
@@ -218,7 +245,6 @@ class GUIBeamCreator(BeamCreator.Ui_BeamCreator, QtWidgets.QMainWindow):
         if self.comboBox_BeamAngle.currentText() == "Numerical Aperture":
             self.beam_dict["theta"] = 0.
             self.beam_dict["numerical_aperture"] = self.doubleSpinBox_BeamAngle.value()
-            print(self.beam_dict)
             return
 
         self.beam_dict["theta"] = self.doubleSpinBox_BeamAngle.value()
@@ -270,6 +296,29 @@ class GUIBeamCreator(BeamCreator.Ui_BeamCreator, QtWidgets.QMainWindow):
         self.sim_dict["width"] = self.format_float(self.doubleSpinBox_SimWidth.value() * self.units)
         self.sim_dict["height"] = self.format_float(self.doubleSpinBox_SimHeight.value() * self.units)
 
+    def update_UI_limits(self):
+
+        pixel_size = self.sim_dict["pixel_size"]
+        pixel_size_units = pixel_size/self.units
+
+        self.doubleSpinBox_Width.setMinimum(1*pixel_size_units)
+        self.doubleSpinBox_Height.setMinimum(1*pixel_size_units)
+        self.doubleSpinBox_Width.setMaximum((self.sim_dict["width"]-2*abs(self.beam_dict["position_x"]))/self.units)
+        self.doubleSpinBox_Height.setMaximum((self.sim_dict["height"]-2*abs(self.beam_dict["position_y"]))/self.units)
+
+        self.doubleSpinBox_SimWidth.setMinimum((self.beam_dict["width"] + 2*abs(self.beam_dict["position_x"]))/self.units)
+
+        if self.beam_dict["shape"].title() == "Circular":
+            self.doubleSpinBox_SimHeight.setMinimum((self.beam_dict["width"] + 2*abs(self.beam_dict["position_x"]))/self.units)
+        else:
+            self.doubleSpinBox_SimHeight.setMinimum((self.beam_dict["height"] + 2*abs(self.beam_dict["position_y"]))/self.units)
+
+        self.doubleSpinBox_ShiftX.setMaximum((self.sim_dict["width"]-self.beam_dict["width"])/2/self.units)
+        self.doubleSpinBox_ShiftY.setMaximum((self.sim_dict["height"]-self.beam_dict["height"])/2/self.units)
+        self.doubleSpinBox_ShiftX.setMinimum(-(self.sim_dict["width"]-self.beam_dict["width"])/2/self.units)
+        self.doubleSpinBox_ShiftY.setMinimum(-(self.sim_dict["height"]-self.beam_dict["height"])/2/self.units)
+
+
     def format_float(self, num):
         # np format_float_scientific() might be the same?
         return float(f"{num:4e}")
@@ -293,18 +342,26 @@ class GUIBeamCreator(BeamCreator.Ui_BeamCreator, QtWidgets.QMainWindow):
             self.checkBox_LiveUpdate.setChecked(False)
             # TODO: check how to validate for beam
             self.beam_dict = utils.load_yaml_config(filename)
-            # validate_beam_configuration
-
-
-
-            self.update_UI_limits()
-            self.update_UI()
-            self.update_UI_limits()
-            self.update_UI()
+            self.create_new_sim_dict()
             self.create_beam()
+            self.update_UI_limits()
+            self.update_UI()
+
             self.checkBox_LiveUpdate.setChecked(was_live)
         except Exception as e:
             self.display_error_message(traceback.format_exc())
+
+    def save_profile(self):
+        filename, ext = QtWidgets.QFileDialog.getSaveFileName(self, "Save Profile", self.beam_dict["name"], filter="Yaml config (*.yml *.yaml)")
+
+        if filename == "":
+            return
+
+        self.beam_dict["name"] = os.path.basename(filename).split('.')[0]
+        self.lineEdit_LensName.setText(self.beam_dict["name"])
+
+        with open(filename, "w") as f:
+            yaml.safe_dump(self.beam_dict, f, sort_keys=False)
 
     ### Update methods ###
 
@@ -343,12 +400,30 @@ class GUIBeamCreator(BeamCreator.Ui_BeamCreator, QtWidgets.QMainWindow):
 
         return pc
 
+    def update_units(self):
+        old_units = self.units
+
+        self.units = units_dict[self.comboBox_Units.currentIndex()]
+
+        unit_conversion = self.units / old_units
+
+        self.sim_dict["pixel_size"] *= unit_conversion
+        self.sim_dict["width"] *= unit_conversion
+        self.sim_dict["height"] *= unit_conversion
+
+        self.beam_dict["width"] *= unit_conversion
+        self.beam_dict["height"] *= unit_conversion
+        self.beam_dict["position_x"] *= unit_conversion
+        self.beam_dict["position_y"] *= unit_conversion
+        self.beam_dict["source_distance"] *= unit_conversion
+
     def live_update_profile(self):
         if self.checkBox_LiveUpdate.isChecked():
             try:
                 self.checkBox_LiveUpdate.setChecked(False)
-                self.update_beam_dict()
+                self.update_config()
                 self.create_beam()
+                self.update_UI_limits()
                 self.update_UI()
                 self.checkBox_LiveUpdate.setChecked(True)
             except Exception as e:
@@ -394,10 +469,10 @@ class _ImageCanvas(FigureCanvasQTAgg, QtWidgets.QWidget):
                 thing_to_plot,
                 facecolor="#f0f0f0",
                 extent=[
-                    -lens.diameter / 2,
-                    lens.diameter / 2,
-                    -lens.length / 2,
-                    lens.length / 2,
+                    -lens.profile.shape[1] / 2 * lens.pixel_size,
+                    lens.profile.shape[1] / 2 * lens.pixel_size,
+                    -lens.profile.shape[0] / 2 * lens.pixel_size,
+                    lens.profile.shape[0] / 2 * lens.pixel_size,
                 ],
                 colorbar_ticks=colorbar_ticks,
             )
