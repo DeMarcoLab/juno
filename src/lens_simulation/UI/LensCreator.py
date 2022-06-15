@@ -95,7 +95,7 @@ class GUILensCreator(LensCreator.Ui_LensCreator, QtWidgets.QMainWindow):
         self.lens_dict["lens_type"] = "Spherical"
         self.lens_dict["length"] = self.lens_dict["diameter"]
         self.lens_dict["height"] = 10.0e-6
-        self.lens_dict["pixel_size"] = 0.1e-6
+        self.pixel_size = 0.1e-6
         self.lens_dict["custom"] = filename
         self.lens_dict["inverted"] = True
         self.lens_dict["escape_path"] = None
@@ -107,11 +107,11 @@ class GUILensCreator(LensCreator.Ui_LensCreator, QtWidgets.QMainWindow):
         self.lens = generate_lens(
             lens_config=self.lens_dict,
             medium=Medium(self.lens_dict["medium"]),
-            pixel_size=self.lens_dict["pixel_size"],
+            pixel_size=self.pixel_size,
         )
 
         self.lens_dict['diameter'] = self.lens.diameter
-        self.lens_dict['pixel_size'] = self.lens.pixel_size
+        self.pixel_size = self.lens.pixel_size
         self.lens_dict['height'] = self.lens.height
 
         if self.lens_dict["inverted"]:
@@ -146,7 +146,7 @@ class GUILensCreator(LensCreator.Ui_LensCreator, QtWidgets.QMainWindow):
         self.doubleSpinBox_LensMedium.setValue(self.lens_dict["medium"])
         self.doubleSpinBox_LensExponent.setValue(self.lens_dict["exponent"])
         self.comboBox_LensType.setCurrentText(self.lens_dict["lens_type"])
-        self.doubleSpinBox_PixelSize.setValue(self.lens_dict["pixel_size"] / self.units)
+        self.doubleSpinBox_PixelSize.setValue(self.pixel_size / self.units)
         self.doubleSpinBox_LensDiameter.setValue(
             self.lens_dict["diameter"] / self.units
         )
@@ -204,7 +204,7 @@ class GUILensCreator(LensCreator.Ui_LensCreator, QtWidgets.QMainWindow):
         self.lens_dict["height"] = self.format_float(
             self.doubleSpinBox_LensHeight.value() * self.units
         )
-        self.lens_dict["pixel_size"] = self.format_float(
+        self.pixel_size = self.format_float(
             self.doubleSpinBox_PixelSize.value() * self.units
         )
 
@@ -344,68 +344,66 @@ class GUILensCreator(LensCreator.Ui_LensCreator, QtWidgets.QMainWindow):
 
     def update_UI_limits(self):
         """Method to update limits all at once from dict"""
-        if "pixel_size" not in self.lens_dict:
-            self.lens_dict["pixel_size"] = 1 * self.units
 
         self.doubleSpinBox_LensDiameter.setMinimum(
-            2 * self.lens_dict["pixel_size"] / self.units
+            2 * self.pixel_size / self.units
         )
         self.doubleSpinBox_LensLength.setMinimum(
-            1 * self.lens_dict["pixel_size"] / self.units
+            1 * self.pixel_size / self.units
         )
 
         self.doubleSpinBox_GratingDistance.setMinimum(
-            2 * self.lens_dict["pixel_size"] / self.units
+            2 * self.pixel_size / self.units
         )
         self.doubleSpinBox_GratingDistance.setMaximum(
-            (self.lens_dict["diameter"] - self.lens_dict["pixel_size"]) / self.units
+            (self.lens_dict["diameter"] - self.pixel_size) / self.units
         )
 
         self.doubleSpinBox_GratingWidth.setMinimum(
-            1 * self.lens_dict["pixel_size"] / self.units
+            1 * self.pixel_size / self.units
         )
         # use other doubleSpinbox value to set mins as lens_dict property will not exist
         self.doubleSpinBox_GratingWidth.setMaximum(
             (
                 self.doubleSpinBox_GratingDistance.value() * self.units
-                - self.lens_dict["pixel_size"]
+                - self.pixel_size
             )
             / self.units
         )
 
         self.doubleSpinBox_TruncationValue.setMinimum(
-            self.lens_dict["pixel_size"] / self.units
+            self.pixel_size / self.units
         )
         self.doubleSpinBox_TruncationValue.setMaximum(
             self.lens_dict["height"] / self.units
         )
 
         self.doubleSpinBox_TruncationRadius.setMinimum(
-            self.lens_dict["pixel_size"] / self.units
+            self.pixel_size / self.units
         )
         self.doubleSpinBox_TruncationRadius.setMaximum(
-            ((self.lens_dict["diameter"] / 2) - self.lens_dict["pixel_size"])
+            ((self.lens_dict["diameter"] / 2) - self.pixel_size)
             / self.units
         )
 
         self.doubleSpinBox_ApertureOuter.setMinimum(
-            self.lens_dict["pixel_size"] * 2 / self.units
+            self.pixel_size * 2 / self.units
         )
 
         self.doubleSpinBox_ApertureOuter.setMaximum(
-            ((self.lens_dict["diameter"] / 2) - self.lens_dict["pixel_size"])
+            ((self.lens_dict["diameter"] / 2) - self.pixel_size)
             / self.units
         )
 
         self.doubleSpinBox_ApertureInner.setMinimum(
-            self.lens_dict["pixel_size"] / self.units
+            self.pixel_size / self.units
         )
 
         # use other doubleSpinbox value to set mins as lens_dict property will not exist
         self.doubleSpinBox_ApertureInner.setMaximum(
             (
                 self.doubleSpinBox_ApertureOuter.value() * self.units
-                - self.lens_dict["pixel_size"]
+                - self.pixel_size
             )
             / self.units
         )
@@ -433,7 +431,7 @@ class GUILensCreator(LensCreator.Ui_LensCreator, QtWidgets.QMainWindow):
             try:
                 self.checkBox_LiveUpdate.setChecked(False)
                 self.create_new_lens_dict(filename)
-                self.lens_dict["pixel_size"] = 1 * self.units
+                self.pixel_size = 1 * self.units
                 self.create_lens()
                 self.update_UI_limits()
                 self.update_UI()
@@ -446,7 +444,7 @@ class GUILensCreator(LensCreator.Ui_LensCreator, QtWidgets.QMainWindow):
                 # turn off live update to avoid memory issues
                 self.checkBox_LiveUpdate.setChecked(False)
                 self.lens_dict = utils.load_yaml_config(filename)
-                self.lens_dict["pixel_size"] = 1 * self.units
+                self.pixel_size = 1 * self.units
                 self.create_lens()
                 self.update_UI_limits()
                 self.update_UI()
@@ -547,7 +545,7 @@ class GUILensCreator(LensCreator.Ui_LensCreator, QtWidgets.QMainWindow):
 
         unit_conversion = self.units / old_units
 
-        self.lens_dict["pixel_size"] *= unit_conversion
+        self.pixel_size *= unit_conversion
         self.lens_dict["diameter"] *= unit_conversion
         self.lens_dict["height"] *= unit_conversion
         self.lens_dict["length"] *= unit_conversion
