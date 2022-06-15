@@ -190,12 +190,11 @@ class GUISimulationSetup(SimulationSetup.Ui_MainWindow, QtWidgets.QMainWindow):
                 widgets[10].setValue(float(stage_config["start_distance"]))
                 widgets[12].setValue(float(stage_config["finish_distance"]))
 
-                if stage_config["options"] is not None:
-                    widgets[14].setChecked(bool(stage_config["options"]["use_equivalent_focal_distance"]))
+                widgets[14].setChecked(bool(stage_config["use_equivalent_focal_distance"]))
 
-                    if widgets[14].isChecked():
-                        widgets[10].setValue(float(stage_config["options"]["focal_distance_start_multiple"]))
-                        widgets[12].setValue(float(stage_config["options"]["focal_distance_multiple"]))               
+                if widgets[14].isChecked():
+                    widgets[10].setValue(float(stage_config["focal_distance_start_multiple"]))
+                    widgets[12].setValue(float(stage_config["focal_distance_multiple"]))               
                 
 
             self.SIMULATION_CONFIG_LOADED = True

@@ -169,12 +169,9 @@ def _validate_default_simulation_stage_config(stage_config: dict) -> dict:
     # default settings
     stage_config["n_slices"] = 0 if "n_slices" not in stage_config else stage_config["n_slices"]
     stage_config["step_size"] = 0 if "step_size" not in stage_config else stage_config["step_size"]
-    stage_config["options"] = None if "options" not in stage_config else stage_config["options"]
-
-    if stage_config["options"] is not None:
-        stage_config["options"]["use_equivalent_focal_distance"] = False if "use_equivalent_focal_distance" not in stage_config["options"] else stage_config["options"]["use_equivalent_focal_distance"]
-        stage_config["options"]["focal_distance_start_multiple"] = 0.0 if "focal_distance_start_multiple" not in stage_config["options"] else stage_config["options"]["focal_distance_start_multiple"]
-        stage_config["options"]["focal_distance_multiple"] = 1.0 if "focal_distance_multiple" not in stage_config["options"] else stage_config["options"]["focal_distance_multiple"]
+    stage_config["use_equivalent_focal_distance"] = False if "use_equivalent_focal_distance" not in stage_config else stage_config["use_equivalent_focal_distance"]
+    stage_config["focal_distance_start_multiple"] = 0.0 if "focal_distance_start_multiple" not in stage_config else stage_config["focal_distance_start_multiple"]
+    stage_config["focal_distance_multiple"] = 1.0 if "focal_distance_multiple" not in stage_config else stage_config["focal_distance_multiple"]
 
         # TODO: check the more complicated cases for these, e.g. need a height and exponent to calculate equiv focal distance
 
