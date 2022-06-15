@@ -116,7 +116,8 @@ class GUIBeamCreator(BeamCreator.Ui_BeamCreator, QtWidgets.QMainWindow):
         self.beam_dict["source_distance"] = 200.e-6
         self.beam_dict["final_width"] = None
         self.beam_dict["focal_multiple"] = None
-        self.beam_dict["n_slices"] = 10
+        # self.beam_dict["n_slices"] = 10
+        self.beam_dict["step_size"] = 3.3e-6
         self.beam_dict["output_medium"] = 1.
         # This only exists because config yaml loading gives it the lens value
         self.beam_dict["lens_type"] = "Spherical"
@@ -158,7 +159,14 @@ class GUIBeamCreator(BeamCreator.Ui_BeamCreator, QtWidgets.QMainWindow):
     def update_UI_general(self):
         # Config -> UI | General settings #
         self.lineEdit_LensName.setText(self.beam_dict["name"])
-        self.spinBox_NSlices.setValue(self.beam_dict["n_slices"])
+        if self.beam_dict["n_slices"] != 0:
+            self.comboBox_DistanceMethod.setCurrentText("# Slices")
+            self.doubleSpinBox_DistanceMethod.setDecimals(0)
+            self.doubleSpinBox_DistanceMethod.setValue(self.beam_dict["n_slices"])
+        elif self.beam_dict["step_size"] != 0:
+            self.comboBox_DistanceMethod.setCurrentText("Step Size")
+            self.doubleSpinBox_DistanceMethod.setValue(self.beam_dict["step_size"]/self.units)
+            self.doubleSpinBox_DistanceMethod.setDecimals(2)
         self.doubleSpinBox_ShiftX.setValue(self.beam_dict["position_x"]/self.units)
         self.doubleSpinBox_ShiftY.setValue(self.beam_dict["position_y"]/self.units)
         self.doubleSpinBox_Width.setValue(self.beam_dict["width"]/self.units)
@@ -170,7 +178,13 @@ class GUIBeamCreator(BeamCreator.Ui_BeamCreator, QtWidgets.QMainWindow):
     def update_config_general(self):
         # UI -> config | General settings #
         self.beam_dict["name"] = self.lineEdit_LensName.text()
-        self.beam_dict["n_slices"] = self.spinBox_NSlices.value()
+        if self.comboBox_DistanceMethod.currentText() == "# Slices":
+            self.beam_dict["n_slices"] = self.doubleSpinBox_DistanceMethod.value()
+            self.beam_dict["step_size"] = 0
+        else:
+            self.beam_dict["n_slices"] = 0
+            self.beam_dict["step_size"] = self.doubleSpinBox_DistanceMethod.value() * self.units
+
         self.beam_dict["position_x"] = self.format_float(self.doubleSpinBox_ShiftX.value() * self.units)
         self.beam_dict["position_y"] = self.format_float(self.doubleSpinBox_ShiftY.value() * self.units)
         self.beam_dict["width"] = self.format_float(self.doubleSpinBox_Width.value() * self.units)

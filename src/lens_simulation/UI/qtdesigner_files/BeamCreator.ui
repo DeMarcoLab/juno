@@ -657,10 +657,27 @@
              <enum>QFrame::Raised</enum>
             </property>
             <layout class="QGridLayout" name="gridLayout_10">
-             <item row="1" column="1">
-              <widget class="QDoubleSpinBox" name="doubleSpinBox_Width">
+             <item row="2" column="1">
+              <widget class="QDoubleSpinBox" name="doubleSpinBox_Height">
                <property name="minimum">
                 <double>0.010000000000000</double>
+               </property>
+               <property name="maximum">
+                <double>99999.000000000000000</double>
+               </property>
+              </widget>
+             </item>
+             <item row="6" column="0" colspan="2">
+              <widget class="Line" name="line_2">
+               <property name="orientation">
+                <enum>Qt::Horizontal</enum>
+               </property>
+              </widget>
+             </item>
+             <item row="5" column="1">
+              <widget class="QDoubleSpinBox" name="doubleSpinBox_ShiftY">
+               <property name="minimum">
+                <double>-99999.000000000000000</double>
                </property>
                <property name="maximum">
                 <double>99999.000000000000000</double>
@@ -680,54 +697,10 @@
                </property>
               </widget>
              </item>
-             <item row="10" column="0">
-              <widget class="QLabel" name="label_NSlices">
+             <item row="5" column="0">
+              <widget class="QLabel" name="label_ShiftY">
                <property name="text">
-                <string>N Slices</string>
-               </property>
-              </widget>
-             </item>
-             <item row="10" column="1">
-              <widget class="QSpinBox" name="spinBox_NSlices">
-               <property name="minimum">
-                <number>1</number>
-               </property>
-               <property name="maximum">
-                <number>99999</number>
-               </property>
-              </widget>
-             </item>
-             <item row="11" column="1">
-              <widget class="QDoubleSpinBox" name="doubleSpinBox_StepSize">
-               <property name="minimum">
-                <double>0.010000000000000</double>
-               </property>
-               <property name="maximum">
-                <double>99999.000000000000000</double>
-               </property>
-              </widget>
-             </item>
-             <item row="14" column="0">
-              <widget class="QLabel" name="label_OutputMedium">
-               <property name="text">
-                <string>Output Medium</string>
-               </property>
-              </widget>
-             </item>
-             <item row="5" column="1">
-              <widget class="QDoubleSpinBox" name="doubleSpinBox_ShiftY">
-               <property name="minimum">
-                <double>-99999.000000000000000</double>
-               </property>
-               <property name="maximum">
-                <double>99999.000000000000000</double>
-               </property>
-              </widget>
-             </item>
-             <item row="11" column="0">
-              <widget class="QLabel" name="label_StepSize">
-               <property name="text">
-                <string>Step Size</string>
+                <string>Shift Y</string>
                </property>
               </widget>
              </item>
@@ -761,6 +734,16 @@
                </property>
               </widget>
              </item>
+             <item row="1" column="1">
+              <widget class="QDoubleSpinBox" name="doubleSpinBox_Width">
+               <property name="minimum">
+                <double>0.010000000000000</double>
+               </property>
+               <property name="maximum">
+                <double>99999.000000000000000</double>
+               </property>
+              </widget>
+             </item>
              <item row="14" column="1">
               <widget class="QDoubleSpinBox" name="doubleSpinBox_OutputMedium">
                <property name="decimals">
@@ -777,16 +760,6 @@
                </property>
               </widget>
              </item>
-             <item row="2" column="1">
-              <widget class="QDoubleSpinBox" name="doubleSpinBox_Height">
-               <property name="minimum">
-                <double>0.010000000000000</double>
-               </property>
-               <property name="maximum">
-                <double>99999.000000000000000</double>
-               </property>
-              </widget>
-             </item>
              <item row="1" column="0">
               <widget class="QLabel" name="label_Width">
                <property name="text">
@@ -794,17 +767,10 @@
                </property>
               </widget>
              </item>
-             <item row="2" column="0">
-              <widget class="QLabel" name="label_Height">
+             <item row="14" column="0">
+              <widget class="QLabel" name="label_OutputMedium">
                <property name="text">
-                <string>Height</string>
-               </property>
-              </widget>
-             </item>
-             <item row="5" column="0">
-              <widget class="QLabel" name="label_ShiftY">
-               <property name="text">
-                <string>Shift Y</string>
+                <string>Output Medium</string>
                </property>
               </widget>
              </item>
@@ -815,11 +781,38 @@
                </property>
               </widget>
              </item>
-             <item row="6" column="0" colspan="2">
-              <widget class="Line" name="line_2">
-               <property name="orientation">
-                <enum>Qt::Horizontal</enum>
+             <item row="2" column="0">
+              <widget class="QLabel" name="label_Height">
+               <property name="text">
+                <string>Height</string>
                </property>
+              </widget>
+             </item>
+             <item row="7" column="1">
+              <widget class="QDoubleSpinBox" name="doubleSpinBox_DistanceMethod">
+               <property name="decimals">
+                <number>0</number>
+               </property>
+               <property name="minimum">
+                <double>1.000000000000000</double>
+               </property>
+               <property name="maximum">
+                <double>99999.000000000000000</double>
+               </property>
+              </widget>
+             </item>
+             <item row="7" column="0">
+              <widget class="QComboBox" name="comboBox_DistanceMethod">
+               <item>
+                <property name="text">
+                 <string># Slices</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>Step Size</string>
+                </property>
+               </item>
               </widget>
              </item>
             </layout>
@@ -1220,8 +1213,6 @@
   <tabstop>doubleSpinBox_Height</tabstop>
   <tabstop>doubleSpinBox_ShiftX</tabstop>
   <tabstop>doubleSpinBox_ShiftY</tabstop>
-  <tabstop>spinBox_NSlices</tabstop>
-  <tabstop>doubleSpinBox_StepSize</tabstop>
   <tabstop>doubleSpinBox_OutputMedium</tabstop>
   <tabstop>doubleSpinBox_PixelSize</tabstop>
   <tabstop>doubleSpinBox_SimWidth</tabstop>
