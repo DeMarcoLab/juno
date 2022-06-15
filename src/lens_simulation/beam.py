@@ -135,6 +135,10 @@ class Beam:
 
         # diverging/converging cases
         elif self.spread in [BeamSpread.Converging, BeamSpread.Diverging]:
+            
+            if self.theta == 0.0:
+                self.theta = theta_from_NA(self.settings.numerical_aperture, self.output_medium)
+
             # calculate the equivalent focal distance of the required convergence angle
             self.focal_distance = focal_distance_from_theta(beam=lens, theta=self.theta)
             
@@ -244,8 +248,12 @@ def validate_beam_configuration(settings: BeamSettings):
         logging.info(f"Only BeamShape.Circular is supported for {settings.beam_spread}. The beam_shape has been set to {settings.beam_shape}.")
 
         # QUERY?
-        if settings.theta == 0.0:
-            raise ValueError(f"A non-zero theta must be provided for a {settings.beam_spread} beam.")
+        if settings.theta == 0.0: 
+            if settings.numerical_aperture is None:
+                raise ValueError(f"A non-zero theta or numerical aperture must be provided for a {settings.beam_spread} beam.")
+
+
+            
 
     # beam shape
     # non-rectangular beams are symmetric
