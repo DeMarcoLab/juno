@@ -92,7 +92,8 @@ class GUIBeamCreator(BeamCreator.Ui_BeamCreator, QtWidgets.QMainWindow):
         if self.beam_dict["spread"].title() != "Plane":
             self.beam_dict["shape"] = "Circular"
         if self.beam_dict["shape"].title() == "Circular":
-            sim_dimensions = self.beam_dict["width"] + 2*max(abs(self.beam_dict["position_x"]), abs(self.beam_dict["position_y"]))
+            # sim_dimensions = self.beam_dict["width"] + 2*max(abs(self.beam_dict["position_x"]), abs(self.beam_dict["position_y"]))
+            sim_dimensions = max(self.beam_dict["width"] + 2*abs(self.beam_dict["position_x"]), self.beam_dict["width"] + 2*abs(self.beam_dict["position_y"]))
         else:
             sim_dimensions = max(self.beam_dict["width"] + 2*abs(self.beam_dict["position_x"]), self.beam_dict["height"] + 2*abs(self.beam_dict["position_y"]))
         self.sim_dict["width"] = sim_dimensions
@@ -302,11 +303,15 @@ class GUIBeamCreator(BeamCreator.Ui_BeamCreator, QtWidgets.QMainWindow):
 
         self.doubleSpinBox_Width.setMinimum(1*pixel_size_units)
         self.doubleSpinBox_Height.setMinimum(1*pixel_size_units)
-        self.doubleSpinBox_Height.setMaximum((self.sim_dict["width"]-2*abs(self.beam_dict["position_x"]))/self.units)
+        self.doubleSpinBox_Width.setMaximum((self.sim_dict["width"]-2*abs(self.beam_dict["position_x"]))/self.units)
         self.doubleSpinBox_Height.setMaximum((self.sim_dict["height"]-2*abs(self.beam_dict["position_y"]))/self.units)
 
         self.doubleSpinBox_SimWidth.setMinimum((self.beam_dict["width"] + 2*abs(self.beam_dict["position_x"]))/self.units)
-        self.doubleSpinBox_SimHeight.setMinimum((self.beam_dict["height"] + 2*abs(self.beam_dict["position_y"]))/self.units)
+
+        if self.beam_dict["shape"].title() == "Circular":
+            self.doubleSpinBox_SimHeight.setMinimum((self.beam_dict["width"] + 2*abs(self.beam_dict["position_x"]))/self.units)
+        else:
+            self.doubleSpinBox_SimHeight.setMinimum((self.beam_dict["height"] + 2*abs(self.beam_dict["position_y"]))/self.units)
 
         self.doubleSpinBox_ShiftX.setMaximum((self.sim_dict["width"]-self.beam_dict["width"])/2/self.units)
         self.doubleSpinBox_ShiftY.setMaximum((self.sim_dict["height"]-self.beam_dict["height"])/2/self.units)
