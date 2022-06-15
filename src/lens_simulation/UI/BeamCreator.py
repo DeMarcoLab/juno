@@ -52,8 +52,10 @@ class GUIBeamCreator(BeamCreator.Ui_BeamCreator, QtWidgets.QMainWindow):
 
         self.create_new_beam_dict()
         self.create_new_sim_dict()
-        self.update_UI()
         self.create_beam()
+        self.update_UI_limits()
+        self.update_UI()
+
         self.setup_connections()
 
         self.center_window()
@@ -134,7 +136,7 @@ class GUIBeamCreator(BeamCreator.Ui_BeamCreator, QtWidgets.QMainWindow):
 
     ### UI <-> Config methods ###
 
-    def update_beam_dict(self):
+    def update_config(self):
         self.update_config_general()
         self.update_config_beam_spread()
         self.update_config_beam_shape()
@@ -278,6 +280,25 @@ class GUIBeamCreator(BeamCreator.Ui_BeamCreator, QtWidgets.QMainWindow):
         self.sim_dict["width"] = self.format_float(self.doubleSpinBox_SimWidth.value() * self.units)
         self.sim_dict["height"] = self.format_float(self.doubleSpinBox_SimHeight.value() * self.units)
 
+    def update_UI_limits(self):
+
+        pixel_size = self.sim_dict["pixel_size"]
+        pixel_size_units = pixel_size/self.units
+
+        self.doubleSpinBox_Width.setMinimum(1*pixel_size_units)
+        self.doubleSpinBox_Height.setMinimum(1*pixel_size_units)
+        self.doubleSpinBox_Height.setMaximum((self.sim_dict["width"]-2*abs(self.beam_dict["position_x"]))/self.units)
+        self.doubleSpinBox_Height.setMaximum((self.sim_dict["height"]-2*abs(self.beam_dict["position_y"]))/self.units)
+
+        self.doubleSpinBox_SimWidth.setMinimum((self.beam_dict["width"] + 2*abs(self.beam_dict["position_x"]))/self.units)
+        self.doubleSpinBox_SimHeight.setMinimum((self.beam_dict["height"] + 2*abs(self.beam_dict["position_y"]))/self.units)
+
+        self.doubleSpinBox_ShiftX.setMaximum((self.sim_dict["width"]-self.beam_dict["width"])/2/self.units)
+        self.doubleSpinBox_ShiftY.setMaximum((self.sim_dict["height"]-self.beam_dict["height"])/2/self.units)
+        self.doubleSpinBox_ShiftX.setMinimum(-(self.sim_dict["width"]-self.beam_dict["width"])/2/self.units)
+        self.doubleSpinBox_ShiftY.setMinimum(-(self.sim_dict["height"]-self.beam_dict["height"])/2/self.units)
+
+
     def format_float(self, num):
         # np format_float_scientific() might be the same?
         return float(f"{num:4e}")
@@ -304,10 +325,9 @@ class GUIBeamCreator(BeamCreator.Ui_BeamCreator, QtWidgets.QMainWindow):
             self.create_new_sim_dict()
             self.create_beam()
             self.update_UI()
-            # validate_beam_configuration
-            # self.update_UI_limits()
-            # self.update_UI_limits()
-            # self.update_UI()
+            self.update_UI_limits()
+            self.update_UI()
+            self.update_UI_limits()
 
             self.checkBox_LiveUpdate.setChecked(was_live)
         except Exception as e:
@@ -383,8 +403,9 @@ class GUIBeamCreator(BeamCreator.Ui_BeamCreator, QtWidgets.QMainWindow):
         if self.checkBox_LiveUpdate.isChecked():
             try:
                 self.checkBox_LiveUpdate.setChecked(False)
-                self.update_beam_dict()
+                self.update_config()
                 self.create_beam()
+                self.update_UI_limits()
                 self.update_UI()
                 self.checkBox_LiveUpdate.setChecked(True)
             except Exception as e:
