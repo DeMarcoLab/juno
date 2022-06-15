@@ -95,8 +95,8 @@ class Beam:
         # validation
         if self.width > sim_width:
             raise ValueError(f"Beam width is larger than simulation width: beam={self.width:.2e}m, sim={sim_width:.2e}m")
-        if self.height > sim_width:
-            raise ValueError(f"Beam height is larger than simulation width: beam={self.height:.2e}m, sim={sim_width:.2e}m")
+        if self.height > sim_height:
+            raise ValueError(f"Beam height is larger than simulation height: beam={self.height:.2e}m, sim={sim_width:.2e}m")
 
         if self.position[0] > sim_width or self.position[1] > sim_width:
             raise ValueError(f"Beam position is outside simulation: position: x:{self.position[0]:.2e}m, y:{self.position[1]:.2e}m, sim_size: {sim_width:.2e}m")
@@ -122,16 +122,14 @@ class Beam:
                 lens.profile = np.ones(shape=lens.profile.shape)
 
             if self.shape is BeamShape.Rectangular:
-                lens.profile = np.zeros(shape=lens.profile.shape)
 
-                # make sure to fill out in the correct order, otherwise this creates a square
-                if self.height >= self.width:
-                    profile_width = int(self.width/pixel_size/2)   # half width
-                    lens.profile[lens.profile.shape[0]//2-profile_width:lens.profile.shape[0]//2+profile_width, :] = 1
+                from lens_simulation import utils
+                height_px = utils._calculate_num_of_pixels(self.height, pixel_size, odd=True)
+                width_px = utils._calculate_num_of_pixels(self.width, pixel_size, odd=True)
+                rect = np.ones(shape=(height_px, width_px))
 
-                elif self.width > self.height:
-                    profile_height = int(self.height/pixel_size/2) # half height
-                    lens.profile[:, lens.profile.shape[0]//2-profile_height:lens.profile.shape[0]//2+profile_height] = 1
+                # pad to sim width
+                lens.profile = utils.pad_to_equal_size(rect, lens.profile, value=0)
 
         # diverging/converging cases
         elif self.spread in [BeamSpread.Converging, BeamSpread.Diverging]:
