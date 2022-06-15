@@ -1,4 +1,5 @@
 import os
+from pprint import pprint
 import sys
 import traceback
 
@@ -6,15 +7,13 @@ import lens_simulation.UI.qtdesigner_files.BeamCreator as BeamCreator
 import numpy as np
 import yaml
 from lens_simulation import constants, utils
-from lens_simulation.beam import Beam, generate_beam
-from lens_simulation.Lens import GratingSettings, LensType, Medium
+from lens_simulation.beam import generate_beam
 from matplotlib import pyplot as plt
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
 from PyQt5 import QtCore, QtGui, QtWidgets
 
 from lens_simulation.structures import SimulationParameters
 
-lens_type_dict = {"Cylindrical": LensType.Cylindrical, "Spherical": LensType.Spherical}
 
 # maps the index of comboboxes to a constant
 units_dict = {
@@ -70,7 +69,7 @@ class GUIBeamCreator(BeamCreator.Ui_BeamCreator, QtWidgets.QMainWindow):
 
         # connect each of the lens parameter selectors to update profile in live view
         [
-            value.valueChanged.connect(self.live_update_profile)
+            value.editingFinished.connect(self.live_update_profile)
             for value in self.__dict__.values()
             if value.__class__ is QtWidgets.QDoubleSpinBox
         ]
@@ -107,6 +106,7 @@ class GUIBeamCreator(BeamCreator.Ui_BeamCreator, QtWidgets.QMainWindow):
         self.beam_dict["final_width"] = None
         self.beam_dict["focal_multiple"] = None
         self.beam_dict["n_slices"] = 10
+        self.beam_dict["output_medium"] = 1.
         self.beam_dict["lens_type"] = "Spherical"
 
     def create_beam(self):
@@ -151,7 +151,9 @@ class GUIBeamCreator(BeamCreator.Ui_BeamCreator, QtWidgets.QMainWindow):
         self.doubleSpinBox_ShiftY.setValue(self.beam_dict["position_y"]/self.units)
         self.doubleSpinBox_Width.setValue(self.beam_dict["width"]/self.units)
         self.doubleSpinBox_Height.setValue(self.beam_dict["height"]/self.units)
-        self.comboBox_LensType.setCurrentText(self.beam_dict["lens_type"].title())
+        self.label_Height.setEnabled(self.beam_dict["shape"].title() != "Circular")
+        self.doubleSpinBox_Height.setEnabled(self.beam_dict["shape"].title() != "Circular")
+        self.doubleSpinBox_OutputMedium.setValue(self.beam_dict["output_medium"])
 
     def update_config_general(self):
         # UI -> config | General settings #
@@ -161,7 +163,7 @@ class GUIBeamCreator(BeamCreator.Ui_BeamCreator, QtWidgets.QMainWindow):
         self.beam_dict["position_y"] = self.format_float(self.doubleSpinBox_ShiftY.value() * self.units)
         self.beam_dict["width"] = self.format_float(self.doubleSpinBox_Width.value() * self.units)
         self.beam_dict["height"] = self.format_float(self.doubleSpinBox_Height.value() * self.units)
-        self.beam_dict["lens_type"] = self.comboBox_LensType.currentText().lower()
+        self.beam_dict["output_medium"] = self.doubleSpinBox_OutputMedium.value()
 
     def update_UI_beam_spread(self):
         # Config -> UI | Beam Spread settings #

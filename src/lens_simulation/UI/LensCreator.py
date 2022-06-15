@@ -61,7 +61,7 @@ class GUILensCreator(LensCreator.Ui_LensCreator, QtWidgets.QMainWindow):
 
         # connect each of the lens parameter selectors to update profile in live view
         [
-            value.valueChanged.connect(self.live_update_profile)
+            value.editingFinished.connect(self.live_update_profile)
             for value in self.__dict__.values()
             if value.__class__ is QtWidgets.QDoubleSpinBox
         ]
