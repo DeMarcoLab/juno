@@ -160,13 +160,13 @@ class GUIBeamCreator(BeamCreator.Ui_BeamCreator, QtWidgets.QMainWindow):
         # Config -> UI | General settings #
         self.lineEdit_LensName.setText(self.beam_dict["name"])
         if self.beam_dict["n_slices"] != 0:
-            self.comboBox_DistanceMethod.setCurrentText("# Slices")
             self.doubleSpinBox_DistanceMethod.setDecimals(0)
+            self.comboBox_DistanceMethod.setCurrentText("# Slices")
             self.doubleSpinBox_DistanceMethod.setValue(self.beam_dict["n_slices"])
         elif self.beam_dict["step_size"] != 0:
             self.comboBox_DistanceMethod.setCurrentText("Step Size")
-            self.doubleSpinBox_DistanceMethod.setValue(self.beam_dict["step_size"]/self.units)
             self.doubleSpinBox_DistanceMethod.setDecimals(2)
+            self.doubleSpinBox_DistanceMethod.setValue(self.beam_dict["step_size"]/self.units)
         self.doubleSpinBox_ShiftX.setValue(self.beam_dict["position_x"]/self.units)
         self.doubleSpinBox_ShiftY.setValue(self.beam_dict["position_y"]/self.units)
         self.doubleSpinBox_Width.setValue(self.beam_dict["width"]/self.units)
