@@ -301,7 +301,7 @@ def propagate_wavefront(
     fft_wavefront = fftpack.fft2(wavefront)
 
     # calculate propagation distances
-    if n_slices is None:
+    if n_slices == 0:
         n_slices = int((finish_distance - start_distance) / step_size)
     distances = np.linspace(start_distance, finish_distance, n_slices)
 

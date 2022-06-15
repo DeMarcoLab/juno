@@ -121,8 +121,8 @@ def _validate_default_beam_config(config: dict) -> dict:
     if "n_slices" not in config and "step_size" not in config:
         config["n_slices"] = 10
 
-    config["n_slices"] = config["n_slices"] if "n_slices" in config else None
-    config["step_size"] = config["step_size"] if "step_size" in config else None
+    config["n_slices"] = config["n_slices"] if "n_slices" in config else 0
+    config["step_size"] = config["step_size"] if "step_size" in config else 0
 
     config["position_x"] = config["position_x"] if "position_x" in config else 0.0
     config["position_y"] = config["position_y"] if "position_y" in config else 0.0
@@ -167,8 +167,8 @@ def _validate_default_simulation_stage_config(stage_config: dict) -> dict:
 
 
     # default settings
-    stage_config["n_slices"] = None if "n_slices" not in stage_config else stage_config["n_slices"]
-    stage_config["step_size"] = None if "step_size" not in stage_config else stage_config["step_size"]
+    stage_config["n_slices"] = 0 if "n_slices" not in stage_config else stage_config["n_slices"]
+    stage_config["step_size"] = 0 if "step_size" not in stage_config else stage_config["step_size"]
     stage_config["options"] = None if "options" not in stage_config else stage_config["options"]
 
     if stage_config["options"] is not None:
