@@ -51,6 +51,7 @@ class GUIBeamCreator(BeamCreator.Ui_BeamCreator, QtWidgets.QMainWindow):
         self.pc_Convergence = None
 
         self.create_new_beam_dict()
+        self.create_new_sim_dict()
         self.update_UI()
         self.create_beam()
         self.setup_connections()
@@ -81,21 +82,29 @@ class GUIBeamCreator(BeamCreator.Ui_BeamCreator, QtWidgets.QMainWindow):
 
     ### Generation methods ###
 
-    def create_new_beam_dict(self):
+    def create_new_sim_dict(self):
         # dummy sim
         self.sim_dict = dict()
         self.sim_dict["pixel_size"] = 1.0e-6
-        self.sim_dict["width"] = 500.0e-6
-        self.sim_dict["height"] = 500.0e-6
+
+        if self.beam_dict["spread"].title() != "Plane":
+            self.beam_dict["shape"] = "Circular"
+        if self.beam_dict["shape"].title() == "Circular":
+            sim_dimensions = self.beam_dict["width"] + 2*max(self.beam_dict["position_x"], self.beam_dict["position_y"])
+        else:
+            sim_dimensions = max(self.beam_dict["width"] + 2*self.beam_dict["position_x"], self.beam_dict["height"] + 2*self.beam_dict["position_y"])
+        self.sim_dict["width"] = sim_dimensions
+        self.sim_dict["height"] = sim_dimensions
         self.sim_dict["wavelength"] = 488.0e-9
 
+    def create_new_beam_dict(self):
         self.beam_dict = dict()
         self.beam_dict["name"] = "Beam"
         self.beam_dict["distance_mode"] = "direct"
         self.beam_dict["spread"] = "plane"
         self.beam_dict["shape"] = "rectangular"
-        self.beam_dict["width"] = 300.0e-6
-        self.beam_dict["height"] = 50.0e-6
+        self.beam_dict["width"] = 50.0e-6
+        self.beam_dict["height"] = 120.0e-6
         self.beam_dict["position_x"] = 0.0e-6
         self.beam_dict["position_y"] = 0.0e-6
         self.beam_dict["theta"] = 1. # Degrees
@@ -218,7 +227,6 @@ class GUIBeamCreator(BeamCreator.Ui_BeamCreator, QtWidgets.QMainWindow):
         if self.comboBox_BeamAngle.currentText() == "Numerical Aperture":
             self.beam_dict["theta"] = 0.
             self.beam_dict["numerical_aperture"] = self.doubleSpinBox_BeamAngle.value()
-            print(self.beam_dict)
             return
 
         self.beam_dict["theta"] = self.doubleSpinBox_BeamAngle.value()
@@ -293,18 +301,29 @@ class GUIBeamCreator(BeamCreator.Ui_BeamCreator, QtWidgets.QMainWindow):
             self.checkBox_LiveUpdate.setChecked(False)
             # TODO: check how to validate for beam
             self.beam_dict = utils.load_yaml_config(filename)
-            # validate_beam_configuration
+            self.create_new_sim_dict()
             self.create_beam()
+            self.update_UI()
+            # validate_beam_configuration
+            # self.update_UI_limits()
             # self.update_UI_limits()
             self.update_UI()
-            # self.update_UI_limits()
-            self.update_UI()
-
-
 
             self.checkBox_LiveUpdate.setChecked(was_live)
         except Exception as e:
             self.display_error_message(traceback.format_exc())
+
+    def save_profile(self):
+        filename, ext = QtWidgets.QFileDialog.getSaveFileName(self, "Save Profile", self.beam_dict["name"], filter="Yaml config (*.yml *.yaml)")
+
+        if filename == "":
+            return
+
+        self.beam_dict["name"] = os.path.basename(filename).split('.')[0]
+        self.lineEdit_LensName.setText(self.beam_dict["name"])
+
+        with open(filename, "w") as f:
+            yaml.safe_dump(self.beam_dict, f, sort_keys=False)
 
     ### Update methods ###
 
@@ -394,10 +413,10 @@ class _ImageCanvas(FigureCanvasQTAgg, QtWidgets.QWidget):
                 thing_to_plot,
                 facecolor="#f0f0f0",
                 extent=[
-                    -lens.diameter / 2,
-                    lens.diameter / 2,
-                    -lens.length / 2,
-                    lens.length / 2,
+                    -lens.profile.shape[1] / 2 * lens.pixel_size,
+                    lens.profile.shape[1] / 2 * lens.pixel_size,
+                    -lens.profile.shape[0] / 2 * lens.pixel_size,
+                    lens.profile.shape[0] / 2 * lens.pixel_size,
                 ],
                 colorbar_ticks=colorbar_ticks,
             )

@@ -166,8 +166,8 @@ class Beam:
         pad_height = (int(sim_height/pixel_size)-lens.profile.shape[0])//2 + 1    # px
         pad_width = (int(sim_width/pixel_size)-lens.profile.shape[1])//2 + 1    # px
 
-        relative_position_x = int(beam_position[1]/pixel_size)                  # px
-        relative_position_y = int(beam_position[0]/pixel_size)                  # px
+        relative_position_x = int(beam_position[0]/pixel_size)                  # px
+        relative_position_y = int(beam_position[1]/pixel_size)                  # px
 
         # pad the profile to the sim width (Top - Bottom - Left - Right)
         lens.profile = np.pad(lens.profile, ((pad_height + relative_position_y, pad_height - relative_position_y),
