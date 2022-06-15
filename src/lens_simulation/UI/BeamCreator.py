@@ -99,11 +99,11 @@ class GUIBeamCreator(BeamCreator.Ui_BeamCreator, QtWidgets.QMainWindow):
         self.beam_dict["height"] = 50.0e-6
         self.beam_dict["position_x"] = 0.0e-6
         self.beam_dict["position_y"] = 0.0e-6
-        self.beam_dict["theta"] = None
+        self.beam_dict["theta"] = 1. # Degrees
         self.beam_dict["numerical_aperture"] = None
         self.beam_dict["tilt_x"] = 0.0
         self.beam_dict["tilt_y"] = 0.0
-        self.beam_dict["source_distance"] = 2.0e-3
+        self.beam_dict["source_distance"] = 200.e-6
         self.beam_dict["final_width"] = None
         self.beam_dict["focal_multiple"] = None
         self.beam_dict["n_slices"] = 10
@@ -127,11 +127,21 @@ class GUIBeamCreator(BeamCreator.Ui_BeamCreator, QtWidgets.QMainWindow):
         self.update_config_general()
         self.update_config_beam_spread()
         self.update_config_beam_shape()
+        self.update_config_convergence_angle()
+        self.update_config_distance()
+        self.update_config_tilt()
+        self.update_config_sim()
+        print(self.beam_dict)
+        # print(self.sim_dict)
 
     def update_UI(self):
         self.update_UI_general()
         self.update_UI_beam_spread()
         self.update_UI_beam_shape()
+        self.update_UI_convergence_angle()
+        self.update_UI_distance()
+        self.update_UI_tilt()
+        self.update_UI_sim()
 
     def update_UI_general(self):
         # Config -> UI | General settings #
@@ -141,15 +151,17 @@ class GUIBeamCreator(BeamCreator.Ui_BeamCreator, QtWidgets.QMainWindow):
         self.doubleSpinBox_ShiftY.setValue(self.beam_dict["position_y"]/self.units)
         self.doubleSpinBox_Width.setValue(self.beam_dict["width"]/self.units)
         self.doubleSpinBox_Height.setValue(self.beam_dict["height"]/self.units)
+        self.comboBox_LensType.setCurrentText(self.beam_dict["lens_type"].title())
 
     def update_config_general(self):
         # UI -> config | General settings #
         self.beam_dict["name"] = self.lineEdit_LensName.text()
         self.beam_dict["n_slices"] = self.spinBox_NSlices.value()
-        self.beam_dict["position_x"] = self.doubleSpinBox_ShiftX.value() * self.units
-        self.beam_dict["position_y"] = self.doubleSpinBox_ShiftY.value() * self.units
-        self.beam_dict["width"] = self.doubleSpinBox_Width.value() * self.units
-        self.beam_dict["height"] = self.doubleSpinBox_Height.value() * self.units
+        self.beam_dict["position_x"] = self.format_float(self.doubleSpinBox_ShiftX.value() * self.units)
+        self.beam_dict["position_y"] = self.format_float(self.doubleSpinBox_ShiftY.value() * self.units)
+        self.beam_dict["width"] = self.format_float(self.doubleSpinBox_Width.value() * self.units)
+        self.beam_dict["height"] = self.format_float(self.doubleSpinBox_Height.value() * self.units)
+        self.beam_dict["lens_type"] = self.comboBox_LensType.currentText().lower()
 
     def update_UI_beam_spread(self):
         # Config -> UI | Beam Spread settings #
@@ -177,17 +189,96 @@ class GUIBeamCreator(BeamCreator.Ui_BeamCreator, QtWidgets.QMainWindow):
             self.beam_dict["beam_shape"] = "Circular"
             self.comboBox_BeamShape.setCurrentIndex(0)
 
-
     def update_config_beam_shape(self):
         # UI -> config | Beam Shape settings #
-        self.beam_dict["shape"] = self.comboBox_BeamShape.currentText()
+        if self.comboBox_BeamSpread.currentText() != "Planar":
+            self.beam_dict["shape"] = "circular"
+        else:
+            self.beam_dict["shape"] = self.comboBox_BeamShape.currentText()
+
+
+    def update_UI_convergence_angle(self):
+        # Config -> UI | Angle settings #
+        if self.beam_dict["spread"] == "plane":
+            self.frame_BeamAngle.setEnabled(False)
+        else:
+            self.frame_BeamAngle.setEnabled(True)
+
+        if self.beam_dict["theta"] is not None:
+            self.comboBox_BeamAngle.setCurrentText("Theta")
+            self.doubleSpinBox_BeamAngle.setValue(self.beam_dict["theta"]
+            )
+            return
+
+        self.comboBox_BeamAngle.setCurrentText("Numerical Aperture")
+        self.doubleSpinBox_BeamAngle.setValue(self.beam_dict["numerical_aperture"])
+
+    def update_config_convergence_angle(self):
+        # UI -> config | Angle settings #
+        if self.comboBox_BeamAngle.currentText() == "Numerical Aperture":
+            self.beam_dict["theta"] = None
+            self.beam_dict["numerical_aperture"] = self.doubleSpinBox_BeamAngle.value()
+            return
+
+        self.beam_dict["theta"] = self.doubleSpinBox_BeamAngle.value()
+        self.beam_dict["numerical_aperture"] = None
+
+    def update_UI_distance(self):
+        # Config -> UI | Distance settings #
+        if self.beam_dict["distance_mode"] == "direct":
+            self.comboBox_DistanceMode.setCurrentText("Absolute Distance")
+            self.doubleSpinBox_Distance.setValue(self.beam_dict["source_distance"]/self.units)
+        elif self.beam_dict["distance_mode"] == "width":
+            self.comboBox_DistanceMode.setCurrentText("Final Beam Width")
+            self.doubleSpinBox_Distance.setValue(self.beam_dict["final_width"]/self.units)
+        elif self.beam_dict["distance_mode"] == "focal":
+            self.comboBox_DistanceMode.setCurrentText("Focal Length Multiple")
+            self.doubleSpinBox_Distance.setValue(self.beam_dict["focal_multiple"])
+
+    def update_config_distance(self):
+        # UI -> config | Distance settings #
+        if self.comboBox_DistanceMode.currentText() == "Absolute Distance":
+            self.beam_dict["distance_mode"] = "direct"
+            self.beam_dict["source_distance"] = self.format_float(self.doubleSpinBox_Distance.value() * self.units)
+        elif self.comboBox_DistanceMode.currentText() == "Final Beam Width":
+            self.beam_dict["distance_mode"] = "width"
+            self.beam_dict["final_width"] = self.format_float(self.doubleSpinBox_Distance.value() * self.units)
+        elif self.comboBox_DistanceMode.currentText() == "Focal Length Multiple":
+            self.beam_dict["distance_mode"] = "focal"
+            self.beam_dict["focal_multiple"] = self.doubleSpinBox_Distance.value()
+
+    def update_UI_tilt(self):
+        # Config -> UI | Tilt settings #
+        self.doubleSpinBox_BeamTiltX.setValue(self.beam_dict["tilt_x"])
+        self.doubleSpinBox_BeamTiltY.setValue(self.beam_dict["tilt_y"])
+
+    def update_config_tilt(self):
+        # UI -> config | Tilt settings #
+        self.beam_dict["tilt_x"] = self.doubleSpinBox_BeamTiltX.value()
+        self.beam_dict["tilt_y"] = self.doubleSpinBox_BeamTiltY.value()
+
+    def update_UI_sim(self):
+        # Config -> UI | Simulation settings #
+        self.doubleSpinBox_PixelSize.setValue(self.sim_dict["pixel_size"] / self.units)
+        self.doubleSpinBox_SimWidth.setValue(self.sim_dict["width"] / self.units)
+        self.doubleSpinBox_SimHeight.setValue(self.sim_dict["height"] / self.units)
+
+    def update_config_sim(self):
+        # UI -> config | Simulation settings #
+        self.sim_dict["pixel_size"] = self.format_float(self.doubleSpinBox_PixelSize.value() * self.units)
+        self.sim_dict["width"] = self.format_float(self.doubleSpinBox_SimWidth.value() * self.units)
+        self.sim_dict["height"] = self.format_float(self.doubleSpinBox_SimHeight.value() * self.units)
+
+    def format_float(self, num):
+        # np format_float_scientific() might be the same?
+        return float(f"{num:4e}")
 
     def live_update_profile(self):
         if self.checkBox_LiveUpdate.isChecked():
             try:
                 self.checkBox_LiveUpdate.setChecked(False)
                 self.update_beam_dict()
-                # self.create_lens()
+                # self.create_beam()
                 # self.update_UI_limits()
                 self.update_UI()
                 self.checkBox_LiveUpdate.setChecked(True)
