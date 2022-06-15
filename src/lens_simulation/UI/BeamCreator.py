@@ -66,7 +66,7 @@ class GUIBeamCreator(BeamCreator.Ui_BeamCreator, QtWidgets.QMainWindow):
         self.pushButton_GenerateProfile.clicked.connect(self.create_beam)
         self.pushButton_SaveProfile.clicked.connect(self.save_profile)
 
-        # self.comboBox_Units.currentIndexChanged.connect(self.update_units)
+        self.comboBox_Units.currentIndexChanged.connect(self.update_units)
 
         # connect each of the lens parameter selectors to update profile in live view
         [
@@ -361,6 +361,23 @@ class GUIBeamCreator(BeamCreator.Ui_BeamCreator, QtWidgets.QMainWindow):
         label.layout().addWidget(pc)
 
         return pc
+
+    def update_units(self):
+        old_units = self.units
+
+        self.units = units_dict[self.comboBox_Units.currentIndex()]
+
+        unit_conversion = self.units / old_units
+
+        self.sim_dict["pixel_size"] *= unit_conversion
+        self.sim_dict["width"] *= unit_conversion
+        self.sim_dict["height"] *= unit_conversion
+
+        self.beam_dict["width"] *= unit_conversion
+        self.beam_dict["height"] *= unit_conversion
+        self.beam_dict["position_x"] *= unit_conversion
+        self.beam_dict["position_y"] *= unit_conversion
+        self.beam_dict["source_distance"] *= unit_conversion
 
     def live_update_profile(self):
         if self.checkBox_LiveUpdate.isChecked():
