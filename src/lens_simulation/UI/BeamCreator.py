@@ -407,6 +407,24 @@ class GUIBeamCreator(BeamCreator.Ui_BeamCreator, QtWidgets.QMainWindow):
                 -(self.sim_dict["height"] - self.beam_dict["height"]) / 2 / self.units
             )
 
+        if self.beam_dict["distance_mode"].title() == "Width":
+            if self.beam_dict["spread"].title() == "Diverging":
+                self.doubleSpinBox_Distance.setMinimum(self.beam_dict["width"]/self.units)
+                self.doubleSpinBox_Distance.setMaximum(99999)
+            elif self.beam_dict["spread"].title() == "Converging":
+                self.doubleSpinBox_Distance.setMinimum(0)
+                self.doubleSpinBox_Distance.setMaximum(self.beam_dict["width"]/self.units)
+        else:
+            self.doubleSpinBox_Distance.setMinimum(0)
+            self.doubleSpinBox_Distance.setMaximum(99999)
+
+
+                # if self.doubleSpinBox_Distance.value() < self.doubleSpinBox_Distance.minimum():
+                #     self.doubleSpinBox_Distance.setValue(self.doubleSpinBox_Distance.minimum())
+
+        if self.beam_dict["spread"].title() == "Converging":
+            pass
+
     def format_float(self, num):
         # np format_float_scientific() might be the same?
         return float(f"{num:4e}")
@@ -521,6 +539,8 @@ class GUIBeamCreator(BeamCreator.Ui_BeamCreator, QtWidgets.QMainWindow):
                 self.update_config()
                 self.create_beam()
                 self.update_UI_limits()
+                self.update_config()
+                self.create_beam()
                 self.update_UI()
                 self.update_image_frames()
                 self.checkBox_LiveUpdate.setChecked(True)
