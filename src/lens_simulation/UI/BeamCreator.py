@@ -91,13 +91,17 @@ class GUIBeamCreator(BeamCreator.Ui_BeamCreator, QtWidgets.QMainWindow):
 
         if self.beam_dict["spread"].title() != "Plane":
             self.beam_dict["shape"] = "Circular"
+
+        # if self.beam_dict["shape"].title() == "Circular":
+        #     sim_dimensions = max(self.beam_dict["width"] + 2*abs(self.beam_dict["position_x"]), self.beam_dict["width"] + 2*abs(self.beam_dict["position_y"]))
+        # else:
+        #     sim_dimensions = max(self.beam_dict["width"] + 2*abs(self.beam_dict["position_x"]), self.beam_dict["height"] + 2*abs(self.beam_dict["position_y"]))
+
+        self.sim_dict["width"] = self.beam_dict["width"] + 2*abs(self.beam_dict["position_x"])
         if self.beam_dict["shape"].title() == "Circular":
-            # sim_dimensions = self.beam_dict["width"] + 2*max(abs(self.beam_dict["position_x"]), abs(self.beam_dict["position_y"]))
-            sim_dimensions = max(self.beam_dict["width"] + 2*abs(self.beam_dict["position_x"]), self.beam_dict["width"] + 2*abs(self.beam_dict["position_y"]))
+            self.sim_dict["height"] = self.beam_dict["width"] + 2*abs(self.beam_dict["position_y"])
         else:
-            sim_dimensions = max(self.beam_dict["width"] + 2*abs(self.beam_dict["position_x"]), self.beam_dict["height"] + 2*abs(self.beam_dict["position_y"]))
-        self.sim_dict["width"] = sim_dimensions
-        self.sim_dict["height"] = sim_dimensions
+            self.sim_dict["height"] = self.beam_dict["height"] + 2*abs(self.beam_dict["position_y"])
         self.sim_dict["wavelength"] = 488.0e-9
 
     def create_new_beam_dict(self):
@@ -132,10 +136,11 @@ class GUIBeamCreator(BeamCreator.Ui_BeamCreator, QtWidgets.QMainWindow):
             sim_wavelength=self.sim_dict["wavelength"]
             # TODO: add wavelength
         )
-
-        self.beam = generate_beam(config=self.beam_dict, parameters=self.parameters)
-        self.update_image_frames()
-
+        try:
+            self.beam = generate_beam(config=self.beam_dict, parameters=self.parameters)
+            self.update_image_frames()
+        except Exception as e:
+            self.display_error_message(traceback.format_exc())
 
     ### UI <-> Config methods ###
 
@@ -307,16 +312,21 @@ class GUIBeamCreator(BeamCreator.Ui_BeamCreator, QtWidgets.QMainWindow):
         self.doubleSpinBox_Height.setMaximum((self.sim_dict["height"]-2*abs(self.beam_dict["position_y"]))/self.units)
 
         self.doubleSpinBox_SimWidth.setMinimum((self.beam_dict["width"] + 2*abs(self.beam_dict["position_x"]))/self.units)
-
+        # TODO: check how to make rectangular loading smart too
         if self.beam_dict["shape"].title() == "Circular":
-            self.doubleSpinBox_SimHeight.setMinimum((self.beam_dict["width"] + 2*abs(self.beam_dict["position_x"]))/self.units)
+            self.doubleSpinBox_SimHeight.setMinimum((self.beam_dict["width"] + 2*abs(self.beam_dict["position_y"]))/self.units)
         else:
             self.doubleSpinBox_SimHeight.setMinimum((self.beam_dict["height"] + 2*abs(self.beam_dict["position_y"]))/self.units)
 
         self.doubleSpinBox_ShiftX.setMaximum((self.sim_dict["width"]-self.beam_dict["width"])/2/self.units)
-        self.doubleSpinBox_ShiftY.setMaximum((self.sim_dict["height"]-self.beam_dict["height"])/2/self.units)
         self.doubleSpinBox_ShiftX.setMinimum(-(self.sim_dict["width"]-self.beam_dict["width"])/2/self.units)
-        self.doubleSpinBox_ShiftY.setMinimum(-(self.sim_dict["height"]-self.beam_dict["height"])/2/self.units)
+
+        if self.beam_dict["shape"].title() == "Circular":
+            self.doubleSpinBox_ShiftY.setMaximum((self.sim_dict["height"]-self.beam_dict["width"])/2/self.units)
+            self.doubleSpinBox_ShiftY.setMinimum(-(self.sim_dict["height"]-self.beam_dict["width"])/2/self.units)
+        else:
+            self.doubleSpinBox_ShiftY.setMaximum((self.sim_dict["height"]-self.beam_dict["height"])/2/self.units)
+            self.doubleSpinBox_ShiftY.setMinimum(-(self.sim_dict["height"]-self.beam_dict["height"])/2/self.units)
 
 
     def format_float(self, num):
