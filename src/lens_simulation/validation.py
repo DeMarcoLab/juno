@@ -198,6 +198,11 @@ def _validate_default_simulation_stage_config(stage_config: dict) -> dict:
     stage_config["focal_distance_start_multiple"] = 0.0 if "focal_distance_start_multiple" not in stage_config else stage_config["focal_distance_start_multiple"]
     stage_config["focal_distance_multiple"] = 1.0 if "focal_distance_multiple" not in stage_config else stage_config["focal_distance_multiple"]
 
+    # default conditional settings
+    if stage_config["use_equivalent_focal_distance"] is True:
+        stage_config["focal_distance_start_multiple"] = 0.0 if stage_config["focal_distance_start_multiple"] is None else stage_config["focal_distance_start_multiple"]
+        stage_config["focal_distance_multiple"] = 1.0 if stage_config["focal_distance_multiple"] is None else stage_config["focal_distance_multiple"]
+
         # TODO: check the more complicated cases for these, e.g. need a height and exponent to calculate equiv focal distance
 
     return stage_config

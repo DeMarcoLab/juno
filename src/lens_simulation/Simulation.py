@@ -139,7 +139,6 @@ def generate_simulation_stages(stages: list, simulation_lenses: dict, config: di
 
     Args:
         stages (list): config list containing simulation stages
-        simulation_mediums (dict): config dict containing simulation mediums
         simulation_lenses (dict): config dict containing simulation lenses
         config (dict): simulation config 
         parameters (SimulationParameters): simulation parameters
@@ -186,7 +185,7 @@ def generate_simulation_stages(stages: list, simulation_lenses: dict, config: di
 
         # NOTE: if the lens and the output have the same medium, the lens is assumed to be 'double-sided'
         # therefore, we invert the lens profile to create an 'air lens' to properly simulate the double sided lens
-        if (sim_stage.lens.medium.refractive_index == sim_stage.output.refractive_index):  # TODO: figure out why dataclass comparison isnt working
+        if (sim_stage.lens.medium.refractive_index == sim_stage.output.refractive_index):  
 
             sim_stage = invert_lens_and_output_medium(sim_stage, sim_stages[sim_stage_no - 1], parameters)
 
@@ -278,7 +277,7 @@ def propagate_wavefront(
     # pad the lens profile to be the same size as the simulation
     lens = pad_simulation(lens, parameters=parameters)
     
-    # apply all aperture masks, TODO: mvoe this to a better place
+    # apply all aperture masks, N.B. there is a probably a better place for this
     lens.apply_aperture_masks()
     sim_profile = lens.profile
 
@@ -663,8 +662,8 @@ def invert_lens_and_output_medium(stage: SimulationStage, previous_stage: Simula
 
 
     if (stage.lens.medium.refractive_index == previous_stage.output.refractive_index):
-        raise ValueError("Lens and Medium on either side are the same Medium, Lens has no effect.")  # TODO: might be useful for someone...
-
+        raise ValueError("Lens and Medium on either side are the same Medium, Lens has no effect.")  
+        
     # change to 'air' lens, and invert the profile
     stage.lens = Lens(
         diameter=stage.lens.diameter,

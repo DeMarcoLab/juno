@@ -30,7 +30,6 @@ class SimulationStage:
     n_slices: int
     start_distance: float
     finish_distance: float
-    options: dict = None
     lens_inverted: bool = False
     _id: int = 0
     tilt: dict = None

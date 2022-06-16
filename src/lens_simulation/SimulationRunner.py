@@ -1,5 +1,4 @@
 import itertools
-from math import ceil, floor
 from pathlib import Path
 import uuid
 import os
@@ -13,9 +12,10 @@ from tqdm import tqdm
 from lens_simulation import Simulation, utils
 from lens_simulation import validation
 
-from copy import deepcopy
+from lens_simulation.constants import LENS_SWEEPABLE_KEYS, MODIFICATION_SWEEPABLE_KEYS, BEAM_SWEEPABLE_KEYS, STAGE_SWEEPABLE_KEYS, GRATING_SWEEPABLE_KEYS, TRUNCATION_SWEEPABLE_KEYS, APERTURE_SWEEPABLE_KEYS
 
-# TODO: convert print to logging, and save log file
+
+from copy import deepcopy
 
 class SimulationRunner:
 
@@ -36,123 +36,10 @@ class SimulationRunner:
 
         logfile = utils.configure_logging(self.data_path)
 
-    def initialise_simulation(self) -> None :
-
-        logging.info("-"*50)
-        logging.info(f"Simulation Run: {self.petname} ({self.run_id})")
-        logging.info(f"Data: {self.data_path}")
-        logging.info("-"*50)
-
-        all_lens_params = []
-        for lens in self.config["lenses"]:
-            # pprint(lens)
-
-            lens_params = []
-            # sweepable parameters
-            for key in ["height", "exponent"]:
-
-                param_sweep = generate_parameter_sweep(lens[key])
-                lens_params.append(param_sweep)
-            print(lens_params)
-            # combinations for each lens
-            # get all combinations of paramters
-            # ref: https://stackoverflow.com/questions/798854/all-combinations-of-a-list-of-lists
-            parameters_combinations = list(itertools.product(*lens_params))
-            all_lens_params.append(parameters_combinations)
-        
-        # TODO: support sweeping through lens, and output for stages e.g. lens: [lens_2, lens_3, ...]
-        all_stage_params = []
-        for stage in self.config["stages"]:
-            
-            stage_params = [] 
-            for key in ["start_distance", "finish_distance"]:
-                
-                # numeric sweep
-                param_sweep = generate_parameter_sweep(stage[key])
-                stage_params.append(param_sweep)
-                # TODO: need to account for the use_focal_distance param, otherwise the distance sweeps are a waste...
-
-            parameters_combinations = list(itertools.product(*stage_params))
-            all_stage_params.append(parameters_combinations)
-
-        # generate all combinations of all lens/stage parameters
-        self.all_parameters_combinations_lens = list(itertools.product(*all_lens_params))
-        self.all_parameters_combinations_stages = list(itertools.product(*all_stage_params))
-
-
     def setup_simulation(self):
-        # TODO: this is currently hardcoded so only height and exponent can be swept
 
-        # generate configuration for simulations
-        n_lens_configs = len(self.all_parameters_combinations_lens)
-        n_stage_configs = len(self.all_parameters_combinations_stages)
-        # logging.info(f"{n_lens_configs}} Lens Configurations. {n_stage_configs} Stage Configurations")
-        logging.info(f"Generating {n_lens_configs * n_stage_configs} Simulation Configurations. ")
-        
-        self.simulation_configurations = []
-
-        # loop through all lens, then all stage combinations?
-        for lens_combo in tqdm(self.all_parameters_combinations_lens):
-
-            for stage_combo in tqdm(self.all_parameters_combinations_stages, leave=False):
-                
-                # create lens combinations
-                lens_combination = []
-                for i, lens_config in enumerate(self.config["lenses"]):
-                    
-                    simulation_lenses = lens_config
-                    simulation_lenses["height"] = lens_combo[i][0]   
-                    simulation_lenses["exponent"] = lens_combo[i][1]
-                    
-                    lens_combination.append(simulation_lenses)
-                    del simulation_lenses
-                
-                # create stage combination
-                stage_combination = []
-                for j, stage in enumerate(self.config["stages"]):
-
-                    stage = validation._validate_default_simulation_stage_config(stage)
-
-                    stage_dict = {
-                        "lens": stage["lens"], # TODO: replace with combo
-                        "output": stage["output"], # TODO: replace with combo
-                        "start_distance": stage_combo[j][0],  
-                        "finish_distance": stage_combo[j][1],
-                        "n_slices": stage["n_slices"],
-                        "step_size": stage["step_size"],
-                        "use_equivalent_focal_distance": stage["use_equivalent_focal_distance"],
-                        "focal_distance_start_multiple": stage["focal_distance_start_multiple"],
-                        "focal_distance_multiple": stage["focal_distance_multiple"]
-                    }
-                    stage_combination.append(stage_dict)
-                    del stage_dict
-                
-                # generate simulation config
-                sim_config = {
-                    "run_id": self.run_id, 
-                    "run_petname": self.petname, 
-                    "log_dir": self.data_path, 
-                    "sim_parameters": self.config["sim_parameters"],
-                    "beam": self.config["beam"],
-                    "options": self.config["options"], 
-                    "lenses": deepcopy(lens_combination),
-                    "stages": deepcopy(stage_combination)
-                } 
-                # NOTE: need to deepcopy due to way python dicts get updated...
-
-
-                self.simulation_configurations.append(sim_config)
-
-                del sim_config, lens_combination, stage_combination
-
-        # BUG
-        # after all the combinations are set correctly, they all get set to the last combination value
-        # e.g. all lens exponents are set to the final exponent value...
-        # must be something to do with how dictionaries are updated?
-
-        # print("--------------------------- AFTER ---------------------------")
-        # pprint([conf["lenses"] for conf in self.simulation_configurations[-3:]])
-
+        info = {"run_id": self.run_id, "run_petname": self.petname, "log_dir": self.data_path}
+        self.simulation_configurations = generate_simulation_parameter_sweep(self.config, info)
         logging.info(f"Generated {len(self.simulation_configurations)} simulation configurations.")
 
         # save sim configurations
@@ -198,40 +85,6 @@ def generate_parameter_sweep_v2(start:float, stop:float, step_size:float) -> np.
 
     return np.arange(start, stop + SANTIY, step_size)
 
-
-
-def generate_parameter_sweep(param: list) -> np.ndarray:
-    # TODO: tests
-    if isinstance(param, (float, int)):
-        # single value parameter
-        return [param]
-
-    if isinstance(param, list):
-        # single value list param
-        if len(param) == 1:
-            return param
-
-    if len(param) != 3:
-        # restrict parameter format
-        raise RuntimeError("Parameters must be in the format [start, finish, step_size]")
-
-    start, finish, step_size = param
-
-    if step_size == 0.0:
-        raise ValueError("Step Size cannot be zero.")
-
-    if start >= finish:
-        raise ValueError(f"Start parameter cannot be greater than finish parameter {param}")
-
-    if (finish - start) + 0.0001e-6 < step_size:
-        raise ValueError(f"Step size is larger than parameter range. {param}")
-
-    n_steps = ceil((finish - start) / (step_size)) + 1 # TODO: validate this
-
-    return np.linspace(start, finish, n_steps)
-
-
-from lens_simulation.constants import LENS_SWEEPABLE_KEYS, MODIFICATION_SWEEPABLE_KEYS, BEAM_SWEEPABLE_KEYS, STAGE_SWEEPABLE_KEYS, GRATING_SWEEPABLE_KEYS, TRUNCATION_SWEEPABLE_KEYS, APERTURE_SWEEPABLE_KEYS
 
 def sweep_config_keys(conf: dict, sweep_keys: list) -> list:
     key_params = []
@@ -290,3 +143,105 @@ def get_lens_configurations(lpc: list, config: dict) -> list:
         lens_combination.append(simulation_lenses)
 
     return lens_combination
+
+def generate_beam_parameter_combinations(config: dict) -> list:
+
+    all_beam_params = sweep_config_keys(config["beam"], BEAM_SWEEPABLE_KEYS)
+
+    all_parameters_combinations_beam = list(itertools.product(*all_beam_params))
+
+    return all_parameters_combinations_beam
+
+
+def get_beam_configurations(bpc: list, config: dict):
+
+    simulation_beam = config["beam"]
+    simulation_beam["width"] = bpc[0]
+    simulation_beam["height"] = bpc[1]
+    simulation_beam["position_x"] = bpc[2]
+    simulation_beam["position_y"] = bpc[3]
+    simulation_beam["theta"] = bpc[4]
+    simulation_beam["numerical_aperture"] = bpc[5]
+    simulation_beam["tilt_x"] = bpc[6]
+    simulation_beam["tilt_y"] = bpc[7]
+    simulation_beam["source_distance"] = bpc[8]
+    simulation_beam["final_width"] = bpc[9]
+    simulation_beam["focal_multipl"] = bpc[10]
+    
+    return simulation_beam
+
+def generate_stage_parameter_combination(config: dict) -> list:
+
+    all_stage_params = []
+    for sc in config["stages"]:
+
+        sp = sweep_config_keys(sc, STAGE_SWEEPABLE_KEYS)
+        
+        parameters_combinations = list(itertools.product(*sp))
+        all_stage_params.append(parameters_combinations)
+        
+    all_parameters_combinations_stage = list(itertools.product(*all_stage_params))
+
+    return all_parameters_combinations_stage
+
+
+def get_stage_configurations(spc: list, config: dict) -> list:
+    
+    stage_combination = []
+    for i, stage_config in enumerate(config["stages"]): # careful of the order here...
+
+        simulation_stage = stage_config
+        simulation_stage["output"] = spc[i][0]   
+        simulation_stage["start_distance"] = spc[i][1]
+        simulation_stage["finish_distance"] = spc[i][2]   
+        simulation_stage["focal_distance_start_multiple"] = spc[i][3]
+        simulation_stage["focal_distance_multiple"] = spc[i][4]
+    
+        stage_combination.append(simulation_stage)
+
+    return stage_combination
+
+def generate_simulation_parameter_sweep(config: dict, info: dict = None) -> list:
+    
+    all_parameters_combinations_lens = generate_lens_parameter_combinations(config)
+    all_parameters_combinations_beam = generate_beam_parameter_combinations(config)
+    all_parameters_combinations_stage = generate_stage_parameter_combination(config)
+
+    # create simulaton configs from parameter sweeps...
+
+    simulation_configurations = []
+
+    for i, bpc in enumerate(all_parameters_combinations_beam):
+        beam_combination = get_beam_configurations(bpc, config)
+
+        for j, lpc in enumerate(all_parameters_combinations_lens):
+                    
+            lens_combination = get_lens_configurations(lpc, config)
+            
+            for k, spc in enumerate(all_parameters_combinations_stage):
+                stage_combination = get_stage_configurations(spc, config)
+
+
+                # generate simulation config 
+                sim_config = {
+                    "run_id": info["run_id"], 
+                    "run_petname": info["run_petname"], 
+                    "log_dir": info["log_dir"], 
+                    "sim_parameters": config["sim_parameters"],
+                    "beam": deepcopy(beam_combination),
+                    "options": config["options"], 
+                    "lenses": deepcopy(lens_combination),
+                    "stages": deepcopy(stage_combination)
+                } 
+                # NOTE: need to deepcopy due to way python dicts get updated...
+
+                simulation_configurations.append(sim_config)
+
+        # NOTE: be careful with the dictionary overriding
+
+    logging.info(f"Beam Configurations: {len(all_parameters_combinations_beam)}")
+    logging.info(f"Lens Configurations: {len(all_parameters_combinations_lens)}")
+    logging.info(f"Stage Configurations: {len(all_parameters_combinations_stage)}")
+    logging.info(f"Total Simulation Configurations: {len(simulation_configurations)}")
+
+    return simulation_configurations

@@ -35,8 +35,8 @@ lenses:
     type: radial
   custom: null
   diameter: 0.0003
-  diameter_step: 0.0001
-  diameter_stop: 0.0005
+  diameter_step: null
+  diameter_stop: null
   escape_path: null
   exponent: 2.0
   exponent_step: null
@@ -47,11 +47,11 @@ lenses:
     depth_step: null
     depth_stop: null
     distance: 2.0e-05
-    distance_step: 1.0e-5
-    distance_stop: 3.0e-5
+    distance_step: null
+    distance_stop: null
     width: 1.0e-05
-    width_step: 0.5e-5
-    width_stop: 2.5e-5
+    width_step: null
+    width_stop: null
     x: true
     y: false
   height: 1.0e-05
@@ -67,12 +67,12 @@ lenses:
   truncation:
     aperture: false
     height: 3.0e-06
-    height_step: null
-    height_stop: null
+    height_step: 0.35e-6
+    height_stop: 5.0e-6
     radius: 5.0e-05
     radius_step: null
     radius_stop: null
-    type: radial
+    type: value
 - aperture: null
   custom: null
   diameter: 0.0003
@@ -129,10 +129,10 @@ stages:
 - finish_distance: 0.006
   finish_distance_step: null
   finish_distance_stop: null
-  focal_distance_multiple: 2.0
+  focal_distance_multiple: 1.0
   focal_distance_multiple_step: null
   focal_distance_multiple_stop: null
-  focal_distance_start_multiple: 0.0
+  focal_distance_start_multiple: null
   focal_distance_start_multiple_step: null
   focal_distance_start_multiple_stop: null
   lens: lens_2

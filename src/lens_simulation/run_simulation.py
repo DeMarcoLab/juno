@@ -9,7 +9,6 @@ from lens_simulation import utils
 def main(config_filename):
 
     sim_runner = SimulationRunner.SimulationRunner(config_filename)
-    sim_runner.initialise_simulation()
     sim_runner.setup_simulation()
     sim_runner.run_simulations()
 

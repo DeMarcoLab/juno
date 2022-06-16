@@ -177,7 +177,7 @@ def plot_array_2D(array: np.ndarray, title="", facecolor="#ffffff", tickstyle="s
 
 
 
-def plot_lens_profile_slices(lens: Lens, max_height: float = None, title: str = "Lens Profile Slices", facecolor: str = "#ffffff") -> plt.Figure:
+def plot_lens_profile_slices(lens: Lens, max_height: float = None, title: str = "Lens Profile Slices", facecolor: str = "#ffffff", dim: int = 0) -> plt.Figure:
     # TODO: add proper distances to plot
     """Plot slices of a two-dimensional lens at one-eighth, one-quarter and one-half distances"""
 
@@ -188,13 +188,11 @@ def plot_lens_profile_slices(lens: Lens, max_height: float = None, title: str = 
     else:
         raise TypeError("Non-Lens passed")
 
-    thirty_two_px = lens.profile.shape[0] // 32
-    sixteen_px = lens.profile.shape[0] // 16
-    sixth_px = lens_profile.shape[0] // 8
-    quarter_px = lens_profile.shape[0] // 4
-    mid_px = lens_profile.shape[0] // 2
-
-    # TODO: slice in the other directions
+    thirty_two_px = lens.profile.shape[dim] // 32
+    sixteen_px = lens.profile.shape[dim] // 16
+    sixth_px = lens_profile.shape[dim] // 8
+    quarter_px = lens_profile.shape[dim] // 4
+    mid_px = lens_profile.shape[dim] // 2
 
     fig = plt.figure()
     fig.set_facecolor(facecolor)
@@ -458,7 +456,7 @@ def load_run_simulation_data(directory):
         df_join = load_simulation_data(path)
 
         df = pd.concat([df, df_join],ignore_index=True).reset_index()
-        df = df.drop(columns=["index", "options"])
+        df = df.drop(columns=["index"])
 
     # df = df.drop(columns=["level_0", "index", "options"])
 

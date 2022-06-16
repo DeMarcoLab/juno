@@ -5,8 +5,7 @@ from scipy import ndimage
 from enum import Enum
 
 
-# TODO: 488 comes from sim
-# TODO: fix the __repr__ for Medium
+
 # TODO: comparison not working for dataclass?
 @dataclass
 class Medium:
@@ -29,6 +28,3 @@ class Air(Medium):
 @dataclass
 class LithiumNiobate(Medium):
     refractive_index: float = 2.348
-
-
-# TODO: add more common mediums.. (and names)
