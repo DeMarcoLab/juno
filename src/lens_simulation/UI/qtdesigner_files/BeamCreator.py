@@ -457,6 +457,8 @@ class Ui_BeamCreator(object):
         self.label_BeamTilt.setObjectName("label_BeamTilt")
         self.gridLayout_3.addWidget(self.label_BeamTilt, 0, 0, 1, 2)
         self.doubleSpinBox_BeamTiltX = QtWidgets.QDoubleSpinBox(self.frame_BeamTilt)
+        self.doubleSpinBox_BeamTiltX.setMinimum(-89.99)
+        self.doubleSpinBox_BeamTiltX.setMaximum(89.99)
         self.doubleSpinBox_BeamTiltX.setObjectName("doubleSpinBox_BeamTiltX")
         self.gridLayout_3.addWidget(self.doubleSpinBox_BeamTiltX, 1, 1, 1, 1)
         self.label_BeamTiltY = QtWidgets.QLabel(self.frame_BeamTilt)
