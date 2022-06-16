@@ -1,5 +1,5 @@
 import itertools
-from math import ceil
+from math import ceil, floor
 from pathlib import Path
 import uuid
 import os
@@ -53,15 +53,13 @@ class SimulationRunner:
 
                 param_sweep = generate_parameter_sweep(lens[key])
                 lens_params.append(param_sweep)
-            
+            print(lens_params)
             # combinations for each lens
             # get all combinations of paramters
             # ref: https://stackoverflow.com/questions/798854/all-combinations-of-a-list-of-lists
             parameters_combinations = list(itertools.product(*lens_params))
             all_lens_params.append(parameters_combinations)
         
-        pprint(all_lens_params)
-
         # TODO: support sweeping through lens, and output for stages e.g. lens: [lens_2, lens_3, ...]
         all_stage_params = []
         for stage in self.config["stages"]:
@@ -194,12 +192,11 @@ def generate_parameter_sweep_v2(start:float, stop:float, step_size:float) -> np.
     if start >= stop:
         raise ValueError(f"Start parameter {start} cannot be greater than stop parameter {stop}")
 
-    if (stop - start) + 0.0001e-6 < step_size:
+    SANTIY = +1e-12
+    if (stop - start) + SANTIY < step_size:
         raise ValueError(f"Step size is larger than parameter range. {start}, {stop}, {step_size}")
 
-    n_steps = ceil((stop - start) / (step_size)) + 1 # TODO: validate this
-
-    return np.linspace(start, stop, n_steps)
+    return np.arange(start, stop + SANTIY, step_size)
 
 
 
@@ -232,3 +229,64 @@ def generate_parameter_sweep(param: list) -> np.ndarray:
     n_steps = ceil((finish - start) / (step_size)) + 1 # TODO: validate this
 
     return np.linspace(start, finish, n_steps)
+
+
+from lens_simulation.constants import LENS_SWEEPABLE_KEYS, MODIFICATION_SWEEPABLE_KEYS, BEAM_SWEEPABLE_KEYS, STAGE_SWEEPABLE_KEYS, GRATING_SWEEPABLE_KEYS, TRUNCATION_SWEEPABLE_KEYS, APERTURE_SWEEPABLE_KEYS
+
+def sweep_config_keys(conf: dict, sweep_keys: list) -> list:
+    key_params = []
+    for k in sweep_keys:
+
+        if isinstance(conf, dict) and k in conf: # check if param exists
+            start, stop, step = conf[k], conf[f"{k}_stop"], conf[f"{k}_step"]
+            params = generate_parameter_sweep_v2(start, stop, step)
+        else:
+            params = [None]
+       
+        key_params.append(params)
+    return key_params
+
+
+def generate_lens_parameter_combinations(config) -> list:
+
+    all_lens_params = []
+    for lc in config["lenses"]:
+
+        lp = sweep_config_keys(lc, LENS_SWEEPABLE_KEYS)
+        gp = sweep_config_keys(lc["grating"], GRATING_SWEEPABLE_KEYS)
+        tp = sweep_config_keys(lc["truncation"], TRUNCATION_SWEEPABLE_KEYS)
+        ap = sweep_config_keys(lc["aperture"], APERTURE_SWEEPABLE_KEYS)
+
+        lens_param = [*lp, *gp, *tp, *ap]
+        parameters_combinations = list(itertools.product(*lens_param))
+        all_lens_params.append(parameters_combinations)
+        
+    all_parameters_combinations_lens = list(itertools.product(*all_lens_params))
+
+    return all_parameters_combinations_lens
+
+
+def get_lens_configurations(lpc: list, config: dict) -> list:
+    lens_combination = []
+    for i, lens_config in enumerate(config["lenses"]): # careful of the order here...
+
+        simulation_lenses = lens_config
+        simulation_lenses["medium"] = lpc[i][0]   
+        simulation_lenses["diameter"] = lpc[i][1]
+        simulation_lenses["height"] = lpc[i][2]   
+        simulation_lenses["exponent"] = lpc[i][3]
+
+        if simulation_lenses["grating"] is not None:
+            simulation_lenses["grating"]["width"] = lpc[i][4]   
+            simulation_lenses["grating"]["distance"] = lpc[i][5]
+            simulation_lenses["grating"]["depth"] = lpc[i][6]   
+        if simulation_lenses["truncation"] is not None:
+            simulation_lenses["truncation"]["height"] = lpc[i][7]   
+            simulation_lenses["truncation"]["radius"] = lpc[i][8]  
+        if simulation_lenses["aperture"] is not None:         
+            simulation_lenses["aperture"]["inner"] = lpc[i][9]   
+            simulation_lenses["aperture"]["outer"] = lpc[i][10]   
+    
+        lens_combination.append(simulation_lenses)
+
+    return lens_combination

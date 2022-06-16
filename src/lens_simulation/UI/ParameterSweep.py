@@ -70,9 +70,7 @@ class GUIParameterSweep(ParameterSweep.Ui_MainWindow, QtWidgets.QMainWindow):
         print("setup_connections")
 
         self.pushButton_save_config.clicked.connect(self.save_sweepable_config)
-
-        # pprint(self.config)
-       
+      
         paramBox = QGroupBox()
         paramGridLayout = QGridLayout()
 

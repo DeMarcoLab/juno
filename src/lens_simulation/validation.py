@@ -1,4 +1,5 @@
 
+from lens_simulation.constants import LENS_SWEEPABLE_KEYS, MODIFICATION_SWEEPABLE_KEYS, BEAM_SWEEPABLE_KEYS, STAGE_SWEEPABLE_KEYS, GRATING_SWEEPABLE_KEYS, TRUNCATION_SWEEPABLE_KEYS, APERTURE_SWEEPABLE_KEYS
 
 def _validate_default_lens_config(lens_config: dict) -> dict:
 
@@ -136,7 +137,31 @@ def _validate_default_beam_config(config: dict) -> dict:
     config["lens_type"] = config["lens_type"].title() if "lens_type" in config else "Spherical"
     config["output_medium"] = config["output_medium"] if "output_medium" in config else 1.0
 
+    # validate the sweepable parameters
+    bc = _validate_sweepable_parameters_beam(config)
+    config.update(bc)
+
     return config
+
+def _validate_sweepable_parameters_beam(conf):
+
+    for k in BEAM_SWEEPABLE_KEYS:
+        
+        k_stop, k_step = f"{k}_stop", f"{k}_step"
+        
+        # start, stop, step
+        if k not in conf:
+            conf[k] = None
+
+        if k_stop not in conf:
+            conf[k_stop] = None 
+
+
+        if k_step not in conf:
+            conf[k_step] = None
+
+    return conf
+
 
 def _validate_simulation_stage_list(stages: list, simulation_lenses: dict) -> None:
     """Validate that all lenses and mediums have been defined, and all simulation stages have been

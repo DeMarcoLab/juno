@@ -35,8 +35,8 @@ lenses:
     type: radial
   custom: null
   diameter: 0.0003
-  diameter_step: null
-  diameter_stop: null
+  diameter_step: 0.0001
+  diameter_stop: 0.0005
   escape_path: null
   exponent: 2.0
   exponent_step: null
@@ -47,11 +47,11 @@ lenses:
     depth_step: null
     depth_stop: null
     distance: 2.0e-05
-    distance_step: null
-    distance_stop: null
+    distance_step: 1.0e-5
+    distance_stop: 3.0e-5
     width: 1.0e-05
-    width_step: null
-    width_stop: null
+    width_step: 0.5e-5
+    width_stop: 2.5e-5
     x: true
     y: false
   height: 1.0e-05

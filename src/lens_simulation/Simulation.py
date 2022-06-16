@@ -180,7 +180,6 @@ def generate_simulation_stages(stages: list, simulation_lenses: dict, config: di
             step_size=stage["step_size"],
             start_distance=stage["start_distance"],
             finish_distance=stage["finish_distance"],
-            options=stage["options"],
             lens_inverted=False,
             _id=sim_stage_no,
         )
@@ -206,11 +205,11 @@ def generate_simulation_stages(stages: list, simulation_lenses: dict, config: di
 
 
 def calculate_start_and_finish_distance(stage: SimulationStage, start_multiple, finish_multiple):
-    if stage.options["use_equivalent_focal_distance"]:
-        eq_fd = calculate_equivalent_focal_distance(stage.lens, stage.output)
 
-        stage.start_distance = (start_multiple * eq_fd)
-        stage.finish_distance = (finish_multiple * eq_fd)
+    eq_fd = calculate_equivalent_focal_distance(stage.lens, stage.output)
+
+    stage.start_distance = (start_multiple * eq_fd)
+    stage.finish_distance = (finish_multiple * eq_fd)
         
     return stage 
 

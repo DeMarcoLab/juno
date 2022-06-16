@@ -18,11 +18,12 @@ LENS_SWEEPABLE_KEYS = [
     "medium", "diameter", "height", "exponent"
 ]
 
-MODIFICATION_SWEEPABLE_KEYS = [    
-    "width", "distance", "depth", 
-    "height", "radius",
-    "inner", "outer"]
+MODIFICATION_SWEEPABLE_KEYS = ["grating", "truncation", "aperture"]
+GRATING_SWEEPABLE_KEYS = [ "width", "distance", "depth", ]
+TRUNCATION_SWEEPABLE_KEYS = ["height", "radius"]
+APERTURE_SWEEPABLE_KEYS = ["inner", "outer"]
 
 STAGE_SWEEPABLE_KEYS = [
-    "output", "start_distance", "finish_distance", "focal_distance_start_multiple", "focal_distance_multiple" 
+    "output", "start_distance", "finish_distance", 
+    "focal_distance_start_multiple", "focal_distance_multiple" 
 ]
