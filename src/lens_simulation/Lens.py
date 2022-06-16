@@ -210,7 +210,7 @@ class Lens:
     """
 
     def apply_masks(
-        self, grating: bool = False, truncation: bool = False, aperture: bool = False,
+        self, grating: bool = False, truncation: bool = False, aperture: bool = True,
     ):
 
         # grating
@@ -641,7 +641,6 @@ def apply_modifications(lens: Lens, lens_config: dict) -> Lens:
     # apply masks
     use_grating = True if lens_config["grating"] is not None else False
     use_truncation = True if lens_config["truncation"] is not None else False
-    use_aperture = True if lens_config["aperture"] is not None else False
 
     lens.apply_masks(
         grating=use_grating, truncation=use_truncation, aperture=True,

@@ -35,10 +35,6 @@ def sim_parameters():
 def test_beam_is_symmetric(beam_settings):
     """Non-rectangular beams should be symmetric"""
 
-    # square
-    beam = Beam(beam_settings)
-    assert beam.settings.width == beam.settings.height
-
     # circular
     beam_settings.beam_shape = BeamShape.Circular
     beam = Beam(beam_settings)
@@ -56,7 +52,7 @@ def test_beam_plane_wave_distance_mode(beam_settings):
 
 def test_beam_converging_is_circular(beam_settings):
 
-    beam_settings.beam_shape = BeamShape.Square
+    beam_settings.beam_shape = BeamShape.Rectangular
     beam_settings.beam_spread = BeamSpread.Converging
     beam_settings.theta = 10
 

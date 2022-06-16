@@ -154,7 +154,7 @@ class Beam:
         sim_width = parameters.sim_width
         sim_height = parameters.sim_height
 
-        # set up the part of the lens square that isn't the lens for aperturing
+        # set up the part of the lens profile that isn't the lens for aperturing
         non_lens_profile = lens.profile == 0
         aperturing_value = -1 #-1e-9 # NOTE: needs to be a relatively large value for numerical comparison # QUERY why not zero, parts of lens at zero might not be apertures e.g. escape path...
         lens.profile[non_lens_profile] = aperturing_value # the non-lens-profile is the size of the lens before padding...
