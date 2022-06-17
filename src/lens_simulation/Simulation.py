@@ -10,7 +10,6 @@ from pprint import pprint
 from scipy import fftpack
 from tqdm import tqdm
 
-from lens_simulation import utils
 from lens_simulation.Lens import Lens, LensType, GratingSettings, generate_lens
 from lens_simulation.Medium import Medium
 from lens_simulation.structures import (
@@ -20,7 +19,7 @@ from lens_simulation.structures import (
     SimulationResult,
 )
 
-from lens_simulation import validation
+from lens_simulation import validation, plotting, utils
 from lens_simulation.beam import generate_beam
 
 # DONE:
@@ -125,7 +124,7 @@ class Simulation:
                     f"Sim: {petname} ({str(sim_id)[-10:]}) - Plotting Simulation"
                 )
 
-                save_result_plots(result, stage, parameters, save_path)
+                plotting.save_result_plots(result, stage, parameters, save_path)
 
             # pass the wavefront to the next stage
             passed_wavefront = result.propagation
@@ -557,92 +556,6 @@ def propagate_over_distance(
 
     return rounded_output, propagation
 
-
-def save_result_plots(
-    result: SimulationResult,
-    stage: SimulationStage,
-    parameters: SimulationParameters,
-    save_path: Path,
-):
-    """Plot and save the simulation results
-
-    Args:
-        result (SimulationResult): _description_
-        stage (SimulationStage): _description_
-        parameters (SimulationParameters): _description_
-        save_path (Path): _description_
-    """
-
-    # save top-down
-    fig = utils.plot_simulation(
-        arr=result.top_down,
-        pixel_size_x=parameters.pixel_size,
-        start_distance=stage.start_distance,
-        finish_distance=stage.finish_distance,
-    )
-
-    utils.save_figure(fig, os.path.join(save_path, "topdown.png"))
-    plt.close(fig)
-
-    fig = utils.plot_simulation(
-        np.log(result.top_down + 10e-12),
-        pixel_size_x=parameters.pixel_size,
-        start_distance=stage.start_distance,
-        finish_distance=stage.finish_distance,
-    )
-
-    utils.save_figure(fig, os.path.join(save_path, "log_topdown.png"))
-    plt.close(fig)
-
-    fig = utils.plot_simulation(
-        arr=result.side_on,
-        pixel_size_x=parameters.pixel_size,
-        start_distance=stage.start_distance,
-        finish_distance=stage.finish_distance,
-    )
-    utils.save_figure(fig, os.path.join(save_path, "sideon.png"))
-    plt.close(fig)
-
-    if result.freq_arr is not None:
-        fig = utils.plot_image(
-            result.freq_arr,
-            "Frequency Array",
-            save=True,
-            fname=os.path.join(save_path, "freq.png"),
-        )
-        plt.close(fig)
-
-    if result.delta is not None:
-        fig = utils.plot_image(
-            result.delta,
-            "Delta Profile",
-            save=True,
-            fname=os.path.join(save_path, "delta.png"),
-        )
-        plt.close(fig)
-
-    if result.phase is not None:
-        utils.plot_image(
-            result.phase,
-            "Phase Profile",
-            save=True,
-            fname=os.path.join(save_path, "phase.png"),
-        )
-        plt.close(fig)
-
-    if result.lens is not None:
-        fig = utils.plot_lens_profile_2D(result.lens)
-        utils.save_figure(fig, fname=os.path.join(save_path, "lens_profile.png"))
-
-        fig = utils.plot_lens_profile_slices(result.lens)
-        utils.save_figure(fig, fname=os.path.join(save_path, "lens_slices.png"))
-
-    # save propagation gifs
-    try:
-        utils.save_propagation_gif(save_path)
-        utils.save_propagation_slices_gif(save_path)
-    except:
-        pass
 
 def invert_lens_and_output_medium(stage: SimulationStage, previous_stage: SimulationStage, parameters: SimulationParameters) -> SimulationStage:
     """Invert the lens profile, and swap the stage and lens mediums to create an 'inverse' lens
