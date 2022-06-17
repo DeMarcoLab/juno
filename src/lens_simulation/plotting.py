@@ -3,6 +3,7 @@ import glob
 
 import matplotlib.pyplot as plt
 import numpy as np
+import logging
 
 import imageio
 
@@ -97,10 +98,10 @@ def save_result_plots(
 
     # save propagation gifs
     try:
-        utils.save_propagation_gif(save_path)
-        utils.save_propagation_slices_gif(save_path)
-    except:
-        pass
+        save_propagation_gif(save_path)
+        save_propagation_slices_gif(save_path)
+    except Exception as e:
+        logging.error(f"Error during plotting GIF: {e}")
 
 
 def plot_apeture_masks(lens: Lens) -> plt.Figure:

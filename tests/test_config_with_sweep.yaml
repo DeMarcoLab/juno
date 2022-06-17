@@ -23,7 +23,7 @@ lenses:
     lens_type:  "Spherical" 
 stages:
   - lens: lens_1
-    output: medium_2
+    output: 1.0
     step_size: 0.1e-3
     start_distance: 0
     finish_distance: 10.e-3
