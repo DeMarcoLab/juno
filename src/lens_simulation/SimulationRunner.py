@@ -10,10 +10,6 @@ import numpy as np
 from tqdm import tqdm
 
 from lens_simulation import Simulation, utils, constants
-# from lens_simulation import validation
-
-# from lens_simulation.constants import LENS_SWEEPABLE_KEYS,BEAM_SWEEPABLE_KEYS, STAGE_SWEEPABLE_KEYS, GRATING_SWEEPABLE_KEYS, TRUNCATION_SWEEPABLE_KEYS, APERTURE_SWEEPABLE_KEYS
-
 
 from copy import deepcopy
 
@@ -68,7 +64,7 @@ class SimulationRunner:
 
 
 
-def generate_parameter_sweep_v2(start:float, stop:float, step_size:float) -> np.ndarray:
+def generate_parameter_sweep(start:float, stop:float, step_size:float) -> np.ndarray:
 
     if stop is None or step_size is None:
         return [start]
@@ -92,7 +88,7 @@ def sweep_config_keys(conf: dict, sweep_keys: list) -> list:
 
         if isinstance(conf, dict) and k in conf: # check if param exists
             start, stop, step = conf[k], conf[f"{k}_stop"], conf[f"{k}_step"]
-            params = generate_parameter_sweep_v2(start, stop, step)
+            params = generate_parameter_sweep(start, stop, step)
         else:
             params = [None]
        
@@ -101,11 +97,16 @@ def sweep_config_keys(conf: dict, sweep_keys: list) -> list:
 
 
 def sweep_custom_profiles(path: Path) -> list:
+    """Generate a sweep for custom profiles based on the following rules:
+        
+        Rules:
+            if None -> return None
+            if npy -> return only file
+            if dir -> return all .npy in folder
 
-    # rules:
-    # if npy -> return only file
-    # if dir -> return all .npy in folder
-    
+        Profiles must be .npy files. 
+    """
+
     if path is None:
         custom_params = [None]
     elif os.path.isfile(path):
@@ -129,7 +130,7 @@ def generate_lens_parameter_combinations(config) -> list:
         ap = sweep_config_keys(lc["aperture"], constants.APERTURE_SWEEPABLE_KEYS)
 
         # custom profile sweeping...
-        cp = sweep_custom_profiles(lc["custom"])
+        cp = sweep_custom_profiles(lc[constants.CUSTOM_PROFILE_KEY])
 
         lens_param = [*lp, *gp, *tp, *ap, *cp]
         parameters_combinations = list(itertools.product(*lens_param))
