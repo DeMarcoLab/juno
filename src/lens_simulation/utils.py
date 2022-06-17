@@ -316,7 +316,6 @@ def load_config(config_filename):
     with open(config_filename, "r") as f:
         config = yaml.full_load(f)
 
-
     config = validation._validate_simulation_config(config)
     # validation
     # TODO move to validation,

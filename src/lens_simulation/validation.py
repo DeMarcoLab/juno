@@ -34,9 +34,19 @@ def _validate_default_lens_config(lens_config: dict) -> dict:
     lens_config["lens_type"] = "Spherical" if "lens_type" not in lens_config else lens_config["lens_type"].title()
     lens_config["inverted"] = False if "inverted" not in lens_config else lens_config["inverted"]
 
+    # validate sweepable parameters
+    lens_config = _validate_sweepable_parameters(lens_config, LENS_SWEEPABLE_KEYS)
 
     # validate lens modifications
     lens_config = _validate_default_lens_modification_config(lens_config)
+
+    # validate modification sweepable parameters
+    if lens_config["grating"] is not None:
+        lens_config["grating"] = _validate_sweepable_parameters(lens_config["grating"], GRATING_SWEEPABLE_KEYS)
+    if lens_config["truncation"] is not None:
+        lens_config["truncation"] = _validate_sweepable_parameters(lens_config["truncation"], TRUNCATION_SWEEPABLE_KEYS)
+    if lens_config["aperture"] is not None:
+        lens_config["aperture"] = _validate_sweepable_parameters(lens_config["aperture"], APERTURE_SWEEPABLE_KEYS)
 
     # QUERY
     # do we want to require height, diameter, exponent if the user loads a custom profile. What is required?
@@ -44,6 +54,24 @@ def _validate_default_lens_config(lens_config: dict) -> dict:
 
     return lens_config
 
+def _validate_sweepable_parameters(config, sweep_keys):
+
+    for k in sweep_keys:
+        
+        k_stop, k_step = f"{k}_stop", f"{k}_step"
+        
+        # start, stop, step
+        if k not in config:
+            config[k] = None
+
+        if k_stop not in config:
+            config[k_stop] = None 
+
+
+        if k_step not in config:
+            config[k_step] = None
+
+    return config
 
 def _validate_default_lens_modification_config(config: dict) -> dict:
 
@@ -138,30 +166,10 @@ def _validate_default_beam_config(config: dict) -> dict:
     config["output_medium"] = config["output_medium"] if "output_medium" in config else 1.0
 
     # validate the sweepable parameters
-    bc = _validate_sweepable_parameters_beam(config)
+    bc = _validate_sweepable_parameters(config, BEAM_SWEEPABLE_KEYS)
     config.update(bc)
 
     return config
-
-def _validate_sweepable_parameters_beam(conf):
-
-    for k in BEAM_SWEEPABLE_KEYS:
-        
-        k_stop, k_step = f"{k}_stop", f"{k}_step"
-        
-        # start, stop, step
-        if k not in conf:
-            conf[k] = None
-
-        if k_stop not in conf:
-            conf[k_stop] = None 
-
-
-        if k_step not in conf:
-            conf[k_step] = None
-
-    return conf
-
 
 def _validate_simulation_stage_list(stages: list, simulation_lenses: dict) -> None:
     """Validate that all lenses and mediums have been defined, and all simulation stages have been
@@ -174,7 +182,6 @@ def _validate_simulation_stage_list(stages: list, simulation_lenses: dict) -> No
             raise ValueError(f"{stage['lens']} has not been defined in the configuration")
 
         stage = _validate_default_simulation_stage_config(stage)
-
 
     return stages
 
@@ -204,6 +211,9 @@ def _validate_default_simulation_stage_config(stage_config: dict) -> dict:
         stage_config["focal_distance_multiple"] = 1.0 if stage_config["focal_distance_multiple"] is None else stage_config["focal_distance_multiple"]
 
         # TODO: check the more complicated cases for these, e.g. need a height and exponent to calculate equiv focal distance
+
+    # validate_sweepable parameters
+    stage_config = _validate_sweepable_parameters(stage_config, STAGE_SWEEPABLE_KEYS)
 
     return stage_config
 

@@ -23,5 +23,6 @@ scripts/*
 src/lens_simulation/lens.yaml
 .coverage
 *.yaml
-# *.png
+
 src/lens_simulation/tmp/*
+src/lens_simulation/data/*
