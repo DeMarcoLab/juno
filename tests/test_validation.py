@@ -6,12 +6,8 @@ import os
 from lens_simulation import validation, utils, constants
 import lens_simulation
 
-# @pytest.fixture
-# def config():
+DEFAULT_CONFIG = validation.get_default_config()
 
-#     config = utils.load_config(os.path.join(os.path.dirname(lens_simulation.__file__), "config.yaml"))
-
-#     return config
 
 @pytest.fixture
 def valid_lens_config():
@@ -54,6 +50,7 @@ def assert_config_has_default_values(config: dict, default_key: str) -> None:
             assert config[dk]  == dv, f"Non-default value found for key {dk}, {config[dk]} should be {dv}"
         
 
+## LENS
 def test_validate_required_lens_config(valid_lens_config):
 
     config = valid_lens_config
@@ -87,7 +84,7 @@ def test_validate_required_lens_modification_config_raises_error_for_missing_val
     with pytest.raises(ValueError):
         validation._validate_required_lens_modification_config(config)
 
-
+## BEAM
 def test_validate_required_beam_config():
 
     config = dict.fromkeys(constants.REQUIRED_BEAM_KEYS)
@@ -108,7 +105,7 @@ def test_validate_default_beam_config():
 
     assert_config_has_default_values(config, "beam")
 
-    
+## STAGE
 def test_validate_required_simulation_stage_config():
 
     config = dict.fromkeys(constants.REQUIRED_SIMULATION_STAGE_KEYS)
@@ -128,16 +125,11 @@ def test_validate_default_stage_config():
 
     assert_config_has_default_values(config, "stage")
 
-# def test_validate_simulation_stage_list():
-
-#     return NotImplemented
-
-
+## SIMULATION
 def test_validate_required_simulation_config():
 
     config = dict.fromkeys(constants.REQUIRED_SIMULATION_KEYS)
     validation._validate_required_simulation_config(config)
-
 
 def test_validate_required_simulation_config_raises_error_for_missing_values():
 
@@ -145,6 +137,8 @@ def test_validate_required_simulation_config_raises_error_for_missing_values():
     with pytest.raises(ValueError):
         validation._validate_required_simulation_config(config)
 
+
+## SIMULATION OPTIONS
 def test_validate_simulation_options_config():
 
     config = dict.fromkeys(constants.REQUIRED_SIMULATION_OPTIONS_KEYS)
@@ -166,8 +160,7 @@ def test_validate_default_simulation_options_config():
 
     assert_config_has_default_values(config, "options")
 
-
-
+## SIMULATION PARAMETERS
 def test_validate_simulation_parameters_config_passes():
 
     config = dict.fromkeys(constants.REQUIRED_SIMULATION_PARAMETER_KEYS)
@@ -181,6 +174,9 @@ def test_validate_simulation_parameters_config_raises_error_for_missing_values()
     with pytest.raises(ValueError):
         config = validation._validate_simulation_parameters_config(config)
 
+
+
+## SWEEPABLE PARAMETERS
 def test_validate_sweepable_parameters():
 
     sweep_keys = (constants.LENS_SWEEPABLE_KEYS, constants.GRATING_SWEEPABLE_KEYS, 
@@ -200,3 +196,15 @@ def test_validate_sweepable_parameters():
 
         # assert keys are in config
         assert_keys_are_in_config(config, sk)
+        # TODO: check this doesnt overwrite the existing value too?
+
+def test_validate_sweep_parameters_doesnt_override_existing_values():
+
+
+    config = dict.fromkeys(constants.LENS_SWEEPABLE_KEYS, 1)
+
+    config = validation._validate_sweepable_parameters(config, constants.LENS_SWEEPABLE_KEYS)
+
+    for k in constants.LENS_SWEEPABLE_KEYS:
+
+        assert config[k] == 1, f"Validating parameter sweep has changed existing value for {k}. {config[k]} should be 1."

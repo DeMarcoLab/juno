@@ -2,11 +2,18 @@
 
 import os
 import lens_simulation
-from lens_simulation import constants, utils
+from lens_simulation import constants
+import yaml
 
+def get_default_config():
+    
+    config_filename = os.path.join(os.path.dirname(lens_simulation.__file__), "default.yaml")
+    with open(config_filename, "r") as f:
+        config = yaml.full_load(f)
+    
+    return config 
 
-DEFAULT_CONFIG = utils.load_yaml_config(os.path.join(os.path.dirname(lens_simulation.__file__), "default.yaml"))
-
+DEFAULT_CONFIG = get_default_config()
 
 def load_default_values(config, default_config):
     # add missing keys with default values
