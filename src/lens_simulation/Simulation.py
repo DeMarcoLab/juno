@@ -54,7 +54,7 @@ class Simulation:
         os.makedirs(log_dir, exist_ok=True)
 
         # options
-        self.options = generate_simulation_options(config)
+        self.options = generate_simulation_options(config, log_dir)
         
         # common sim parameters
         self.parameters = generate_simulation_parameters(config)
@@ -245,18 +245,18 @@ def create_beam_simulation_stage(config: dict, parameters: SimulationParameters)
     beam_stage.n_slices = calculate_num_slices_in_distance(
                                     beam_stage.start_distance, 
                                     beam_stage.finish_distance, 
-                                    config.get("step_size"), 
-                                    config.get("n_slices"))
-    
+                                    config["beam"].get("step_size"), 
+                                    config["beam"].get("n_slices"))
+
     return beam_stage
 
 
 def calculate_num_slices_in_distance(start, finish, step_size, n_slices) -> int:
-    
+
     if step_size != 0 and step_size is not None:
         n_slices = int((finish + 1e-12 - start) / step_size)
         
-    if n_slices == 0:
+    if n_slices == 0 or n_slices is None:
         raise ValueError(f"The number of slices is zero, this will cause an error in propagation. Please increase n_slices, or step_size. n_slices {n_slices}, step_size: {step_size}")
 
     return n_slices
