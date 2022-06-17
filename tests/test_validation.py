@@ -45,16 +45,14 @@ def assert_keys_are_in_config(config: dict, rkeys: list, name: str = "") -> None
     for rk in rkeys:        
         assert rk in config, f"Required key {rk} is not in {name} config. Required keys: {rkeys}"
 
+def assert_config_has_default_values(config: dict, default_key: str) -> None: 
+    for dk, dv in validation.DEFAULT_CONFIG[default_key].items():
 
-
-
-
-
-
-# TODO: 
-# required, vs default values...
-
-
+        if  isinstance(config[dk], dict):
+            pass # we dont do default values for nested modifications...
+        else:
+            assert config[dk]  == dv, f"Non-default value found for key {dk}, {config[dk]} should be {dv}"
+        
 
 def test_validate_required_lens_config(valid_lens_config):
 
@@ -67,6 +65,16 @@ def test_validate_required_lens_config_raises_error_for_missing_values(invalid_l
     config = invalid_lens_config
     with pytest.raises(ValueError):
         validation._validate_default_lens_config(config)
+
+
+def test_default_lens_config_values(valid_lens_config):
+    # a valid but empty config, should have default values...
+    config = valid_lens_config
+
+    config = validation._validate_default_lens_config(config)
+
+    assert_config_has_default_values(config, default_key="lens")
+
 
 def test_validate_required_lens_modification_config(valid_lens_config):
 
@@ -92,6 +100,14 @@ def test_validate_required_beam_config_raises_error_for_missing_values():
     with pytest.raises(ValueError):
         validation._validate_default_beam_config(config)
 
+def test_validate_default_beam_config():
+
+    config = dict.fromkeys(constants.REQUIRED_BEAM_KEYS)
+
+    config = validation._validate_default_beam_config(config)
+
+    assert_config_has_default_values(config, "beam")
+
     
 def test_validate_required_simulation_stage_config():
 
@@ -104,7 +120,13 @@ def test_validate_required_simulation_stage_config_raises_error_for_missing_valu
     with pytest.raises(ValueError):
         validation._validate_default_simulation_stage_config(config)
 
+def test_validate_default_stage_config():
 
+    config = dict.fromkeys(constants.REQUIRED_SIMULATION_STAGE_KEYS)
+
+    config = validation._validate_default_simulation_stage_config(config)
+
+    assert_config_has_default_values(config, "stage")
 
 # def test_validate_simulation_stage_list():
 
@@ -136,6 +158,13 @@ def test_validate_simulation_options_raises_error_for_missing_values():
     with pytest.raises(ValueError):
         validation._validate_simulation_options_config(config)
 
+def test_validate_default_simulation_options_config():
+
+    config = dict.fromkeys(constants.REQUIRED_SIMULATION_OPTIONS_KEYS)
+
+    config = validation._validate_simulation_options_config(config)
+
+    assert_config_has_default_values(config, "options")
 
 
 
@@ -153,8 +182,6 @@ def test_validate_simulation_parameters_config_raises_error_for_missing_values()
         config = validation._validate_simulation_parameters_config(config)
 
 def test_validate_sweepable_parameters():
-
-
 
     sweep_keys = (constants.LENS_SWEEPABLE_KEYS, constants.GRATING_SWEEPABLE_KEYS, 
                 constants.TRUNCATION_SWEEPABLE_KEYS, constants.APERTURE_SWEEPABLE_KEYS, 

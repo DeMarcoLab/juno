@@ -1,11 +1,9 @@
 
-from lens_simulation.constants import LENS_SWEEPABLE_KEYS, MODIFICATION_SWEEPABLE_KEYS, BEAM_SWEEPABLE_KEYS, STAGE_SWEEPABLE_KEYS, GRATING_SWEEPABLE_KEYS, TRUNCATION_SWEEPABLE_KEYS, APERTURE_SWEEPABLE_KEYS
-from lens_simulation import constants
 
 import os
-from lens_simulation import utils
-
 import lens_simulation
+from lens_simulation import constants, utils
+
 
 DEFAULT_CONFIG = utils.load_yaml_config(os.path.join(os.path.dirname(lens_simulation.__file__), "default.yaml"))
 
@@ -28,6 +26,10 @@ def _validate_requires_keys(config, rkeys, name: str = "") -> None:
             raise ValueError(f"Required key {rk} is not in {name} config. Required keys: {rkeys}")
 
 def _validate_sweepable_parameters(config, sweep_keys):
+
+    # only validate dictionaries..
+    if not isinstance(config, dict):
+        return config
 
     for k in sweep_keys:
         
@@ -56,19 +58,16 @@ def _validate_default_lens_config(lens_config: dict) -> dict:
     lens_config = load_default_values(lens_config, DEFAULT_CONFIG["lens"])
 
     # validate sweepable parameters
-    lens_config = _validate_sweepable_parameters(lens_config, LENS_SWEEPABLE_KEYS)
+    lens_config = _validate_sweepable_parameters(lens_config, constants.LENS_SWEEPABLE_KEYS)
 
     # validate lens modifications
     lens_config = _validate_required_lens_modification_config(lens_config)
     lens_config = _validate_lens_modification_type(lens_config)
 
     # validate modification sweepable parameters
-    if lens_config["grating"] is not None:
-        lens_config["grating"] = _validate_sweepable_parameters(lens_config["grating"], GRATING_SWEEPABLE_KEYS)
-    if lens_config["truncation"] is not None:
-        lens_config["truncation"] = _validate_sweepable_parameters(lens_config["truncation"], TRUNCATION_SWEEPABLE_KEYS)
-    if lens_config["aperture"] is not None:
-        lens_config["aperture"] = _validate_sweepable_parameters(lens_config["aperture"], APERTURE_SWEEPABLE_KEYS)
+    lens_config["grating"] = _validate_sweepable_parameters(lens_config["grating"], constants.GRATING_SWEEPABLE_KEYS)
+    lens_config["truncation"] = _validate_sweepable_parameters(lens_config["truncation"], constants.TRUNCATION_SWEEPABLE_KEYS)
+    lens_config["aperture"] = _validate_sweepable_parameters(lens_config["aperture"], constants.APERTURE_SWEEPABLE_KEYS)
 
     # QUERY
     # do we want to require height, diameter, exponent if the user loads a custom profile. What is required?
@@ -126,40 +125,17 @@ def _validate_lens_modification_type(config: dict) -> dict:
     return config
 
 
-
 def _validate_default_beam_config(config: dict) -> dict:
     
     # required settings
     _validate_requires_keys(config, constants.REQUIRED_BEAM_KEYS, name="beam")
 
     # default settings
-    config["distance_mode"] = config["distance_mode"].title() if "distance_mode" in config else "Direct"
-    config["spread"] = config["spread"].title() if "spread" in config else "Plane"
-    config["shape"] = config["shape"].title() if "shape" in config else "Circular"
-
-
-    config["n_slices"] = config["n_slices"] if "n_slices" in config else 0
-    config["step_size"] = config["step_size"] if "step_size" in config else 0
-
-    config["position_x"] = config["position_x"] if "position_x" in config else 0.0
-    config["position_y"] = config["position_y"] if "position_y" in config else 0.0
-    config["theta"] = config["theta"] if "theta" in config else 0.0
-    config["numerical_aperture"] = config["numerical_aperture"] if "numerical_aperture" in config else None
-    config["tilt_x"] = config["tilt_x"] if "tilt_x" in config else 0.0
-    config["tilt_y"] = config["tilt_y"] if "tilt_y" in config else 0.0
-    config["source_distance"] = config["source_distance"] if "source_distance" in config else None
-    config["final_width"] = config["final_width"] if "final_width" in config else None
-    config["focal_multiple"] = config["focal_multiple"] if "focal_multiple" in config else None
-    config["output_medium"] = config["output_medium"] if "output_medium" in config else 1.0
-
-    # sensible default
-    if config["n_slices"]  == 0 and config["step_size"] == 0:
-        config["n_slices"] = 10
+    config = load_default_values(config, DEFAULT_CONFIG["beam"])
 
     # validate the sweepable parameters
-    bc = _validate_sweepable_parameters(config, BEAM_SWEEPABLE_KEYS)
-    config.update(bc)
-
+    config = _validate_sweepable_parameters(config, constants.BEAM_SWEEPABLE_KEYS)
+    
     return config
 
 def _validate_simulation_stage_list(stages: list, simulation_lenses: dict) -> None:
@@ -181,15 +157,8 @@ def _validate_default_simulation_stage_config(stage_config: dict) -> dict:
     # required settings
     _validate_requires_keys(stage_config, constants.REQUIRED_SIMULATION_STAGE_KEYS, name="stage")
 
-
     # default settings
-    stage_config["start_distance"] = 0 if "start_distance" not in stage_config else stage_config["start_distance"]
-    stage_config["finish_distance"] = 0 if "finish_distance" not in stage_config else stage_config["finish_distance"]
-    stage_config["n_slices"] = 0 if "n_slices" not in stage_config else stage_config["n_slices"]
-    stage_config["step_size"] = 0 if "step_size" not in stage_config else stage_config["step_size"]
-    stage_config["use_equivalent_focal_distance"] = False if "use_equivalent_focal_distance" not in stage_config else stage_config["use_equivalent_focal_distance"]
-    stage_config["focal_distance_start_multiple"] = 0.0 if "focal_distance_start_multiple" not in stage_config else stage_config["focal_distance_start_multiple"]
-    stage_config["focal_distance_multiple"] = 1.0 if "focal_distance_multiple" not in stage_config else stage_config["focal_distance_multiple"]
+    stage_config = load_default_values(stage_config, DEFAULT_CONFIG["stage"])
 
     # default conditional settings
     if stage_config["use_equivalent_focal_distance"] is True:
@@ -198,12 +167,8 @@ def _validate_default_simulation_stage_config(stage_config: dict) -> dict:
 
         # TODO: check the more complicated cases for these, e.g. need a height and exponent to calculate equiv focal distance
 
-    # sensible default
-    if stage_config["n_slices"] == 0 and stage_config["step_size"] == 0:
-        stage_config["n_slices"] = 10
-
     # validate_sweepable parameters
-    stage_config = _validate_sweepable_parameters(stage_config, STAGE_SWEEPABLE_KEYS)
+    stage_config = _validate_sweepable_parameters(stage_config, constants.STAGE_SWEEPABLE_KEYS)
 
     return stage_config
 
@@ -220,10 +185,7 @@ def _validate_simulation_options_config(config: dict) -> dict:
     _validate_requires_keys(config, constants.REQUIRED_SIMULATION_OPTIONS_KEYS, name="simulation options")
 
     # default settings
-    config["save_plot"] = True if "save_plot" not in config else config["save_plot"]
-    config["save"] = False if "save" not in config else config["save"]
-    config["verbose"] = False if "verbose" not in config else config["verbose"]
-    config["debug"] = False if "debug" not in config else config["debug"]
+    config = load_default_values(config, DEFAULT_CONFIG["options"])
 
     return config
 
