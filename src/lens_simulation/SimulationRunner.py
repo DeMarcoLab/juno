@@ -3,16 +3,16 @@ from pathlib import Path
 import uuid
 import os
 import petname
-
+import glob
 import logging
 from pprint import pprint
 import numpy as np
 from tqdm import tqdm
 
-from lens_simulation import Simulation, utils
-from lens_simulation import validation
+from lens_simulation import Simulation, utils, constants
+# from lens_simulation import validation
 
-from lens_simulation.constants import LENS_SWEEPABLE_KEYS, MODIFICATION_SWEEPABLE_KEYS, BEAM_SWEEPABLE_KEYS, STAGE_SWEEPABLE_KEYS, GRATING_SWEEPABLE_KEYS, TRUNCATION_SWEEPABLE_KEYS, APERTURE_SWEEPABLE_KEYS
+# from lens_simulation.constants import LENS_SWEEPABLE_KEYS,BEAM_SWEEPABLE_KEYS, STAGE_SWEEPABLE_KEYS, GRATING_SWEEPABLE_KEYS, TRUNCATION_SWEEPABLE_KEYS, APERTURE_SWEEPABLE_KEYS
 
 
 from copy import deepcopy
@@ -100,17 +100,38 @@ def sweep_config_keys(conf: dict, sweep_keys: list) -> list:
     return key_params
 
 
+def sweep_custom_profiles(path: Path) -> list:
+
+    # rules:
+    # if npy -> return only file
+    # if dir -> return all .npy in folder
+    
+    if path is None:
+        custom_params = [None]
+    elif os.path.isfile(path):
+        custom_params = [path]
+    elif os.path.isdir(path):
+        custom_params = glob.glob(os.path.join(path, "*.npy"))
+    else:
+        custom_params = [None]
+
+    return [custom_params] 
+
+
 def generate_lens_parameter_combinations(config) -> list:
 
     all_lens_params = []
     for lc in config["lenses"]:
 
-        lp = sweep_config_keys(lc, LENS_SWEEPABLE_KEYS)
-        gp = sweep_config_keys(lc["grating"], GRATING_SWEEPABLE_KEYS)
-        tp = sweep_config_keys(lc["truncation"], TRUNCATION_SWEEPABLE_KEYS)
-        ap = sweep_config_keys(lc["aperture"], APERTURE_SWEEPABLE_KEYS)
+        lp = sweep_config_keys(lc, constants.LENS_SWEEPABLE_KEYS)
+        gp = sweep_config_keys(lc["grating"], constants.GRATING_SWEEPABLE_KEYS)
+        tp = sweep_config_keys(lc["truncation"], constants.TRUNCATION_SWEEPABLE_KEYS)
+        ap = sweep_config_keys(lc["aperture"], constants.APERTURE_SWEEPABLE_KEYS)
 
-        lens_param = [*lp, *gp, *tp, *ap]
+        # custom profile sweeping...
+        cp = sweep_custom_profiles(lc["custom"])
+
+        lens_param = [*lp, *gp, *tp, *ap, *cp]
         parameters_combinations = list(itertools.product(*lens_param))
         all_lens_params.append(parameters_combinations)
         
@@ -139,6 +160,8 @@ def get_lens_configurations(lpc: list, config: dict) -> list:
         if simulation_lenses["aperture"] is not None:         
             simulation_lenses["aperture"]["inner"] = lpc[i][9]   
             simulation_lenses["aperture"]["outer"] = lpc[i][10]   
+        
+        simulation_lenses["custom"] = lpc[i][11]
     
         lens_combination.append(simulation_lenses)
 
@@ -146,7 +169,7 @@ def get_lens_configurations(lpc: list, config: dict) -> list:
 
 def generate_beam_parameter_combinations(config: dict) -> list:
 
-    all_beam_params = sweep_config_keys(config["beam"], BEAM_SWEEPABLE_KEYS)
+    all_beam_params = sweep_config_keys(config["beam"], constants.BEAM_SWEEPABLE_KEYS)
 
     all_parameters_combinations_beam = list(itertools.product(*all_beam_params))
 
@@ -175,7 +198,7 @@ def generate_stage_parameter_combination(config: dict) -> list:
     all_stage_params = []
     for sc in config["stages"]:
 
-        sp = sweep_config_keys(sc, STAGE_SWEEPABLE_KEYS)
+        sp = sweep_config_keys(sc, constants.STAGE_SWEEPABLE_KEYS)
         
         parameters_combinations = list(itertools.product(*sp))
         all_stage_params.append(parameters_combinations)
