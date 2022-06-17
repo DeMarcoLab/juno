@@ -25,7 +25,7 @@ def load_default_values(config, default_config):
 
     return config
 
-def _validate_requires_keys(config, rkeys, name: str = "") -> None:
+def _validate_required_keys(config, rkeys, name: str = "") -> None:
 
     for rk in rkeys:
 
@@ -59,7 +59,7 @@ def _validate_sweepable_parameters(config, sweep_keys):
 def _validate_default_lens_config(lens_config: dict) -> dict:
 
     # required settings
-    _validate_requires_keys(lens_config, constants.REQUIRED_LENS_KEYS, name="lens")
+    _validate_required_keys(lens_config, constants.REQUIRED_LENS_KEYS, name="lens")
 
     # default settings
     lens_config = load_default_values(lens_config, DEFAULT_CONFIG["lens"])
@@ -88,13 +88,13 @@ def _validate_required_lens_modification_config(config: dict) -> dict:
     # not providing defaults, checking types
 
     if config["grating"] is not None:
-        _validate_requires_keys(config["grating"], constants.REQUIRED_LENS_GRATING_KEYS, name="lens grating")
+        _validate_required_keys(config["grating"], constants.REQUIRED_LENS_GRATING_KEYS, name="lens grating")
 
     if config["truncation"] is not None:
-        _validate_requires_keys(config["truncation"], constants.REQUIRED_LENS_TRUNCATION_KEYS, name="lens truncation")
+        _validate_required_keys(config["truncation"], constants.REQUIRED_LENS_TRUNCATION_KEYS, name="lens truncation")
 
     if config["aperture"] is not None:
-        _validate_requires_keys(config["aperture"], constants.REQUIRED_LENS_APERTURE_KEYS, name="lens aperture")
+        _validate_required_keys(config["aperture"], constants.REQUIRED_LENS_APERTURE_KEYS, name="lens aperture")
 
     return config
 
@@ -135,10 +135,15 @@ def _validate_lens_modification_type(config: dict) -> dict:
 def _validate_default_beam_config(config: dict) -> dict:
     
     # required settings
-    _validate_requires_keys(config, constants.REQUIRED_BEAM_KEYS, name="beam")
+    _validate_required_keys(config, constants.REQUIRED_BEAM_KEYS, name="beam")
 
     # default settings
     config = load_default_values(config, DEFAULT_CONFIG["beam"])
+    
+    # case verification
+    config["shape"] = config["shape"].title()
+    config["spread"] = config["spread"].title()
+    config["distance_mode"] = config["distance_mode"].title()
 
     # validate the sweepable parameters
     config = _validate_sweepable_parameters(config, constants.BEAM_SWEEPABLE_KEYS)
@@ -162,7 +167,7 @@ def _validate_simulation_stage_list(stages: list, simulation_lenses: dict) -> No
 def _validate_default_simulation_stage_config(stage_config: dict) -> dict:
 
     # required settings
-    _validate_requires_keys(stage_config, constants.REQUIRED_SIMULATION_STAGE_KEYS, name="stage")
+    _validate_required_keys(stage_config, constants.REQUIRED_SIMULATION_STAGE_KEYS, name="stage")
 
     # default settings
     stage_config = load_default_values(stage_config, DEFAULT_CONFIG["stage"])
@@ -182,14 +187,14 @@ def _validate_default_simulation_stage_config(stage_config: dict) -> dict:
 
 def _validate_simulation_parameters_config(config: dict) -> dict:
 
-    _validate_requires_keys(config, constants.REQUIRED_SIMULATION_PARAMETER_KEYS, name="simulation parameters")
+    _validate_required_keys(config, constants.REQUIRED_SIMULATION_PARAMETER_KEYS, name="simulation parameters")
 
     return config
 
 def _validate_simulation_options_config(config: dict) -> dict:
 
     # required_settings
-    _validate_requires_keys(config, constants.REQUIRED_SIMULATION_OPTIONS_KEYS, name="simulation options")
+    _validate_required_keys(config, constants.REQUIRED_SIMULATION_OPTIONS_KEYS, name="simulation options")
 
     # default settings
     config = load_default_values(config, DEFAULT_CONFIG["options"])
@@ -199,7 +204,7 @@ def _validate_simulation_options_config(config: dict) -> dict:
 
 def _validate_required_simulation_config(config: dict) -> dict:
 
-    _validate_requires_keys(config, constants.REQUIRED_SIMULATION_KEYS, name = "simulation")
+    _validate_required_keys(config, constants.REQUIRED_SIMULATION_KEYS, name = "simulation")
 
 def _validate_simulation_config(config: dict):
 

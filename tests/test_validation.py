@@ -1,13 +1,7 @@
-from distutils.command.config import config
-from pyrsistent import CheckedKeyTypeError
 import pytest
-
-import os
 from lens_simulation import validation, utils, constants
-import lens_simulation
 
 DEFAULT_CONFIG = validation.get_default_config()
-
 
 @pytest.fixture
 def valid_lens_config():
@@ -64,10 +58,16 @@ def test_load_default_values():
 
 def test_validate_required_keys():
     
-    default_config = {"key1": 1, "key2": 2, "key3": 3}
-    config = {"key1": 0}
+    config = {"key1": 1, "key2": 2, "key3": 3}
+    config_missing = {"key1": 1, "key2": 2}
+    required_keys = ["key1", "key2", "key3"]
+    
+    # keys in
+    validation._validate_required_keys(config, required_keys)
 
-
+    # keys not in
+    with pytest.raises(ValueError):
+        validation._validate_required_keys(config_missing, required_keys)
 
 ## LENS
 def test_validate_required_lens_config(valid_lens_config):
@@ -123,6 +123,23 @@ def test_validate_default_beam_config():
     config = validation._validate_default_beam_config(config)
 
     assert_config_has_default_values(config, "beam")
+
+
+def test_validatie_beam_config_with_case():
+
+    config = dict.fromkeys(constants.REQUIRED_BEAM_KEYS)
+
+    config["shape"] = "rectangular"
+    config["spread"] = "plane"
+    config["distance_mode"] = "direct"
+
+    config = validation._validate_default_beam_config(config)
+
+    assert config["shape"] == config["shape"].title()
+    assert config["spread"] == config["spread"].title()
+    assert config["distance_mode"] == config["distance_mode"].title()
+
+
 
 ## STAGE
 def test_validate_required_simulation_stage_config():
@@ -215,7 +232,6 @@ def test_validate_sweepable_parameters():
 
         # assert keys are in config
         assert_keys_are_in_config(config, sk)
-        # TODO: check this doesnt overwrite the existing value too?
 
 def test_validate_sweep_parameters_doesnt_override_existing_values():
 
