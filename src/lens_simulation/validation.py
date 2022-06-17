@@ -1,58 +1,31 @@
 
 from lens_simulation.constants import LENS_SWEEPABLE_KEYS, MODIFICATION_SWEEPABLE_KEYS, BEAM_SWEEPABLE_KEYS, STAGE_SWEEPABLE_KEYS, GRATING_SWEEPABLE_KEYS, TRUNCATION_SWEEPABLE_KEYS, APERTURE_SWEEPABLE_KEYS
+from lens_simulation import constants
 
-def _validate_default_lens_config(lens_config: dict) -> dict:
+import os
+from lens_simulation import utils
 
-    # required settings
-    if "name" not in lens_config:
-        raise ValueError(f"Lens config requires name. None provided")
-    if "medium" not in lens_config:
-        raise ValueError(f"Lens config requires medium. None provided")
+import lens_simulation
 
-    # if generating profile:
-
-    if "diameter" not in lens_config:
-        raise ValueError(f"Lens config requires diameter. None provided")
-
-    if "height" not in lens_config:
-        raise ValueError(f"Lens config requires height. None provided")
-    if "exponent" not in lens_config:
-        raise ValueError(f"Lens config requires exponent. None provided")
+DEFAULT_CONFIG = utils.load_yaml_config(os.path.join(os.path.dirname(lens_simulation.__file__), "default.yaml"))
 
 
-    # if loading profile:
-    # if "custom" not in lens_config:
-    #     raise ValueError(f"Lens config requires custom to load a profile. None provided.")
+def load_default_values(config, default_config):
+    # add missing keys with default values
+    for dk, dv in default_config.items():
 
-    # default settings
-    lens_config["custom"] = None if "custom" not in lens_config else lens_config["custom"]
-    lens_config["length"] = None if "length" not in lens_config else lens_config["length"]
-    lens_config["grating"] = None if "grating" not in lens_config else lens_config["grating"]
-    lens_config["truncation"] = None if "truncation" not in lens_config else lens_config["truncation"]
-    lens_config["aperture"] = None if "aperture" not in lens_config else lens_config["aperture"]
-    lens_config["escape_path"] = None if "escape_path" not in lens_config else lens_config["escape_path"]
-    lens_config["lens_type"] = "Spherical" if "lens_type" not in lens_config else lens_config["lens_type"].title()
-    lens_config["inverted"] = False if "inverted" not in lens_config else lens_config["inverted"]
+        # add missing default values
+        if dk not in config:
+            config[dk] = dv
 
-    # validate sweepable parameters
-    lens_config = _validate_sweepable_parameters(lens_config, LENS_SWEEPABLE_KEYS)
+    return config
 
-    # validate lens modifications
-    lens_config = _validate_default_lens_modification_config(lens_config)
+def _validate_requires_keys(config, rkeys, name: str = "") -> None:
 
-    # validate modification sweepable parameters
-    if lens_config["grating"] is not None:
-        lens_config["grating"] = _validate_sweepable_parameters(lens_config["grating"], GRATING_SWEEPABLE_KEYS)
-    if lens_config["truncation"] is not None:
-        lens_config["truncation"] = _validate_sweepable_parameters(lens_config["truncation"], TRUNCATION_SWEEPABLE_KEYS)
-    if lens_config["aperture"] is not None:
-        lens_config["aperture"] = _validate_sweepable_parameters(lens_config["aperture"], APERTURE_SWEEPABLE_KEYS)
+    for rk in rkeys:
 
-    # QUERY
-    # do we want to require height, diameter, exponent if the user loads a custom profile. What is required?
-    # is lens_type a required parameters? how much error checking on the lens_type, e.g. if not in LensType.name etc
-
-    return lens_config
+        if rk not in config:
+            raise ValueError(f"Required key {rk} is not in {name} config. Required keys: {rkeys}")
 
 def _validate_sweepable_parameters(config, sweep_keys):
 
@@ -73,23 +46,58 @@ def _validate_sweepable_parameters(config, sweep_keys):
 
     return config
 
-def _validate_default_lens_modification_config(config: dict) -> dict:
+
+def _validate_default_lens_config(lens_config: dict) -> dict:
+
+    # required settings
+    _validate_requires_keys(lens_config, constants.REQUIRED_LENS_KEYS, name="lens")
+
+    # default settings
+    lens_config = load_default_values(lens_config, DEFAULT_CONFIG["lens"])
+
+    # validate sweepable parameters
+    lens_config = _validate_sweepable_parameters(lens_config, LENS_SWEEPABLE_KEYS)
+
+    # validate lens modifications
+    lens_config = _validate_required_lens_modification_config(lens_config)
+    lens_config = _validate_lens_modification_type(lens_config)
+
+    # validate modification sweepable parameters
+    if lens_config["grating"] is not None:
+        lens_config["grating"] = _validate_sweepable_parameters(lens_config["grating"], GRATING_SWEEPABLE_KEYS)
+    if lens_config["truncation"] is not None:
+        lens_config["truncation"] = _validate_sweepable_parameters(lens_config["truncation"], TRUNCATION_SWEEPABLE_KEYS)
+    if lens_config["aperture"] is not None:
+        lens_config["aperture"] = _validate_sweepable_parameters(lens_config["aperture"], APERTURE_SWEEPABLE_KEYS)
+
+    # QUERY
+    # do we want to require height, diameter, exponent if the user loads a custom profile. What is required?
+    # is lens_type a required parameters? how much error checking on the lens_type, e.g. if not in LensType.name etc
+
+    return lens_config
+
+
+def _validate_required_lens_modification_config(config: dict) -> dict:
 
     # not providing defaults, checking types
 
     if config["grating"] is not None:
-        if "width" not in config["grating"]:
-            raise ValueError(f"Lens grating config requires width. None provided.")
-        if "distance" not in config["grating"]:
-            raise ValueError(f"Lens grating config requires distance. None provided.")
-        if "depth" not in config["grating"]:
-            raise ValueError(f"Lens grating config requires depth. None provided.")
-        if "x" not in config["grating"]:
-            raise ValueError(f"Lens grating config requires x. None provided.")
-        if "y" not in config["grating"]:
-            raise ValueError(f"Lens grating config requires y. None provided.")
-        if "centred" not in config["grating"]:
-            raise ValueError(f"Lens grating config requires centred. None provided.")
+        _validate_requires_keys(config["grating"], constants.REQUIRED_LENS_GRATING_KEYS, name="lens grating")
+
+    if config["truncation"] is not None:
+        _validate_requires_keys(config["truncation"], constants.REQUIRED_LENS_TRUNCATION_KEYS, name="lens truncation")
+
+    if config["aperture"] is not None:
+        _validate_requires_keys(config["aperture"], constants.REQUIRED_LENS_APERTURE_KEYS, name="lens aperture")
+
+    return config
+
+
+def _validate_lens_modification_type(config: dict) -> dict:
+
+    # not providing defaults, checking types
+
+    if config["grating"] is not None:
 
         # type validation
         config["grating"]["width"] = float(config["grating"]["width"])
@@ -100,14 +108,6 @@ def _validate_default_lens_modification_config(config: dict) -> dict:
         config["grating"]["centred"] = bool(config["grating"]["centred"])
 
     if config["truncation"] is not None:
-        if "height" not in config["truncation"]:
-            raise ValueError(f"Lens truncation config requires height. None provided.")
-        if "radius" not in config["truncation"]:
-            raise ValueError(f"Lens truncation config requires radius. None provided.")
-        if "type" not in config["truncation"]:
-            raise ValueError(f"Lens truncation config requires type. None provided.")
-        if "aperture" not in config["truncation"]:
-            raise ValueError(f"Lens truncation config requires aperture. None provided.")
 
         # type validation
         config["truncation"]["height"] = float(config["truncation"]["height"])
@@ -116,14 +116,6 @@ def _validate_default_lens_modification_config(config: dict) -> dict:
         config["truncation"]["aperture"] = bool(config["truncation"]["aperture"])
 
     if config["aperture"] is not None:
-        if "inner" not in config["aperture"]:
-            raise ValueError(f"Lens aperture config requires inner. None provided.")
-        if "outer" not in config["aperture"]:
-            raise ValueError(f"Lens aperture config requires outer. None provided.")
-        if "type" not in config["aperture"]:
-            raise ValueError(f"Lens aperture config requires type. None provided.")
-        if "invert" not in config["aperture"]:
-            raise ValueError(f"Lens aperture config requires invert. None provided.")
 
         # type validation
         config["aperture"]["inner"] = float(config["aperture"]["inner"])
@@ -136,19 +128,15 @@ def _validate_default_lens_modification_config(config: dict) -> dict:
 
 
 def _validate_default_beam_config(config: dict) -> dict:
+    
     # required settings
-    if "width"  not in config:
-        raise ValueError("Beam configuration requires width. None provided.")
-    if "height"  not in config:
-        raise ValueError("Beam configuration requires height. None provided.")
+    _validate_requires_keys(config, constants.REQUIRED_BEAM_KEYS, name="beam")
 
     # default settings
     config["distance_mode"] = config["distance_mode"].title() if "distance_mode" in config else "Direct"
     config["spread"] = config["spread"].title() if "spread" in config else "Plane"
     config["shape"] = config["shape"].title() if "shape" in config else "Circular"
 
-    if "n_slices" not in config and "step_size" not in config:
-        config["n_slices"] = 10
 
     config["n_slices"] = config["n_slices"] if "n_slices" in config else 0
     config["step_size"] = config["step_size"] if "step_size" in config else 0
@@ -162,8 +150,11 @@ def _validate_default_beam_config(config: dict) -> dict:
     config["source_distance"] = config["source_distance"] if "source_distance" in config else None
     config["final_width"] = config["final_width"] if "final_width" in config else None
     config["focal_multiple"] = config["focal_multiple"] if "focal_multiple" in config else None
-    config["lens_type"] = config["lens_type"].title() if "lens_type" in config else "Spherical"
     config["output_medium"] = config["output_medium"] if "output_medium" in config else 1.0
+
+    # sensible default
+    if config["n_slices"]  == 0 and config["step_size"] == 0:
+        config["n_slices"] = 10
 
     # validate the sweepable parameters
     bc = _validate_sweepable_parameters(config, BEAM_SWEEPABLE_KEYS)
@@ -188,17 +179,12 @@ def _validate_simulation_stage_list(stages: list, simulation_lenses: dict) -> No
 def _validate_default_simulation_stage_config(stage_config: dict) -> dict:
 
     # required settings
-    if "n_slices" not in stage_config and "step_size" not in stage_config:
-        raise ValueError(f"Stage config requires n_slices or step_size")
-    if "start_distance" not in stage_config:
-        raise ValueError(f"Stage config requires start_distance. None provided.")
-    if "finish_distance" not in stage_config:
-        raise ValueError(f"Stage config requires finish_distance. None provided.")
-    if "output" not in stage_config:
-        raise ValueError(f"Stage config requires output. None provided.")
+    _validate_requires_keys(stage_config, constants.REQUIRED_SIMULATION_STAGE_KEYS, name="stage")
 
 
     # default settings
+    stage_config["start_distance"] = 0 if "start_distance" not in stage_config else stage_config["start_distance"]
+    stage_config["finish_distance"] = 0 if "finish_distance" not in stage_config else stage_config["finish_distance"]
     stage_config["n_slices"] = 0 if "n_slices" not in stage_config else stage_config["n_slices"]
     stage_config["step_size"] = 0 if "step_size" not in stage_config else stage_config["step_size"]
     stage_config["use_equivalent_focal_distance"] = False if "use_equivalent_focal_distance" not in stage_config else stage_config["use_equivalent_focal_distance"]
@@ -212,6 +198,10 @@ def _validate_default_simulation_stage_config(stage_config: dict) -> dict:
 
         # TODO: check the more complicated cases for these, e.g. need a height and exponent to calculate equiv focal distance
 
+    # sensible default
+    if stage_config["n_slices"] == 0 and stage_config["step_size"] == 0:
+        stage_config["n_slices"] = 10
+
     # validate_sweepable parameters
     stage_config = _validate_sweepable_parameters(stage_config, STAGE_SWEEPABLE_KEYS)
 
@@ -220,28 +210,14 @@ def _validate_default_simulation_stage_config(stage_config: dict) -> dict:
 
 def _validate_simulation_parameters_config(config: dict) -> dict:
 
-    if "A" not in config:
-        raise ValueError(f"Sim Parameters config requires A. None provided")
-
-    if "pixel_size" not in config:
-        raise ValueError(f"Sim Parameters config requires pixel_size. None provided")
-
-    if "sim_height" not in config:
-        raise ValueError(f"Sim Parameters config requires sim_height. None provided")
-
-    if "sim_width" not in config:
-        raise ValueError(f"Sim Parameters config requires sim_width. None provided")
-
-    if "sim_wavelength" not in config:
-        raise ValueError(f"Sim Parameters config requires sim_wavelength. None provided")
+    _validate_requires_keys(config, constants.REQUIRED_SIMULATION_PARAMETER_KEYS, name="simulation parameters")
 
     return config
 
 def _validate_simulation_options_config(config: dict) -> dict:
 
     # required_settings
-    if "log_dir" not in config:
-        raise ValueError("Options config requires log_dir. None provided.")
+    _validate_requires_keys(config, constants.REQUIRED_SIMULATION_OPTIONS_KEYS, name="simulation options")
 
     # default settings
     config["save_plot"] = True if "save_plot" not in config else config["save_plot"]
@@ -251,7 +227,15 @@ def _validate_simulation_options_config(config: dict) -> dict:
 
     return config
 
+
+def _validate_required_simulation_config(config: dict) -> dict:
+
+    _validate_requires_keys(config, constants.REQUIRED_SIMULATION_KEYS, name = "simulation")
+
 def _validate_simulation_config(config: dict):
+
+    # validate required configs
+    _validate_required_simulation_config(config)
 
     SIM_PARAMETERS_KEY = "sim_parameters"
     OPTIONS_KEY = "options"
@@ -259,29 +243,13 @@ def _validate_simulation_config(config: dict):
     LENS_KEY = "lenses"
     STAGE_KEY = "stages"
 
-    if SIM_PARAMETERS_KEY not in config:
-        raise ValueError(f"Simulation config requires {SIM_PARAMETERS_KEY}. Not provided.")
-
+    # validate individual configs
     _validate_simulation_parameters_config(config[SIM_PARAMETERS_KEY])
-
-    if OPTIONS_KEY not in config:
-        raise ValueError(f"Simulation config requires {OPTIONS_KEY}. Not provided.")
-
     _validate_simulation_options_config(config[OPTIONS_KEY])
-
-    if BEAM_KEY not in config:
-        raise ValueError(f"Simulation config requires {BEAM_KEY}. Not provided.")
-
     _validate_default_beam_config(config[BEAM_KEY])
-
-    if LENS_KEY not in config:
-        raise ValueError(f"Simulation config requires {LENS_KEY}. Not provided.")
 
     for lens_config in config[LENS_KEY]:
         lens_config = _validate_default_lens_config(lens_config)
-
-    if STAGE_KEY not in config:
-        raise ValueError(f"Simulation config requires {STAGE_KEY}. Not provided.")
 
     for stage_config in config[STAGE_KEY]:
 

@@ -27,3 +27,18 @@ STAGE_SWEEPABLE_KEYS = [
     "output", "start_distance", "finish_distance", 
     "focal_distance_start_multiple", "focal_distance_multiple" 
 ]
+
+
+# required config keys
+REQUIRED_SIMULATION_KEYS = ["sim_parameters", "options", "beam", "lenses", "stages"]
+REQUIRED_SIMULATION_OPTIONS_KEYS = ["log_dir"]
+REQUIRED_SIMULATION_PARAMETER_KEYS = ["A", "pixel_size", "sim_height", "sim_width", "sim_wavelength"]
+REQUIRED_SIMULATION_STAGE_KEYS = ["lens", "output"]
+REQUIRED_BEAM_KEYS = ["width", "height"]
+REQUIRED_LENS_KEYS = ["name", "medium", "diameter", "height", "exponent"]
+REQUIRED_LENS_GRATING_KEYS = ["width", "distance", "depth", "x", "y", "centred"]
+REQUIRED_LENS_TRUNCATION_KEYS = ["height", "radius", "type", "aperture"]
+REQUIRED_LENS_APERTURE_KEYS = ["inner", "outer", "type", "invert"]
+
+
+# TODO: maybe put default values here too?
