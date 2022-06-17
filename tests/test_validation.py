@@ -49,6 +49,25 @@ def assert_config_has_default_values(config: dict, default_key: str) -> None:
         else:
             assert config[dk]  == dv, f"Non-default value found for key {dk}, {config[dk]} should be {dv}"
         
+## UTILITIES
+def test_load_default_values():
+
+    default_config = {"key1": 1, "key2": 2, "key3": 3}
+    config = {"key1": 0}
+
+    config = validation.load_default_values(config, default_config)
+
+    assert config["key1"] == 0, "Default value should not be written"
+    assert config["key2"] == default_config["key2"], "Default value should be written"
+    assert config["key3"] == default_config["key3"], "Default value should be written"
+
+
+def test_validate_required_keys():
+    
+    default_config = {"key1": 1, "key2": 2, "key3": 3}
+    config = {"key1": 0}
+
+
 
 ## LENS
 def test_validate_required_lens_config(valid_lens_config):

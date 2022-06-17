@@ -1,0 +1,32 @@
+sim_parameters:
+  A: 10000
+  pixel_size: 1.e-6
+  sim_height: 500.e-6
+  sim_width: 500.e-6
+  sim_wavelength: 488.e-9
+options:
+  log_dir: "log"
+beam:
+  width: 300.e-6
+  height: 50.e-6
+  height_stop: 100.e-6
+  height_step: 25.e-6
+  source_distance: 2.0e-3
+lenses:
+  - name: lens_1
+    medium: 2.348
+    diameter: 300.e-6
+    height: 5.e-6
+    exponent: 2.0
+    exponent_stop: 2.5
+    exponent_step: 0.1
+    lens_type:  "Spherical" 
+stages:
+  - lens: lens_1
+    output: medium_2
+    step_size: 0.1e-3
+    start_distance: 0
+    finish_distance: 10.e-3
+    finish_distance_stop: 20.e-3
+    finish_distance_step: 5.e-3
+
