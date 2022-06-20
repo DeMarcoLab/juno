@@ -185,7 +185,7 @@ class GUISimulationSetup(SimulationSetup.Ui_MainWindow, QtWidgets.QMainWindow):
                 widgets = self.input_widgets[i]
                 widgets[2].setText(str(stage_config["lens"]))
                 widgets[4].setValue(float(stage_config["output"]))
-                widgets[6].setValue(int(stage_config["n_slices"]))
+                widgets[6].setValue(int(stage_config["n_steps"]))
                 widgets[8].setValue(float(stage_config["step_size"]))
                 widgets[10].setValue(float(stage_config["start_distance"]))
                 widgets[12].setValue(float(stage_config["finish_distance"]))
@@ -247,7 +247,7 @@ class GUISimulationSetup(SimulationSetup.Ui_MainWindow, QtWidgets.QMainWindow):
 
             lens_name = str(widgets[2].text())
             output = float(widgets[4].value())
-            n_slices = int(widgets[6].value())
+            n_steps = int(widgets[6].value())
             step_size = float(widgets[8].value())
             
             use_focal_distance = bool(widgets[14].isChecked())
@@ -265,7 +265,7 @@ class GUISimulationSetup(SimulationSetup.Ui_MainWindow, QtWidgets.QMainWindow):
             stage_config = {
                 "lens": lens_name,
                 "output": output,
-                "n_slices": n_slices,
+                "n_steps": n_steps,
                 "step_size": step_size,
                 "start_distance": start_distance,
                 "finish_distance": finish_distance,
@@ -285,8 +285,8 @@ class GUISimulationSetup(SimulationSetup.Ui_MainWindow, QtWidgets.QMainWindow):
         # 2. lens_button,
         # 3. output_label,
         # 4. output_spinbox,
-        # 5. n_slices_label,
-        # 6. n_slices_spinbox,
+        # 5. n_steps_label,
+        # 6. n_steps_spinbox,
         # 7. step_size_label,
         # 8. step_size_spinbox,
         # 9. start_distance_label,
@@ -478,10 +478,10 @@ def create_stage_input_display(stage_no):
     output_label.setText(f"Output Medium")
     output_spinbox = QDoubleSpinBox()
 
-    # n_slices
-    n_slices_label = QLabel()
-    n_slices_label.setText(f"Number of Slices")
-    n_slices_spinbox = QSpinBox()
+    # n_steps
+    n_steps_label = QLabel()
+    n_steps_label.setText(f"Number of steps")
+    n_steps_spinbox = QSpinBox()
 
     # step size
     step_size_label = QLabel()
@@ -518,8 +518,8 @@ def create_stage_input_display(stage_no):
     layout.addWidget(output_label, 2, 0)
     layout.addWidget(output_spinbox, 2, 1)
 
-    layout.addWidget(n_slices_label, 3, 0)
-    layout.addWidget(n_slices_spinbox, 3, 1)
+    layout.addWidget(n_steps_label, 3, 0)
+    layout.addWidget(n_steps_spinbox, 3, 1)
 
     layout.addWidget(step_size_label, 4, 0)
     layout.addWidget(step_size_spinbox, 4, 1)
@@ -539,8 +539,8 @@ def create_stage_input_display(stage_no):
         lens_button,
         output_label,
         output_spinbox,
-        n_slices_label,
-        n_slices_spinbox,
+        n_steps_label,
+        n_steps_spinbox,
         step_size_label,
         step_size_spinbox,
         start_distance_label,
