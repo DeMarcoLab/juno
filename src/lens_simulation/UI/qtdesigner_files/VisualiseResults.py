@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file '.\VisualiseResults.ui'
+# Form implementation generated from reading ui file 'VisualiseResults.ui'
 #
 # Created by: PyQt5 UI code generator 5.15.4
 #
@@ -122,6 +122,12 @@ class Ui_MainWindow(object):
 
         self.retranslateUi(MainWindow)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
+        MainWindow.setTabOrder(self.pushButton_load_simulation, self.spinBox_num_filters)
+        MainWindow.setTabOrder(self.spinBox_num_filters, self.checkBox_show_beam)
+        MainWindow.setTabOrder(self.checkBox_show_beam, self.scroll_area_filter)
+        MainWindow.setTabOrder(self.scroll_area_filter, self.pushButton_filter_data)
+        MainWindow.setTabOrder(self.pushButton_filter_data, self.pushButton_reset_data)
+        MainWindow.setTabOrder(self.pushButton_reset_data, self.scroll_area)
 
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate

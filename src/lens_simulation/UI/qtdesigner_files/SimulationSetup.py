@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file '.\SimulationSetup.ui'
+# Form implementation generated from reading ui file 'SimulationSetup.ui'
 #
 # Created by: PyQt5 UI code generator 5.15.4
 #
@@ -197,6 +197,19 @@ class Ui_MainWindow(object):
 
         self.retranslateUi(MainWindow)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
+        MainWindow.setTabOrder(self.doubleSpinBox_pixel_size, self.doubleSpinBox_sim_width)
+        MainWindow.setTabOrder(self.doubleSpinBox_sim_width, self.doubleSpinBox_sim_height)
+        MainWindow.setTabOrder(self.doubleSpinBox_sim_height, self.doubleSpinBox_sim_wavelength)
+        MainWindow.setTabOrder(self.doubleSpinBox_sim_wavelength, self.doubleSpinBox_sim_amplitude)
+        MainWindow.setTabOrder(self.doubleSpinBox_sim_amplitude, self.pushButton_sim_beam)
+        MainWindow.setTabOrder(self.pushButton_sim_beam, self.lineEdit_log_dir)
+        MainWindow.setTabOrder(self.lineEdit_log_dir, self.checkBox_save_plot)
+        MainWindow.setTabOrder(self.checkBox_save_plot, self.checkBox_save_raw)
+        MainWindow.setTabOrder(self.checkBox_save_raw, self.spinBox_sim_num_stages)
+        MainWindow.setTabOrder(self.spinBox_sim_num_stages, self.scrollArea_stages)
+        MainWindow.setTabOrder(self.scrollArea_stages, self.pushButton_generate_simulation)
+        MainWindow.setTabOrder(self.pushButton_generate_simulation, self.pushButton_save_sim_config)
+        MainWindow.setTabOrder(self.pushButton_save_sim_config, self.scrollArea_stage_display)
 
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
