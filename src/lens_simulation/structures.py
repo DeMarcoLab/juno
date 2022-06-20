@@ -33,6 +33,7 @@ class SimulationStage:
     lens_inverted: bool = False
     _id: int = 0
     tilt: dict = None
+    # distance: np.ndarray # (propagation distances)
 
 @dataclass
 class SimulationRun:

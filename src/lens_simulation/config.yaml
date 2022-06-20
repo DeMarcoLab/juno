@@ -23,7 +23,7 @@ beam:
   tilt_x: 45.0 # core
   tilt_y: 45.0 # core
   source_distance: 12.5e-6
-  # # final_width: 10.0e-6 # core
+  # # final_diameter: 10.0e-6 # core
   # # focal_multiple: null # core
   n_slices: 10
   # step_size: 0.001

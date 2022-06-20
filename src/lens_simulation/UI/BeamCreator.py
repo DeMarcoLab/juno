@@ -137,7 +137,7 @@ class GUIBeamCreator(BeamCreator.Ui_BeamCreator, QtWidgets.QMainWindow):
         self.beam_dict["tilt_x"] = 45.0
         self.beam_dict["tilt_y"] = 45.0
         self.beam_dict["source_distance"] = 25.0e-6
-        self.beam_dict["final_width"] = None
+        self.beam_dict["final_diameter"] = None
         self.beam_dict["focal_multiple"] = None
         # self.beam_dict["n_steps"] = 10
         self.beam_dict["step_size"] = 3.3e-6
@@ -310,7 +310,7 @@ class GUIBeamCreator(BeamCreator.Ui_BeamCreator, QtWidgets.QMainWindow):
         elif self.beam_dict["distance_mode"].title() == "Width":
             self.comboBox_DistanceMode.setCurrentText("Final Beam Width")
             self.doubleSpinBox_Distance.setValue(
-                self.beam_dict["final_width"] / self.units
+                self.beam_dict["final_diameter"] / self.units
             )
         elif self.beam_dict["distance_mode"].title() == "Focal":
             self.comboBox_DistanceMode.setCurrentText("Focal Length Multiple")
@@ -325,7 +325,7 @@ class GUIBeamCreator(BeamCreator.Ui_BeamCreator, QtWidgets.QMainWindow):
             )
         elif self.comboBox_DistanceMode.currentText() == "Final Beam Width":
             self.beam_dict["distance_mode"] = "width"
-            self.beam_dict["final_width"] = self.format_float(
+            self.beam_dict["final_diameter"] = self.format_float(
                 self.doubleSpinBox_Distance.value() * self.units
             )
         elif self.comboBox_DistanceMode.currentText() == "Focal Length Multiple":

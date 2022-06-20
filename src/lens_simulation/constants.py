@@ -19,7 +19,7 @@ BEAM_SWEEPABLE_KEYS = [
     "tilt_x",
     "tilt_y",
     "source_distance",
-    "final_width",
+    "final_diameter",
     "focal_multiple",
 ]
 LENS_SWEEPABLE_KEYS = ["medium", "diameter", "height", "exponent"]

@@ -46,7 +46,7 @@ class BeamSettings:
     tilt_x: float = 0.0
     tilt_y: float = 0.0                     # degrees
     source_distance: float = None
-    final_width: float = None
+    final_diameter: float = None
     focal_multiple: float = None
     n_steps: int = 10
     step_size: float = None
@@ -70,7 +70,7 @@ class Beam:
 
         self.theta: float  = np.deg2rad(settings.theta) # degrees -> rad
         self.source_distance: float = settings.source_distance
-        self.final_width: float = settings.final_width
+        self.final_diameter: float = settings.final_diameter
 
         self.tilt: list[float] = [settings.tilt_x, settings.tilt_y]
 
@@ -190,7 +190,7 @@ class Beam:
         # beam_spread
         # source_distance
         # focal_distance
-        # final_width
+        # final_diameter
         # theta
         # lens
 
@@ -205,7 +205,7 @@ class Beam:
 
         # if you want the beam to converge/diverge to a specific width
         elif self.distance_mode is DistanceMode.Width:
-            final_beam_radius = self.final_width/2
+            final_beam_radius = self.final_diameter/2
             if self.spread is BeamSpread.Converging:
                 finish_distance = self.focal_distance - (final_beam_radius/np.tan(self.theta+1e-12))
             else:
@@ -225,8 +225,8 @@ def validate_beam_configuration(settings: BeamSettings):
             raise ValueError(f"A source_distance must be provided for {settings.beam_spread}")
 
         # plane wave is constant width along optical axis
-        settings.final_width = settings.width
-        logging.info(f"The plane wave if constant along the optical axis. The beam final_width has been set to the initial width: {settings.width:.2e}m")
+        settings.final_diameter = settings.width
+        logging.info(f"The plane wave if constant along the optical axis. The beam final_diameter has been set to the initial width: {settings.width:.2e}m")
 
         if settings.distance_mode != DistanceMode.Direct:
             # plane waves only enabled for direct mode
@@ -259,8 +259,8 @@ def validate_beam_configuration(settings: BeamSettings):
             raise ValueError(f"BeamSpread must be Converging, or Diverging for {settings.distance_mode} (currently {settings.beam_spread})")
 
     if settings.distance_mode == DistanceMode.Width:
-        if settings.final_width is None:
-            raise ValueError(f"A final_width must be provided for {settings.distance_mode}")
+        if settings.final_diameter is None:
+            raise ValueError(f"A final_diameter must be provided for {settings.distance_mode}")
 
     return settings
 
@@ -306,7 +306,7 @@ def load_beam_config(config: dict) -> BeamSettings:
         tilt_x=config["tilt_x"],
         tilt_y=config["tilt_y"],
         source_distance=config["source_distance"],
-        final_width=config["final_width"],
+        final_diameter=config["final_diameter"],
         focal_multiple=config["focal_multiple"],
         n_steps=config["n_steps"],
         step_size=config["step_size"],
