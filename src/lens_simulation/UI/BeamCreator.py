@@ -6,7 +6,7 @@ import traceback
 import lens_simulation.UI.qtdesigner_files.BeamCreator as BeamCreator
 import numpy as np
 import yaml
-from lens_simulation import constants, utils
+from lens_simulation import constants, plotting, utils
 from lens_simulation.Lens import Medium
 from lens_simulation.beam import generate_beam
 from lens_simulation.Simulation import SimulationStage, SimulationParameters, SimulationOptions, propagate_wavefront
@@ -668,7 +668,7 @@ class _ImageCanvas(FigureCanvasQTAgg, QtWidgets.QWidget):
     ):
 
         if profile == "main":
-            self.fig = utils.plot_lens_profile_2D(
+            self.fig = plotting.plot_lens_profile_2d(
                 lens,
                 facecolor="#f0f0f0",
                 extent=[
@@ -697,7 +697,7 @@ class _ImageCanvas(FigureCanvasQTAgg, QtWidgets.QWidget):
             axes.legend()
 
         elif profile == "convergence":
-            self.fig = utils.plot_array_2D(
+            self.fig = plotting.plot_lens_profile_2d(
                 array=array,
                 facecolor="#f0f0f0",
                 extent=[
@@ -725,7 +725,7 @@ class _ImageCanvas(FigureCanvasQTAgg, QtWidgets.QWidget):
             # DO
 
         else:
-            self.fig = utils.plot_array_2D(
+            self.fig = plotting.plot_lens_profile_2d(
                 array=array,
                 facecolor="#f0f0f0",
                 extent=[

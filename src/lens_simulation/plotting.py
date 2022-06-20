@@ -17,6 +17,185 @@ from lens_simulation.structures import (
     SimulationParameters,
 )
 
+#################### PLOTTING ####################
+
+def plot_simulation(
+    arr: np.ndarray,
+    width: int=None,
+    height: int=None,
+    pixel_size_x: float=1e-6,
+    start_distance: float=0e-6,
+    finish_distance: float=10e-6,
+) -> plt.Figure:
+    """Plot the output simulation array from the top down perspective.
+
+    Args:
+        arr (np.ndarray): the simulation output arrays [n_steps, height, width]
+        width (int): [the horizontal distance to plot]
+        height (int): [the depth of the simulation to plot]
+        pixel_size_x (float): [simulation pixel size]
+        start_distance (float): [the start distance for the simulation propagation]
+        finish_distance (float): [the finish distance for the simulation propagation]
+
+    Returns:
+        [Figure]: [matplotlib Figure of the simulation plot]
+    """
+    if width is None:
+        width = arr.shape[1]
+    if height is None:
+        height = arr.shape[0]
+
+    arr_resized, min_h, max_h = crop_image(arr, width, height)
+
+    # calculate extents (xlabel, ylabel)
+    min_x = -arr_resized.shape[1] / 2 * pixel_size_x / 1e-6
+    max_x = arr_resized.shape[1] / 2 * pixel_size_x / 1e-6
+
+    # nb: these are reversed because the light comes from top...
+    dist = finish_distance - start_distance
+
+    min_h_frac = min_h / arr.shape[0]
+    max_h_frac = max_h / arr.shape[0]
+
+    min_y = (start_distance + max_h_frac * dist) / 1e-3
+    max_y = (start_distance + min_h_frac * dist) / 1e-3
+
+    fig = plt.figure()
+    plt.imshow(
+        arr_resized,
+        extent=[min_x, max_x, min_y, max_y],
+        interpolation="spline36",
+        aspect="auto",
+        cmap="jet",
+    )
+    plt.title(f"Simulation Output ({height}x{width})")
+    plt.ylabel("Distance (mm)")
+    plt.xlabel("Distance (um)")
+    plt.colorbar()
+
+    return fig
+
+def crop_image(arr, width, height):
+    """Crop the simulation image to the required dimensions."""
+
+    if arr.ndim == 3:
+        vertical_index = arr.shape[1] // 2 # midpoint (default)
+        arr = arr[:, vertical_index, :] # horizontal plane slice
+
+    min_h, max_h = arr.shape[0] // 2 - height // 2, arr.shape[0] // 2 + height // 2
+    min_w, max_w = arr.shape[1] // 2 - width // 2, arr.shape[1] // 2 + width // 2
+
+    arr_resized = arr[min_h:max_h, min_w:max_w]
+    return arr_resized, min_h,max_h
+
+
+def plot_image(arr: np.ndarray, title: str = "Image Title", save: bool = False, fname: str = None) -> plt.Figure:
+    """Plot an image and optionally save."""
+    fig = plt.figure()
+    plt.imshow(arr)
+    plt.title(title)
+    plt.colorbar()
+    if save:
+        save_figure(fig, fname)
+
+    return fig
+
+
+def save_figure(fig, fname: str = "img.png") -> None:
+    os.makedirs(os.path.dirname(fname), exist_ok=True)
+    fig.savefig(fname)
+
+
+def plot_interactive_simulation(arr: np.ndarray):
+
+    fig = px.imshow(arr)
+    return fig
+
+
+def plot_lens_profile_2D(lens: Lens, title="", facecolor="#ffffff", tickstyle="sci",
+                         cmap=None, extent=None, colorbar_ticks=None):
+    """Plots a lens profile using plot_array_2D, including aperture hatching"""
+    # TODO: Add tests for this
+    if not isinstance(lens, Lens):
+        raise TypeError('plot_lens_profile_2D requires a Lens object')
+
+    fig = plot_array_2D(array=lens.profile, title=title, facecolor=facecolor,
+    tickstyle=tickstyle, cmap=cmap, extent=extent, colorbar_ticks=colorbar_ticks)
+
+    axes = fig.axes[0]
+
+    # weird bug with (1, 1) shape as array is false
+    if lens.aperture is not None and lens.aperture.shape[0] != 1 and lens.aperture.shape[1] != 1:
+        aperture = np.ma.array(lens.aperture, mask=[lens.aperture == 0])
+        axes.contourf(aperture, hatches=["x"], extent=extent, cmap="gray")
+
+    return fig
+
+
+def plot_array_2D(array: np.ndarray, title="", facecolor="#ffffff", tickstyle="sci", cmap=None, extent=None, colorbar_ticks=None):
+    """Plots an ndarray"""
+    if not isinstance(array, np.ndarray):
+        raise TypeError('plot_array_2D requires a numpy.ndarray object')
+
+    fig = plt.figure()
+    fig.set_facecolor(facecolor)
+
+    # set up axes
+    gridspec = fig.add_gridspec(1, 1)
+    axes = fig.add_subplot(gridspec[0], title=title)
+    axes.ticklabel_format(axis="both", style=tickstyle, scilimits=(0, 0), useMathText=True)
+    axes.locator_params(nbins=4)
+
+    # reposition scientific notation on x axis
+    if tickstyle != "plain":
+        x_ext = axes.xaxis.get_offset_text()
+        x_ext.set_x(1.2)
+
+    # set up colorbar positioning/size
+    from mpl_toolkits.axes_grid1 import make_axes_locatable
+    divider = make_axes_locatable(axes)
+    cax=divider.append_axes('right', size='5%', pad=0.1)
+
+    # plot image
+    image = axes.imshow(array, aspect='auto', extent=extent, cmap=cmap)
+
+    # plot colorbar
+    fig.colorbar(image, cax=cax, orientation='vertical', ticks=colorbar_ticks)
+
+    return fig
+
+
+
+def plot_lens_profile_slices(lens: Lens, max_height: float = None, title: str = "Lens Profile Slices", facecolor: str = "#ffffff", dim: int = 0) -> plt.Figure:
+    # TODO: add proper distances to plot
+    """Plot slices of a two-dimensional lens at one-eighth, one-quarter and one-half distances"""
+
+    if isinstance(lens, np.ndarray):
+        lens_profile = lens
+    if isinstance(lens, Lens):
+        lens_profile = lens.profile
+    else:
+        raise TypeError("Non-Lens passed")
+
+    thirty_two_px = lens.profile.shape[dim] // 32
+    sixteen_px = lens.profile.shape[dim] // 16
+    sixth_px = lens_profile.shape[dim] // 8
+    quarter_px = lens_profile.shape[dim] // 4
+    mid_px = lens_profile.shape[dim] // 2
+
+    fig = plt.figure()
+    fig.set_facecolor(facecolor)
+    plt.title(title)
+    plt.plot(lens_profile[mid_px, :], "b--", label="0.5")
+    plt.plot(lens_profile[quarter_px, :], "g--", label="0.25")
+    plt.plot(lens_profile[sixth_px, :], "r--", label="0.125")
+    plt.plot(lens_profile[sixteen_px, :], "c--", label="0.0625")
+    plt.plot(lens_profile[thirty_two_px, :], "m--", label="0.03125")
+    plt.ylim([0, max_height])
+    plt.legend(loc="best")
+
+    return fig
+    
 def save_result_plots(
     result: SimulationResult,
     stage: SimulationStage,
@@ -33,37 +212,37 @@ def save_result_plots(
     """
 
     # save top-down
-    fig = utils.plot_simulation(
+    fig = plot_simulation(
         arr=result.top_down,
         pixel_size_x=parameters.pixel_size,
         start_distance=stage.start_distance,
         finish_distance=stage.finish_distance,
     )
 
-    utils.save_figure(fig, os.path.join(save_path, "topdown.png"))
+    save_figure(fig, os.path.join(save_path, "topdown.png"))
     plt.close(fig)
 
-    fig = utils.plot_simulation(
+    fig = plot_simulation(
         np.log(result.top_down + 10e-12),
         pixel_size_x=parameters.pixel_size,
         start_distance=stage.start_distance,
         finish_distance=stage.finish_distance,
     )
 
-    utils.save_figure(fig, os.path.join(save_path, "log_topdown.png"))
+    save_figure(fig, os.path.join(save_path, "log_topdown.png"))
     plt.close(fig)
 
-    fig = utils.plot_simulation(
+    fig = plot_simulation(
         arr=result.side_on,
         pixel_size_x=parameters.pixel_size,
         start_distance=stage.start_distance,
         finish_distance=stage.finish_distance,
     )
-    utils.save_figure(fig, os.path.join(save_path, "sideon.png"))
+    save_figure(fig, os.path.join(save_path, "sideon.png"))
     plt.close(fig)
 
     if result.freq_arr is not None:
-        fig = utils.plot_image(
+        fig = plot_image(
             result.freq_arr,
             "Frequency Array",
             save=True,
@@ -72,7 +251,7 @@ def save_result_plots(
         plt.close(fig)
 
     if result.delta is not None:
-        fig = utils.plot_image(
+        fig = plot_image(
             result.delta,
             "Delta Profile",
             save=True,
@@ -81,7 +260,7 @@ def save_result_plots(
         plt.close(fig)
 
     if result.phase is not None:
-        utils.plot_image(
+        plot_image(
             result.phase,
             "Phase Profile",
             save=True,
@@ -90,11 +269,11 @@ def save_result_plots(
         plt.close(fig)
 
     if result.lens is not None:
-        fig = utils.plot_lens_profile_2D(result.lens)
-        utils.save_figure(fig, fname=os.path.join(save_path, "lens_profile.png"))
+        fig = plot_lens_profile_2D(result.lens)
+        save_figure(fig, fname=os.path.join(save_path, "lens_profile.png"))
 
-        fig = utils.plot_lens_profile_slices(result.lens)
-        utils.save_figure(fig, fname=os.path.join(save_path, "lens_slices.png"))
+        fig = plot_lens_profile_slices(result.lens)
+        save_figure(fig, fname=os.path.join(save_path, "lens_slices.png"))
 
     # save propagation gifs
     try:

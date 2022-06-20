@@ -8,7 +8,7 @@ import os
 import yaml
 
 
-from lens_simulation import utils
+from lens_simulation import utils, plotting
 import matplotlib.pyplot as plt
 
 import lens_simulation.UI.qtdesigner_files.SimulationSetup as SimulationSetup
@@ -126,10 +126,10 @@ class GUISimulationSetup(SimulationSetup.Ui_MainWindow, QtWidgets.QMainWindow):
 
         # open file dialog
         sim_config_filename, _ = QFileDialog.getSaveFileName(self,
-                    caption="Save Simulation Config", 
+                    caption="Save Simulation Config",
                     directory=os.path.dirname(lens_simulation.__file__),
                     filter="Yaml files (*.yml, *.yaml)")
-        if sim_config_filename:          
+        if sim_config_filename:
             # set name
 
             # same as yaml file
@@ -142,14 +142,14 @@ class GUISimulationSetup(SimulationSetup.Ui_MainWindow, QtWidgets.QMainWindow):
         print("loading simulation config")
         # open file dialog
         sim_config_filename, _ = QFileDialog.getOpenFileName(self,
-                    caption="Load Simulation Config", 
+                    caption="Load Simulation Config",
                     directory=os.path.dirname(lens_simulation.__file__),
                     filter="Yaml files (*.yml, *.yaml)"
                     )
-        if sim_config_filename:          
-            
+        if sim_config_filename:
+
             config = utils.load_config(sim_config_filename)
-            
+
             self.statusBar.showMessage(f"Simulation config loaded from {sim_config_filename}")
 
             pprint(config)
@@ -194,8 +194,8 @@ class GUISimulationSetup(SimulationSetup.Ui_MainWindow, QtWidgets.QMainWindow):
 
                 if widgets[14].isChecked():
                     widgets[10].setValue(float(stage_config["focal_distance_start_multiple"]))
-                    widgets[12].setValue(float(stage_config["focal_distance_multiple"]))               
-                
+                    widgets[12].setValue(float(stage_config["focal_distance_multiple"]))
+
 
             self.SIMULATION_CONFIG_LOADED = True
 
@@ -203,7 +203,7 @@ class GUISimulationSetup(SimulationSetup.Ui_MainWindow, QtWidgets.QMainWindow):
         print("generating simulation config")
 
         # TODO: need to check if things are loaded...
-        
+
         self.update_simulation_config()
         self.read_stage_input_values()
 
@@ -230,7 +230,7 @@ class GUISimulationSetup(SimulationSetup.Ui_MainWindow, QtWidgets.QMainWindow):
 
         # Think this can only be called once? why?
 
-        stage_layout, widgets = create_stage_structure_display(self.simulation_config)       
+        stage_layout, widgets = create_stage_structure_display(self.simulation_config)
         groupBox_stage_display = QGroupBox(f"")
         groupBox_stage_display.setLayout(stage_layout)
         self.scrollArea_stage_display.setWidget(groupBox_stage_display)
@@ -249,7 +249,7 @@ class GUISimulationSetup(SimulationSetup.Ui_MainWindow, QtWidgets.QMainWindow):
             output = float(widgets[4].value())
             n_steps = int(widgets[6].value())
             step_size = float(widgets[8].value())
-            
+
             use_focal_distance = bool(widgets[14].isChecked())
             if use_focal_distance:
                 start_distance = 0.0
@@ -301,9 +301,12 @@ class GUISimulationSetup(SimulationSetup.Ui_MainWindow, QtWidgets.QMainWindow):
         print("loading lens_config")
 
         lens_config_filename, _ = QFileDialog.getOpenFileName(
-            self, "Select Lens Configuration", os.path.dirname(lens_simulation.__file__), "Yaml files (*.yml, *.yaml)"
+            self, "Select Lens Configuration", os.path.dirname(lens_simulation.__file__), "Yaml files (*.yml *.yaml)"
         )
-        
+
+        if lens_config_filename == "":
+            return
+
         try:
             lens_config = utils.load_yaml_config(lens_config_filename)
 
@@ -321,8 +324,11 @@ class GUISimulationSetup(SimulationSetup.Ui_MainWindow, QtWidgets.QMainWindow):
         print("loading beam config")
 
         beam_config_filename, _ = QFileDialog.getOpenFileName(
-            self, "Select Beam Configuration", os.path.dirname(lens_simulation.__file__), "Yaml files (*.yml, *.yaml)"
+            self, "Select Beam Configuration", os.path.dirname(lens_simulation.__file__), "Yaml files (*.yml *.yaml)"
         )
+
+        if beam_config_filename == "":
+            return
 
         try:
             beam_config = utils.load_yaml_config(beam_config_filename)
@@ -376,9 +382,9 @@ def create_stage_structure_display(config):
     # TODO: need to account for focal distance multiple.... otherwise it gets too large to plot
 
     # simulation setup
-    fig = utils.plot_simulation_setup(config)
+    fig = plotting.plot_simulation_setup(config)
     sim_setup_fname  = os.path.join(tmp_directory, "sim_setup.png")
-    utils.save_figure(fig, sim_setup_fname)
+    plotting.save_figure(fig, sim_setup_fname)
     plt.close(fig)
 
     sim_label = QLabel()
@@ -415,24 +421,24 @@ def create_stage_structure_display(config):
         for conf in config["lenses"]:
             if conf["name"] == lens_name:
                 lens_config = conf
-   
+
         from lens_simulation.Lens import generate_lens
         from lens_simulation.Medium import Medium
 
-        lens = generate_lens(lens_config, 
-                    Medium(lens_config["medium"], config["sim_parameters"]["sim_wavelength"]), 
+        lens = generate_lens(lens_config,
+                    Medium(lens_config["medium"], config["sim_parameters"]["sim_wavelength"]),
                     config["sim_parameters"]["pixel_size"])
 
         output = stage_config["output"]
 
-        fig = utils.plot_lens_profile_slices(lens, max_height=lens.height)
+        fig = plotting.plot_lens_profile_slices(lens, max_height=lens.height)
         side_on_fname = os.path.join(tmp_directory, "side_on_profile.png")
-        utils.save_figure(fig, side_on_fname)
+        plotting.save_figure(fig, side_on_fname)
         plt.close(fig)
 
-        fig = utils.plot_lens_profile_2D(lens)
+        fig = plotting.plot_lens_profile_2d(lens)
         top_down_fname = os.path.join(tmp_directory, "top_down_profile.png")
-        utils.save_figure(fig, top_down_fname)
+        plotting.save_figure(fig, top_down_fname)
         plt.close(fig)
 
         img = np.random.rand(400,400,3).astype(np.uint8) * 255
@@ -443,7 +449,7 @@ def create_stage_structure_display(config):
 
         stage_top_down_label = QLabel()
         stage_top_down_label.setPixmap(QPixmap(top_down_fname).scaled(300, 300)) #array_to_qlabel(lens.profile)
-                
+
         layout.addWidget(stage_label, 1, i)
         layout.addWidget(stage_top_down_label, 2, i)
 
@@ -455,7 +461,7 @@ def create_stage_structure_display(config):
 
     # plot
     # show on label
-    
+
     return layout, display_widgets
 
 
