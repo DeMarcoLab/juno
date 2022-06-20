@@ -9,7 +9,7 @@ from pprint import pprint
 from scipy import fftpack
 from tqdm import tqdm
 
-from lens_simulation.Lens import Lens, LensType, GratingSettings, generate_lens
+from lens_simulation.Lens import Lens, generate_lens
 from lens_simulation.Medium import Medium
 from lens_simulation.structures import (
     SimulationOptions,
@@ -263,16 +263,6 @@ def calculate_start_and_finish_distance_v2(lens: Lens, output: Medium, start_mul
     finish_distance = (finish_multiple * eq_fd)
 
     return start_distance, finish_distance
-
-
-def calculate_start_and_finish_distance(stage: SimulationStage, start_multiple, finish_multiple):
-
-    eq_fd = calculate_equivalent_focal_distance(stage.lens, stage.output)
-
-    stage.start_distance = (start_multiple * eq_fd)
-    stage.finish_distance = (finish_multiple * eq_fd)
-
-    return stage
 
 def generate_lenses(lenses: list, parameters: SimulationParameters):
     """Generate all the lenses for the simulation"""

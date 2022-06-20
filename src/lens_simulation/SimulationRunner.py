@@ -189,7 +189,7 @@ def get_beam_configurations(bpc: list, config: dict):
     simulation_beam["tilt_x"] = bpc[6]
     simulation_beam["tilt_y"] = bpc[7]
     simulation_beam["source_distance"] = bpc[8]
-    simulation_beam["final_width"] = bpc[9]
+    simulation_beam["final_diameter"] = bpc[9]
     simulation_beam["focal_multipl"] = bpc[10]
     
     return simulation_beam

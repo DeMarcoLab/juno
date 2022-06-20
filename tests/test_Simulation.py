@@ -295,8 +295,7 @@ def test_generate_simulation_stage(config_with_sweep):
     simulation_lenses = Simulation.generate_lenses(config["lenses"], parameters)
 
     sim_config = config["stages"][0]
-    lens = simulation_lenses.get(sim_config["lens"])
-    stage = Simulation.generate_simulation_stage(sim_config, lens, parameters, 0)
+    stage = Simulation.generate_simulation_stage(sim_config, simulation_lenses, parameters, 0)
 
     assert stage.output.refractive_index == sim_config.get("output")
     assert stage.output.wavelength == parameters.sim_wavelength
@@ -306,11 +305,6 @@ def test_generate_simulation_stage(config_with_sweep):
     assert stage._id == 0
 
 # TODO: START_HERE
-# def test_create_simulation_stage(config_with_sweep):
-#     config = config_with_sweep
-
-
-
 # def test_create_beam_simulation_stage(config_with_sweep):
 #     config = config_with_sweep
 
@@ -342,6 +336,7 @@ def test_calculate_start_and_finish_distance(config_with_sweep):
 
     config = config_with_sweep
 
+    # TODO:
     # parameters = Simulation.generate_simulation_parameters(config)
     # simulation_lenses = Simulation.generate_lenses(config["lenses"], parameters)
 
@@ -349,12 +344,3 @@ def test_calculate_start_and_finish_distance(config_with_sweep):
     # lens = simulation_lenses.get(sim_config["lens"])
     # stage = Simulation.generate_simulation_stage(sim_config, lens, parameters, 0)
 
-    # sd, fd = Simulation.calculate_start_and_finish_distance_v2(lens, stage.output, 
-    #     sim_config.get("focal_distance_start_multiple"), sim_config.get("focal_distance_multiple"))
-
-    # stage = Simulation.calculate_start_and_finish_distance(stage, 
-    #             sim_config.get("focal_distance_start_multiple"), 
-    #                 sim_config.get("focal_distance_multiple"))
-
-    # assert sd == stage.start_distance
-    # assert fd == stage.finish_distance

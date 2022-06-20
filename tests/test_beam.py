@@ -67,7 +67,7 @@ def test_beam_plane_wave_has_constant_width(beam_settings):
     beam_settings.beam_spread = BeamSpread.Plane
     beam = Beam(beam_settings)
 
-    assert beam.final_width == beam.settings.width
+    assert beam.final_diameter == beam.settings.width
 
 
 def test_beam_generate_profile_plane_square(beam_settings, sim_parameters):
@@ -181,7 +181,7 @@ def test_beam_propagation_distance_width(beam_settings, sim_parameters):
     beam_settings.distance_mode = DistanceMode.Width
     beam_settings.beam_spread = BeamSpread.Converging
     beam_settings.theta = 10
-    beam_settings.final_width = 5e-6
+    beam_settings.final_diameter = 5e-6
     beam_settings.source_distance = test_distance 
     beam = Beam(beam_settings)
     beam.generate_profile(sim_parameters)
