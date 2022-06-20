@@ -314,7 +314,7 @@ def display_error_message(message, title="Error Message"):
 
 
 def main():
-    config = utils.load_config(r"\\ad.monash.edu\home\User028\pcle0002\Documents\repos\lens_simulation\src\lens_simulation\config.yaml")
+    config = utils.load_config(os.path.join(os.path.dirname(lens_simulation.__file__), "config.yaml"))
 
     """Launch the main application window. """
     application = QtWidgets.QApplication([])
