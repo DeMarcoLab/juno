@@ -624,7 +624,7 @@ class GUIBeamCreator(BeamCreator.Ui_BeamCreator, QtWidgets.QMainWindow):
 
         stage = SimulationStage(lens=self.beam.lens,
                                 output=Medium(self.beam_dict["output_medium"]),
-                                n_slices=3,
+                                n_slices=2,
                                 start_distance=self.beam.calculate_propagation_distance()[0],
                                 finish_distance=self.beam.calculate_propagation_distance()[1],
                                 tilt={"x":self.beam_dict["tilt_x"], "y":self.beam_dict["tilt_y"]},
