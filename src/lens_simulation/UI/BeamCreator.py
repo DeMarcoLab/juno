@@ -299,7 +299,7 @@ class GUIBeamCreator(BeamCreator.Ui_BeamCreator, QtWidgets.QMainWindow):
             self.comboBox_DistanceMode.addItem("Absolute Distance")
         else:
             self.comboBox_DistanceMode.addItem("Absolute Distance")
-            self.comboBox_DistanceMode.addItem("Final Beam Width")
+            self.comboBox_DistanceMode.addItem("Final Beam Diameter")
             self.comboBox_DistanceMode.addItem("Focal Length Multiple")
 
         if self.beam_dict["distance_mode"].title() == "Direct":
@@ -307,8 +307,8 @@ class GUIBeamCreator(BeamCreator.Ui_BeamCreator, QtWidgets.QMainWindow):
             self.doubleSpinBox_Distance.setValue(
                 self.beam_dict["source_distance"] / self.units
             )
-        elif self.beam_dict["distance_mode"].title() == "Width":
-            self.comboBox_DistanceMode.setCurrentText("Final Beam Width")
+        elif self.beam_dict["distance_mode"].title() == "Diameter":
+            self.comboBox_DistanceMode.setCurrentText("Final Beam Diameter")
             self.doubleSpinBox_Distance.setValue(
                 self.beam_dict["final_diameter"] / self.units
             )
@@ -323,8 +323,8 @@ class GUIBeamCreator(BeamCreator.Ui_BeamCreator, QtWidgets.QMainWindow):
             self.beam_dict["source_distance"] = self.format_float(
                 self.doubleSpinBox_Distance.value() * self.units
             )
-        elif self.comboBox_DistanceMode.currentText() == "Final Beam Width":
-            self.beam_dict["distance_mode"] = "width"
+        elif self.comboBox_DistanceMode.currentText() == "Final Beam Diameter":
+            self.beam_dict["distance_mode"] = "Diameter"
             self.beam_dict["final_diameter"] = self.format_float(
                 self.doubleSpinBox_Distance.value() * self.units
             )
@@ -414,7 +414,7 @@ class GUIBeamCreator(BeamCreator.Ui_BeamCreator, QtWidgets.QMainWindow):
                 -(self.sim_dict["height"] - self.beam_dict["height"]) / 2 / self.units
             )
 
-        if self.beam_dict["distance_mode"].title() == "Width":
+        if self.beam_dict["distance_mode"].title() == "Diameter":
             if self.beam_dict["spread"].title() == "Diverging":
                 self.doubleSpinBox_Distance.setMinimum(
                     self.beam_dict["width"] / self.units
