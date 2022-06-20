@@ -178,7 +178,7 @@ def test_beam_propagation_distance_focal(beam_settings, sim_parameters):
 def test_beam_propagation_distance_width(beam_settings, sim_parameters):
 
     test_distance = 10.e-3
-    beam_settings.distance_mode = DistanceMode.Width
+    beam_settings.distance_mode = DistanceMode.Diameter
     beam_settings.beam_spread = BeamSpread.Converging
     beam_settings.theta = 10
     beam_settings.final_diameter = 5e-6
@@ -188,6 +188,6 @@ def test_beam_propagation_distance_width(beam_settings, sim_parameters):
 
     sd, fd = beam.calculate_propagation_distance()
 
-    # assert beam.distance_mode == DistanceMode.Width
+    # assert beam.distance_mode == DistanceMode.Diameter
     # assert sd == 0
     # assert fd == beam.focal_distance, "finish distance for DistanceMode.Focal should be the same as focal_distance"
