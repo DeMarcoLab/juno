@@ -306,6 +306,30 @@ def test_generate_simulation_stage(config_with_sweep):
     assert stage.finish_distance == sim_config.get("finish_distance")
     assert stage._id == 0
 
+def test_generate_simulation_stage_with_dynamic_n_steps(config_with_sweep):
+
+    config = config_with_sweep
+
+    parameters = Simulation.generate_simulation_parameters(config)
+    simulation_lenses = Simulation.generate_lenses(config["lenses"], parameters)
+
+    sim_config = config["stages"][0]
+    sim_config["use_equivalent_focal_distance"] = False
+    stage = Simulation.generate_simulation_stage(sim_config, simulation_lenses, parameters, 0)
+    
+    n_steps = Simulation.calculate_num_steps_in_distance(
+                    sim_config.get("start_distance"), 
+                    sim_config.get("finish_distance"), 
+                    sim_config.get("step_size"), 
+                    None)
+
+    assert stage.n_steps == n_steps
+    assert stage.start_distance == sim_config.get("start_distance")
+    assert stage.finish_distance == sim_config.get("finish_distance")
+
+
+
+
 # TODO: START_HERE
 # def test_create_beam_simulation_stage(config_with_sweep):
 #     config = config_with_sweep
@@ -324,11 +348,13 @@ def test_calculate_num_steps_in_distance():
 
 def test_calculate_num_steps_in_distance_raises_error():
 
-    start_distance = 0.0
-    finish_distance = 10.0
-    step_size = 0.0
-    n_steps = 0.0
-
+    # zero step size, zero nsteps
+    start_distance, finish_distance, step_size, n_steps = 0.0, 10.0, 0.0, 0.0
+    with pytest.raises(ValueError):
+        n_steps = Simulation.calculate_num_steps_in_distance(start_distance, finish_distance, step_size, n_steps)
+    
+    # step size greater than distance
+    start_distance, finish_distance, step_size, n_steps = 0.0, 10.0, 20.0, 0.0
     with pytest.raises(ValueError):
         n_steps = Simulation.calculate_num_steps_in_distance(start_distance, finish_distance, step_size, n_steps)
     
