@@ -41,7 +41,7 @@ def plot_simulation(
     """Plot the output simulation array from the top down perspective.
 
     Args:
-        arr (np.ndarray): the simulation output arrays [n_slices, height, width]
+        arr (np.ndarray): the simulation output arrays [n_steps, height, width]
         width (int): [the horizontal distance to plot]
         height (int): [the depth of the simulation to plot]
         pixel_size_x (float): [simulation pixel size]
@@ -177,7 +177,7 @@ def plot_array_2D(array: np.ndarray, title="", facecolor="#ffffff", tickstyle="s
 
 
 
-def plot_lens_profile_slices(lens: Lens, max_height: float = None, title: str = "Lens Profile Slices", facecolor: str = "#ffffff", dim: int = 0) -> plt.Figure:
+def plot_lens_profile_steps(lens: Lens, max_height: float = None, title: str = "Lens Profile Slices", facecolor: str = "#ffffff", dim: int = 0) -> plt.Figure:
     # TODO: add proper distances to plot
     """Plot slices of a two-dimensional lens at one-eighth, one-quarter and one-half distances"""
 

@@ -48,7 +48,7 @@ class BeamSettings:
     source_distance: float = None
     final_width: float = None
     focal_multiple: float = None
-    n_slices: int = 10
+    n_steps: int = 10
     step_size: float = None
     output_medium: float = 1.0
 
@@ -306,7 +306,7 @@ def load_beam_config(config: dict) -> BeamSettings:
         source_distance=config["source_distance"],
         final_width=config["final_width"],
         focal_multiple=config["focal_multiple"],
-        n_slices=config["n_slices"],
+        n_steps=config["n_steps"],
         step_size=config["step_size"],
         output_medium=config["output_medium"]
     )

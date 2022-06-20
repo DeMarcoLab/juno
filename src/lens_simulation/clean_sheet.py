@@ -9,7 +9,7 @@ plot_cleaned = True
 # Read the metadata.json file
 metadata = json.load(open('metadata.json'))
 diameter =  metadata['sim_parameters']['sim_width']
-n_steps = metadata['stages'][-1]['n_slices']
+n_steps = metadata['stages'][-1]['n_steps']
 exponent = metadata['lenses'][-1]['exponent']
 height = metadata['lenses'][-1]['height']
 pixel_size = metadata['sim_parameters']['pixel_size']

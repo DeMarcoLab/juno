@@ -99,7 +99,7 @@ def save_result_plots(
     # save propagation gifs
     try:
         save_propagation_gif(save_path)
-        save_propagation_slices_gif(save_path)
+        save_propagation_steps_gif(save_path)
     except Exception as e:
         logging.error(f"Error during plotting GIF: {e}")
 
@@ -223,12 +223,12 @@ def save_propagation_gif(path: str):
     imageio.mimsave(save_path, images, duration=0.2)
 
 
-def save_propagation_slices_gif(path: str) -> None:
-    """Save vertical and horizontal simulation slices as gif"""
+def save_propagation_steps_gif(path: str) -> None:
+    """Save vertical and horizontal simulation steps as gif"""
     filenames = sorted(glob.glob(os.path.join(path, "*mm.npy")))
 
     # TODO: might not be possible for very large sims to load full sim,
-    # will need to come up with another way to load slices in right format
+    # will need to come up with another way to load steps in right format
     sim = None
     for i, fname in enumerate(filenames):
 
@@ -245,7 +245,7 @@ def save_propagation_slices_gif(path: str) -> None:
     # sim = np.clip(sim, 0.5, np.max(sim))
     # sim = sim.astype(np.uint16)
 
-    # save horizontal slices
+    # save horizontal steps
     horizontal = []
     for i in range(sim.shape[2]):
 
@@ -255,7 +255,7 @@ def save_propagation_slices_gif(path: str) -> None:
     save_path = os.path.join(path, "horizontal.gif")
     imageio.mimsave(save_path, horizontal, duration=0.05)
 
-    # save vertical slices
+    # save vertical steps
     vertical = []
     for i in range(sim.shape[1]):
 

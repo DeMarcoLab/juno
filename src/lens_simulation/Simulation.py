@@ -1,14 +1,11 @@
 import os
 from pathlib import Path
 import uuid
-from venv import create
-
 import petname
 import numpy as np
 import matplotlib.pyplot as plt
 
 from pprint import pprint
-from regex import R
 from scipy import fftpack
 from tqdm import tqdm
 
@@ -166,7 +163,7 @@ def generate_simulation_stages(config: dict, simulation_lenses: dict, parameters
     ################################ BEAM STAGE ################################
 
     # first stage is a beam
-    beam_stage = create_beam_simulation_stage(config, parameters)
+    beam_stage = generate_beam_simulation_stage(config, parameters)
 
     sim_stages.append(beam_stage)
 
@@ -176,7 +173,7 @@ def generate_simulation_stages(config: dict, simulation_lenses: dict, parameters
 
         sim_stage_no = len(sim_stages)
 
-        sim_stage = create_simulation_stage(stage, simulation_lenses, parameters, sim_stage_no)
+        sim_stage = generate_simulation_stage(stage, simulation_lenses, parameters, sim_stage_no)
 
         # NOTE: if the lens and the output have the same medium, the lens is assumed to be 'double-sided'
         # therefore, we invert the lens profile to create an 'air lens' to properly simulate the double sided lens
@@ -185,7 +182,7 @@ def generate_simulation_stages(config: dict, simulation_lenses: dict, parameters
             sim_stage = invert_lens_and_output_medium(sim_stage, sim_stages[sim_stage_no - 1], parameters)
 
         # update config
-        config["stages"][i]["n_slices"] = sim_stage.n_slices
+        config["stages"][i]["n_steps"] = sim_stage.n_steps
         config["stages"][i]["start_distance"] = sim_stage.start_distance
         config["stages"][i]["finish_distance"] = sim_stage.finish_distance
         config["stages"][i]["lens_inverted"] = sim_stage.lens_inverted
@@ -195,24 +192,20 @@ def generate_simulation_stages(config: dict, simulation_lenses: dict, parameters
 
     return sim_stages
 
-def generate_stage(config: dict, lens: Lens, parameters: SimulationParameters, sim_stage_no: int = 0):
+def generate_simulation_stage(stage_config: dict, simulation_lenses: dict, parameters: SimulationParameters, sim_stage_no: int = 0) -> SimulationStage:
 
-    # TODO: could probably wait to generate the lens here?
+    # stage = generate_stage(stage_config, simulation_lenses.get(stage_config.get("lens")), parameters, sim_stage_no)
+
     stage = SimulationStage(
-        lens=lens,
-        output=Medium(config.get("output"), parameters.sim_wavelength),
-        n_slices=config.get("n_slices"),
-        start_distance=config.get("start_distance"),
-        finish_distance=config.get("finish_distance"),
+        lens=simulation_lenses.get(stage_config.get("lens")),
+        output=Medium(stage_config.get("output"), parameters.sim_wavelength),
+        n_steps=stage_config.get("n_steps"),
+        start_distance=stage_config.get("start_distance"),
+        finish_distance=stage_config.get("finish_distance"),
         lens_inverted=False,
         _id=sim_stage_no,
     )
 
-    return stage
-
-def create_simulation_stage(stage_config: dict, simulation_lenses: dict, parameters: SimulationParameters, sim_stage_no: int = 0) -> SimulationStage:
-
-    stage = generate_stage(stage_config, simulation_lenses.get(stage_config.get("lens")), parameters, sim_stage_no)
 
     # dynamically calculate distance based on focal distance
     if stage_config["use_equivalent_focal_distance"] is True:
@@ -220,46 +213,47 @@ def create_simulation_stage(stage_config: dict, simulation_lenses: dict, paramet
                     stage_config.get("focal_distance_start_multiple"),
                     stage_config.get("focal_distance_multiple"))
 
-    # dynamically calculate n_slices
-    stage.n_slices = calculate_num_slices_in_distance(
+    # dynamically calculate n_steps
+    stage.n_steps = calculate_num_steps_in_distance(
                                     stage.start_distance,
                                     stage.finish_distance,
                                     stage_config.get("step_size"),
-                                    stage_config.get("n_slices"))
+                                    stage_config.get("n_steps"))
 
     return stage
 
 
-def create_beam_simulation_stage(config: dict, parameters: SimulationParameters) -> SimulationStage:
+def generate_beam_simulation_stage(config: dict, parameters: SimulationParameters) -> SimulationStage:
 
     beam = generate_beam(config["beam"], parameters)
     beam_stage = SimulationStage(
         lens=beam.lens,
         output=beam.output_medium,
-        n_slices=beam.settings.n_slices,
+        n_steps=beam.settings.n_steps,
         start_distance=beam.start_distance,
         finish_distance=beam.finish_distance,
         tilt={"x": beam.tilt[0], "y": beam.tilt[1]},
     )
 
-    beam_stage.n_slices = calculate_num_slices_in_distance(
+    beam_stage.n_steps = calculate_num_steps_in_distance(
                                     beam_stage.start_distance,
                                     beam_stage.finish_distance,
                                     config["beam"].get("step_size"),
-                                    config["beam"].get("n_slices"))
+                                    config["beam"].get("n_steps"))
 
     return beam_stage
 
 
-def calculate_num_slices_in_distance(start, finish, step_size, n_slices) -> int:
+def calculate_num_steps_in_distance(start, finish, step_size, n_steps) -> int:
 
     if step_size != 0 and step_size is not None:
-        n_slices = int((finish + 1e-12 - start) / step_size)
+        n_steps = int((finish + 1e-12 - start) / step_size)
+        # TODO: add same validation as parameter sweep here... or just calculate the distance array directly?
 
-    if n_slices == 0 or n_slices is None:
-        raise ValueError(f"The number of slices is zero, this will cause an error in propagation. Please increase n_slices, or step_size. n_slices {n_slices}, step_size: {step_size}")
+    if n_steps == 0 or n_steps is None:
+        raise ValueError(f"The number of steps is zero, this will cause an error in propagation. Please increase n_steps, or step_size. n_steps {n_steps}, step_size: {step_size}")
 
-    return n_slices
+    return n_steps
 
 def calculate_start_and_finish_distance_v2(lens: Lens, output: Medium, start_multiple: float, finish_multiple: float):
 
@@ -335,7 +329,7 @@ def propagate_wavefront(
 
     lens: Lens = stage.lens
     output_medium: Medium = stage.output
-    n_slices: int = stage.n_slices
+    n_steps: int = stage.n_steps
     start_distance: float = stage.start_distance
     finish_distance: float = stage.finish_distance
     amplitude: float = parameters.A if passed_wavefront is None else 1.0
@@ -368,12 +362,12 @@ def propagate_wavefront(
     fft_wavefront = fftpack.fft2(wavefront)
 
     # calculate propagation distances
-    distances = np.linspace(start_distance, finish_distance, n_slices)
+    distances = np.linspace(start_distance, finish_distance, n_steps)
 
     # pre-allocate view arrays
-    sim = np.zeros(shape=(n_slices, *sim_profile.shape), dtype=np.float32)
-    top_down_view = np.zeros(shape=(n_slices, sim_profile.shape[1]), dtype=np.float32)
-    side_on_view = np.zeros(shape=(n_slices, sim_profile.shape[0]), dtype=np.float32)
+    sim = np.zeros(shape=(n_steps, *sim_profile.shape), dtype=np.float32)
+    top_down_view = np.zeros(shape=(n_steps, sim_profile.shape[1]), dtype=np.float32)
+    side_on_view = np.zeros(shape=(n_steps, sim_profile.shape[0]), dtype=np.float32)
 
     # propagate the wavefront over distance
     prop_progress_bar = tqdm(distances, leave=False)
@@ -571,7 +565,7 @@ def calculate_tilted_delta_profile(
         x_tilt_rad = np.deg2rad(tilt["x"])
 
         # modify the optical path of the light based on tilt
-        delta = delta + np.add.outer(y * np.tan(y_tilt_rad), -x * np.tan(x_tilt_rad))
+        delta = delta + np.add.outer(y * np.tan(y_tilt_rad), x * np.tan(x_tilt_rad))
 
     return delta
 

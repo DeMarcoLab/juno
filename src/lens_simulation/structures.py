@@ -27,7 +27,7 @@ class SimulationOptions:
 class SimulationStage:
     lens: Lens
     output: Medium
-    n_slices: int
+    n_steps: int
     start_distance: float
     finish_distance: float
     lens_inverted: bool = False
