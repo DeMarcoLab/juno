@@ -32,3 +32,26 @@ def test_create_distance_map_px():
     # assert np.allclose([distance[0, -1], max_distance], np.max(distance), atol=1), "Edges should be maximum distance"
     # assert np.allclose([distance[-1, -1], max_distance], np.max(distance), atol=1), "Edges should be maximum distance"
     # NB: need to check this, it is true if add one more pixel to x, y
+
+
+def test_calculate_num_pixels():
+
+    # no round
+    pixel_size, distance = 1.e-6, 11.e-6
+    n_pixels = utils._calculate_num_of_pixels(distance, pixel_size, odd=True)
+    assert n_pixels == 11
+
+    # round up
+    pixel_size, distance = 1.e-6, 11.5e-6
+    n_pixels = utils._calculate_num_of_pixels(distance, pixel_size, odd=True)
+    assert n_pixels == 13
+
+    # round down
+    pixel_size, distance = 1.e-6, 11.3e-6
+    n_pixels = utils._calculate_num_of_pixels(distance, pixel_size, odd=True)
+    assert n_pixels == 11
+
+    # even
+    pixel_size, distance = 1.e-6, 10e-6
+    n_pixels = utils._calculate_num_of_pixels(distance, pixel_size, odd=False)
+    assert n_pixels == 10

@@ -215,8 +215,8 @@ def save_result_plots(
     fig = plot_simulation(
         arr=result.top_down,
         pixel_size_x=parameters.pixel_size,
-        start_distance=stage.start_distance,
-        finish_distance=stage.finish_distance,
+        start_distance=stage.distances[0],
+        finish_distance=stage.distances[-1],
     )
 
     save_figure(fig, os.path.join(save_path, "topdown.png"))
@@ -225,8 +225,8 @@ def save_result_plots(
     fig = plot_simulation(
         np.log(result.top_down + 10e-12),
         pixel_size_x=parameters.pixel_size,
-        start_distance=stage.start_distance,
-        finish_distance=stage.finish_distance,
+        start_distance=stage.distances[0],
+        finish_distance=stage.distances[-1],
     )
 
     save_figure(fig, os.path.join(save_path, "log_topdown.png"))
@@ -235,8 +235,8 @@ def save_result_plots(
     fig = plot_simulation(
         arr=result.side_on,
         pixel_size_x=parameters.pixel_size,
-        start_distance=stage.start_distance,
-        finish_distance=stage.finish_distance,
+        start_distance=stage.distances[0],
+        finish_distance=stage.distances[-1],
     )
     save_figure(fig, os.path.join(save_path, "sideon.png"))
     plt.close(fig)

@@ -18,7 +18,7 @@ class BeamSpread(Enum):
 
 class DistanceMode(Enum):
     Direct = auto()
-    Width = auto()
+    Diameter = auto()
     Focal = auto()
 
 class BeamShape(Enum):
@@ -26,7 +26,7 @@ class BeamShape(Enum):
     Rectangular = auto()
 
 ############
-# Bsp/ DM:      Direct      Width       Focal
+# Bsp/ DM:      Direct      Diameter       Focal
 # Plane:          Y                       N
 # Converging:     Y                       Y
 # Diverging:      Y                       Y
@@ -204,7 +204,7 @@ class Beam:
             finish_distance = self.focal_distance
 
         # if you want the beam to converge/diverge to a specific width
-        elif self.distance_mode is DistanceMode.Width:
+        elif self.distance_mode is DistanceMode.Diameter:
             final_beam_radius = self.final_diameter/2
             if self.spread is BeamSpread.Converging:
                 finish_distance = self.focal_distance - (final_beam_radius/np.tan(self.theta+1e-12))
@@ -258,7 +258,7 @@ def validate_beam_configuration(settings: BeamSettings):
         if settings.beam_spread not in [BeamSpread.Converging, BeamSpread.Diverging]:
             raise ValueError(f"BeamSpread must be Converging, or Diverging for {settings.distance_mode} (currently {settings.beam_spread})")
 
-    if settings.distance_mode == DistanceMode.Width:
+    if settings.distance_mode == DistanceMode.Diameter:
         if settings.final_diameter is None:
             raise ValueError(f"A final_diameter must be provided for {settings.distance_mode}")
 

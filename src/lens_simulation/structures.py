@@ -27,13 +27,10 @@ class SimulationOptions:
 class SimulationStage:
     lens: Lens
     output: Medium
-    n_steps: int
-    start_distance: float
-    finish_distance: float
+    distances: np.ndarray = None # (propagation distances)
     lens_inverted: bool = False
     _id: int = 0
     tilt: dict = None
-    # distance: np.ndarray # (propagation distances)
 
 @dataclass
 class SimulationRun:

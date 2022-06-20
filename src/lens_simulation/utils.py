@@ -239,7 +239,7 @@ def _calculate_num_of_pixels(width: float, pixel_size: float, odd: bool = True) 
     Returns:
         int: the number of pixels in the image distance
     """
-    n_pixels = int(round(width / pixel_size))
+    n_pixels = round(width / pixel_size) # NOTE: rounding the width first, to prevent flooring.
 
     # n_pixels must be odd (symmetry).
     if odd and n_pixels % 2 == 0:
