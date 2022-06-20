@@ -328,11 +328,26 @@ def test_generate_simulation_stage_with_dynamic_n_steps(config_with_sweep):
     assert stage.finish_distance == sim_config.get("finish_distance")
 
 
+def test_create_beam_simulation_stage(config_with_sweep):
+    config = config_with_sweep
 
+    config["beam"]["step_size"] = None
+    parameters = Simulation.generate_simulation_parameters(config)
+    beam_stage = Simulation.generate_beam_simulation_stage(config, parameters)
 
-# TODO: START_HERE
-# def test_create_beam_simulation_stage(config_with_sweep):
-#     config = config_with_sweep
+    assert beam_stage.output.refractive_index == config["beam"]["output_medium"]
+    assert beam_stage.start_distance == 0
+    assert beam_stage.finish_distance == config["beam"]["source_distance"]
+    assert beam_stage.n_steps == config["beam"]["n_steps"]
+    assert beam_stage.tilt["x"] == config["beam"]["tilt_x"]
+    assert beam_stage.tilt["y"] == config["beam"]["tilt_y"]
+
+    # with dynamic n_steps
+    config["beam"]["step_size"] = (config["beam"]["source_distance"])  / 10
+    beam_stage = Simulation.generate_beam_simulation_stage(config, parameters)
+
+    assert beam_stage.n_steps == 10
+
 
 
 def test_calculate_num_steps_in_distance():
