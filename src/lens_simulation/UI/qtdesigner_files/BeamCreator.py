@@ -583,7 +583,7 @@ class Ui_BeamCreator(object):
         self.label_Width.setText(_translate("BeamCreator", "Width"))
         self.label_OutputMedium.setText(_translate("BeamCreator", "Output Medium"))
         self.label_Height.setText(_translate("BeamCreator", "Height"))
-        self.comboBox_DistanceMethod.setItemText(0, _translate("BeamCreator", "# Slices"))
+        self.comboBox_DistanceMethod.setItemText(0, _translate("BeamCreator", "# Steps"))
         self.comboBox_DistanceMethod.setItemText(1, _translate("BeamCreator", "Step Size"))
         self.label_SimHeight.setText(_translate("BeamCreator", "Sim Height"))
         self.label_PixelSize.setText(_translate("BeamCreator", "Pixel Size"))
