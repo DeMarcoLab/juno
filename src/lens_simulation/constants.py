@@ -24,7 +24,6 @@ BEAM_SWEEPABLE_KEYS = [
 ]
 LENS_SWEEPABLE_KEYS = ["medium", "diameter", "height", "exponent"]
 CUSTOM_PROFILE_KEY = "custom"
-MODIFICATION_SWEEPABLE_KEYS = ["grating", "truncation", "aperture"]
 GRATING_SWEEPABLE_KEYS = [
     "width",
     "distance",
@@ -32,6 +31,7 @@ GRATING_SWEEPABLE_KEYS = [
 ]
 TRUNCATION_SWEEPABLE_KEYS = ["height", "radius"]
 APERTURE_SWEEPABLE_KEYS = ["inner", "outer"]
+MODIFICATION_SWEEPABLE_KEYS = [*GRATING_SWEEPABLE_KEYS, *TRUNCATION_SWEEPABLE_KEYS, *APERTURE_SWEEPABLE_KEYS]
 STAGE_SWEEPABLE_KEYS = [
     "output",
     "start_distance",

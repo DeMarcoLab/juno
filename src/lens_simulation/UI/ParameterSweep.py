@@ -1,12 +1,10 @@
 import sys
 import traceback
 
-from enum import Enum, auto
 import glob
-from venv import create
+
 import lens_simulation
 import os
-from pyparsing import lineStart
 import yaml
 
 
@@ -28,24 +26,12 @@ from PyQt5.QtWidgets import (
     QCheckBox,
     QFileDialog,
 )
-from PyQt5.QtGui import QImage, QPixmap, QMovie
 import numpy as np
 
-from pathlib import Path
 from pprint import pprint
 
-from lens_simulation import validation
-
-from lens_simulation.constants import (
-    MICRON_TO_METRE,
-    METRE_TO_MICRON,
-    NANO_TO_METRE,
-    METRE_TO_NANO,
-    BEAM_SWEEPABLE_KEYS,
-    LENS_SWEEPABLE_KEYS,
-    MODIFICATION_SWEEPABLE_KEYS,
-    STAGE_SWEEPABLE_KEYS
-)
+from lens_simulation import validation, constants
+from lens_simulation.SimulationRunner import generate_parameter_sweep
 
 
 
@@ -113,18 +99,9 @@ class GUIParameterSweep(ParameterSweep.Ui_MainWindow, QtWidgets.QMainWindow):
         paramGridLayout.addWidget(label_beam_title, current_idx, 0)
         current_idx +=1
 
-        all_beam_widgets = {}
-
-        for key, val in self.config["beam"].items():
-
-            if key in BEAM_SWEEPABLE_KEYS:
-                if val is None:
-                    continue # skip none values?
-                widgets = create_param_widgets(key, val, paramGridLayout, current_idx)
-
-                all_beam_widgets[key] = widgets
-
-                current_idx += 1
+        all_beam_widgets, current_idx = create_config_elements(self.config["beam"], 
+                        constants.BEAM_SWEEPABLE_KEYS, paramGridLayout, 
+                        current_idx)
 
         # lenses
         label_lens_title = QLabel()
@@ -147,18 +124,22 @@ class GUIParameterSweep(ParameterSweep.Ui_MainWindow, QtWidgets.QMainWindow):
                 
             for key, val in lens_config.items():
 
-                if key in LENS_SWEEPABLE_KEYS:
-                    widgets = create_param_widgets(key, val, paramGridLayout, current_idx)
+                if key in constants.LENS_SWEEPABLE_KEYS:
+                    widgets = create_param_widgets(key, val, paramGridLayout, current_idx,
+                                            stop_val=lens_config[f"{key}_stop"],
+                                            step_val=lens_config[f"{key}_step"])
                     lens_widgets[key] = widgets
                     current_idx += 1
 
                 if isinstance(val, dict):
+                    
                     lens_widgets[key] = {}
-
                     for k, v in val.items():
-                        
-                        if k in MODIFICATION_SWEEPABLE_KEYS:
-                            widgets = create_param_widgets(f"{key}_{k}", v, paramGridLayout, current_idx)
+                        if k in constants.MODIFICATION_SWEEPABLE_KEYS:
+                            widgets = create_param_widgets(f"{key}_{k}", v, 
+                                            paramGridLayout, current_idx, 
+                                            stop_val=val[f"{k}_stop"],
+                                            step_val=val[f"{k}_step"])
                             lens_widgets[key][k]= widgets
                             current_idx += 1
 
@@ -183,13 +164,11 @@ class GUIParameterSweep(ParameterSweep.Ui_MainWindow, QtWidgets.QMainWindow):
             
             paramGridLayout.addWidget(stage_name_label, current_idx, 0)
             current_idx +=1
-                
-            for key, val in stage_config.items():
 
-                if key in STAGE_SWEEPABLE_KEYS:
-                    widgets = create_param_widgets(key, val, paramGridLayout, current_idx)
-                    stage_widgets[key] = widgets
-                    current_idx += 1
+            stage_widgets, current_idx = create_config_elements(stage_config, 
+                                            constants.STAGE_SWEEPABLE_KEYS, 
+                                            paramGridLayout, 
+                                            current_idx)                
 
             all_stage_widgets.append(stage_widgets) 
 
@@ -201,7 +180,94 @@ class GUIParameterSweep(ParameterSweep.Ui_MainWindow, QtWidgets.QMainWindow):
         self.lens_widgets = all_lens_widgets
         self.stage_widgets = all_stage_widgets
 
-    # TODO: load config into this UI? 
+        # connect all widgets for combo updates
+        self.connect_all_widgets()
+
+# TODO: consolidate and rationalise all these different data structures.... beam, lens and stage are all different?
+
+    def connect_all_widgets(self):
+
+        for k, v in self.beam_widgets.items():
+
+            self.connect_widgets(v)
+
+        for lw in self.lens_widgets:
+            for k, v in lw.items():
+                if isinstance(v, list):
+                    self.connect_widgets(v)
+                
+                if isinstance(v, dict):
+                    for k2, v2 in v.items():
+                        self.connect_widgets(v2)
+        
+        for sw in self.stage_widgets:
+            for k, v in sw.items():
+                if isinstance(v, list):
+                    self.connect_widgets(v)
+
+
+
+    def connect_widgets(self, widgets):
+
+        if isinstance(widgets, list):
+            widgets[1].textChanged.connect(self.on_update)
+            widgets[2].textChanged.connect(self.on_update)
+            widgets[3].textChanged.connect(self.on_update)
+
+        
+    def on_update(self):
+        def get_param_values(widgets):
+            start, stop, step = float(widgets[1].text()), float(widgets[2].text()), float(widgets[3].text())
+            
+            return start, stop, step
+        
+        def update_combination_widget(widgets):
+            try:
+
+                start, stop, step = get_param_values(widgets)
+                sweep = generate_parameter_sweep(start, stop, step)
+                widgets[4].setText(f"{len(sweep)}")
+                self.statusBar.clearMessage()
+
+            except Exception as e:
+                widgets[4].setText(f"INVALID")
+                self.statusBar.showMessage(f"Invalid parameter values: {e}")
+
+
+        def check_matching_widget(widgets: list, sender, k):
+            for w in widgets:
+                if w == self.sender():
+                    
+                    print(f"IT WAS ME: {k}: {sender} ")
+                    update_combination_widget(widgets)
+                    return True
+            
+            return False
+
+    
+        for k, widgets in self.beam_widgets.items():
+            if check_matching_widget(widgets, self.sender(), k):
+                break
+
+
+        for lw in self.lens_widgets:
+            for k, v in lw.items():
+                if isinstance(v, list):
+                    if check_matching_widget(v, self.sender(), k):
+                        break
+                
+                if isinstance(v, dict):
+                    for k2, v2 in v.items():
+                        if check_matching_widget(v2, self.sender(), f"{k}_{k2}"):
+                            break
+        
+        for sw in self.stage_widgets:
+            for k, v in sw.items():
+                if isinstance(v, list):
+                    if check_matching_widget(v, self.sender(), k):
+                        break
+
+
 
     def read_sweep_values_into_config(self):
         """Read parameter sweep values into configuration."""
@@ -279,16 +345,44 @@ class GUIParameterSweep(ParameterSweep.Ui_MainWindow, QtWidgets.QMainWindow):
 
 # TODO: update combination counts?
 
+# TODO: validate sweep values here?
 
 
+def create_config_elements(config: dict, sweep_keys, layout, current_idx: int) -> list:
 
-def create_param_widgets(key, val, layout, idx) -> list :
+    all_widgets = {}
+
+    for key, val in config.items():
+
+        if key in sweep_keys:
+            if val is None:
+                continue # skip none values?
+
+            widgets = create_param_widgets(key, val, layout, current_idx, 
+                                stop_val=config[f"{key}_stop"], 
+                                step_val=config[f"{key}_step"])
+            
+            all_widgets[key] = widgets
+
+            current_idx += 1
+
+    return all_widgets, current_idx
+
+
+def create_param_widgets(key, val, layout, idx, stop_val = None, step_val = None ) -> list :
     label_param, lineedit_start, lineedit_stop, lineedit_step_size, label_n_combo = QLabel(), QLineEdit(), QLineEdit(), QLineEdit(), QLabel()
     label_n_combo.setAlignment(QtCore.Qt.AlignCenter)
 
     label_param.setText(str(key))
     lineedit_start.setText(str(val))
     label_n_combo.setText("1")
+
+    # stop
+    if stop_val is not None:
+        lineedit_stop.setText(str(stop_val))
+    # step
+    if step_val is not None:
+        lineedit_step_size.setText(str(step_val))
 
     layout.addWidget(label_param, idx, 0)
     layout.addWidget(lineedit_start, idx, 1)
@@ -301,20 +395,8 @@ def create_param_widgets(key, val, layout, idx) -> list :
 
 
 
-def display_error_message(message, title="Error Message"):
-    """PyQt dialog box displaying an error message."""
-    # logging.debug('display_error_message')
-    # logging.exception(message)
-    error_dialog = QtWidgets.QErrorMessage()
-    error_dialog.setWindowTitle(title)
-    error_dialog.showMessage(message)
-    error_dialog.showNormal()
-    error_dialog.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
-    error_dialog.exec_()
-
-
 def main():
-    config = utils.load_config(os.path.join(os.path.dirname(lens_simulation.__file__), "config.yaml"))
+    config = utils.load_config(os.path.join(os.path.dirname(lens_simulation.__file__), "sweep.yaml"))
 
     """Launch the main application window. """
     application = QtWidgets.QApplication([])
