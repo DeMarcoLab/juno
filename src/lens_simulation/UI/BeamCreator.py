@@ -7,13 +7,12 @@ import lens_simulation.UI.qtdesigner_files.BeamCreator as BeamCreator
 import numpy as np
 import yaml
 from lens_simulation import constants, utils
+from lens_simulation.Lens import Medium
 from lens_simulation.beam import generate_beam
+from lens_simulation.Simulation import SimulationStage, SimulationParameters, SimulationOptions, propagate_wavefront
 from matplotlib import pyplot as plt
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
 from PyQt5 import QtCore, QtGui, QtWidgets
-
-from lens_simulation.structures import SimulationParameters
-
 
 # maps the index of comboboxes to a constant
 units_dict = {
@@ -50,14 +49,20 @@ class GUIBeamCreator(BeamCreator.Ui_BeamCreator, QtWidgets.QMainWindow):
         # set up of image frames
         self.pc_Profile = None
         self.pc_Convergence = None
+        self.pc_FinalProfile = None
+
+        self.result = None
 
         # shift from tilt
-        self.shift_x = 0
-        self.shift_y = 0
+        self.t_shift_x = 0
+        self.t_shift_y = 0
+        self.c_shift_l = 0
+        self.c_shift_r = 0
 
         self.create_new_beam_dict()
         self.create_new_sim_dict()
         self.create_beam()
+        self.calculate_final_profile()
         self.update_UI_limits()
         self.update_UI()
 
@@ -72,6 +77,7 @@ class GUIBeamCreator(BeamCreator.Ui_BeamCreator, QtWidgets.QMainWindow):
         self.pushButton_LoadProfile.clicked.connect(self.load_profile)
         self.pushButton_GenerateProfile.clicked.connect(self.create_beam)
         self.pushButton_SaveProfile.clicked.connect(self.save_profile)
+        self.pushButton_CalculateFinalProfile.clicked.connect(self.calculate_final_profile)
 
         self.comboBox_Units.currentIndexChanged.connect(self.update_units)
 
@@ -87,12 +93,13 @@ class GUIBeamCreator(BeamCreator.Ui_BeamCreator, QtWidgets.QMainWindow):
             if value.__class__ is QtWidgets.QComboBox
         ]
 
+
     ### Generation methods ###
 
     def create_new_sim_dict(self):
         # dummy sim
         self.sim_dict = dict()
-        self.sim_dict["pixel_size"] = 1.0e-6
+        self.sim_dict["pixel_size"] = .1 * self.units
 
         if self.beam_dict["spread"].title() != "Plane":
             self.beam_dict["shape"] = "Circular"
@@ -409,18 +416,18 @@ class GUIBeamCreator(BeamCreator.Ui_BeamCreator, QtWidgets.QMainWindow):
 
         if self.beam_dict["distance_mode"].title() == "Width":
             if self.beam_dict["spread"].title() == "Diverging":
-                self.doubleSpinBox_Distance.setMinimum(self.beam_dict["width"]/self.units)
+                self.doubleSpinBox_Distance.setMinimum(
+                    self.beam_dict["width"] / self.units
+                )
                 self.doubleSpinBox_Distance.setMaximum(99999)
             elif self.beam_dict["spread"].title() == "Converging":
                 self.doubleSpinBox_Distance.setMinimum(0)
-                self.doubleSpinBox_Distance.setMaximum(self.beam_dict["width"]/self.units)
+                self.doubleSpinBox_Distance.setMaximum(
+                    self.beam_dict["width"] / self.units
+                )
         else:
             self.doubleSpinBox_Distance.setMinimum(0)
             self.doubleSpinBox_Distance.setMaximum(99999)
-
-
-                # if self.doubleSpinBox_Distance.value() < self.doubleSpinBox_Distance.minimum():
-                #     self.doubleSpinBox_Distance.setValue(self.doubleSpinBox_Distance.minimum())
 
         if self.beam_dict["spread"].title() == "Converging":
             pass
@@ -478,24 +485,52 @@ class GUIBeamCreator(BeamCreator.Ui_BeamCreator, QtWidgets.QMainWindow):
         plt.close("all")
 
         self.calculate_tilt_effect()
+        self.calculate_convergence_effect()
+
+        pos = [self.beam_dict["position_x"], self.beam_dict["position_y"]]
 
         self.pc_Profile = self.update_frame(
             label=self.label_Profile,
             pc=self.pc_Profile,
-            profile=True,
-            points=[self.shift_x, self.shift_y],
-            position=[self.beam_dict["position_x"], self.beam_dict["position_y"]],
+            profile="main",
+            points=[self.t_shift_x, self.t_shift_y],
+            position=pos,
+            units=self.units
         )
 
-        # self.pc_Convergence = self.update_frame(
-        #     label=self.label_ProfileMask,
-        #     pc=self.pc_ProfileMask,
-        #     image=profile_mask_image,
-        #     ndim=2,
-        #     mask=True,
-        # )
+        axis = 0
 
-    def update_frame(self, label, pc, profile, points, position):
+        if self.comboBox_ConvergenceDisplay.currentText() == "X":
+            convergence_array = np.zeros(shape=(100, self.beam.lens.profile.shape[1]))
+            axis = 0
+        else:
+            convergence_array = np.zeros(shape=(100, self.beam.lens.profile.shape[0]))
+            axis = 1
+
+        self.pc_Convergence = self.update_frame(
+            label=self.label_Convergence,
+            pc=self.pc_Convergence,
+            profile="convergence",
+            points=[self.c_shift_l],
+            position=pos,
+            array=convergence_array,
+            axis=axis
+        )
+
+        if self.result is not None:
+            self.pc_FinalProfile = self.update_frame(
+                label=self.label_FinalProfile,
+                pc=self.pc_FinalProfile,
+                profile="final",
+                points=[self.c_shift_l],
+                position=pos,
+                array=self.result.sim[-1],
+                axis=axis
+            )
+
+
+
+    def update_frame(self, label, pc, profile, points, position, array=None, axis=0, units=1e-6):
         """Helper function for update_image_frames"""
         if label.layout() is None:
             label.setLayout(QtWidgets.QVBoxLayout())
@@ -509,6 +544,9 @@ class GUIBeamCreator(BeamCreator.Ui_BeamCreator, QtWidgets.QMainWindow):
             profile=profile,
             points=points,
             position=position,
+            array=array,
+            axis=axis,
+            units=units
         )
 
         label.layout().addWidget(pc)
@@ -551,17 +589,58 @@ class GUIBeamCreator(BeamCreator.Ui_BeamCreator, QtWidgets.QMainWindow):
     def calculate_tilt_effect(self):
         finish_distance = self.beam.calculate_propagation_distance()[1]
 
-        self.shift_x = 0
-        self.shift_y = 0
+        self.t_shift_x = 0
+        self.t_shift_y = 0
 
         if self.beam_dict["tilt_x"] != 0:
-            self.shift_x = finish_distance * np.tan(
+            self.t_shift_x = finish_distance * np.tan(
                 np.deg2rad(self.beam_dict["tilt_x"])
             )
+            print(self.t_shift_x)
         if self.beam_dict["tilt_y"] != 0:
-            self.shift_y = finish_distance * np.tan(
+            self.t_shift_y = finish_distance * np.tan(
                 np.deg2rad(self.beam_dict["tilt_y"])
             )
+            print(self.t_shift_y)
+
+    def calculate_convergence_effect(self):
+        finish_distance = self.beam.calculate_propagation_distance()[1]
+
+        self.c_shift_l = 0
+        self.c_shift_yr = 0
+
+        if self.beam_dict["spread"].title() == "Plane":
+            return
+
+        if self.beam.theta != 0:
+            self.c_shift_l = finish_distance * np.tan(self.beam.theta)
+            self.c_shift_r = -self.c_shift_l
+
+        if self.beam_dict["spread"].title() == "Diverging":
+            self.c_shift_l *= -1
+            self.c_shift_r *= -1
+
+    def calculate_final_profile(self):
+
+        stage = SimulationStage(lens=self.beam.lens,
+                                output=Medium(self.beam_dict["output_medium"]),
+                                n_slices=3,
+                                start_distance=self.beam.calculate_propagation_distance()[0],
+                                finish_distance=self.beam.calculate_propagation_distance()[1],
+                                tilt={"x":self.beam_dict["tilt_x"], "y":self.beam_dict["tilt_y"]},
+                                )
+
+        parameters = SimulationParameters(A=10000,
+                                          pixel_size=self.sim_dict["pixel_size"],
+                                          sim_width=self.sim_dict["width"],
+                                          sim_height=self.sim_dict["height"],
+                                          sim_wavelength=self.sim_dict["wavelength"])
+
+        options = SimulationOptions(log_dir='', save=False, save_plot=False)
+
+        self.result = propagate_wavefront(stage=stage, parameters=parameters, options=options)
+
+        self.update_image_frames()
 
     ### Window methods ###
 
@@ -587,11 +666,10 @@ class GUIBeamCreator(BeamCreator.Ui_BeamCreator, QtWidgets.QMainWindow):
 
 class _ImageCanvas(FigureCanvasQTAgg, QtWidgets.QWidget):
     def __init__(
-        self, parent=None, profile=None, lens=None, points=None, position=[0, 0]
+        self, parent=None, profile=None, lens=None, points=None, position=[0, 0], array=None, axis=0, units=1e-6
     ):
 
-        if profile is not None:
-            colorbar_ticks = None
+        if profile == "main":
             self.fig = utils.plot_lens_profile_2D(
                 lens,
                 facecolor="#f0f0f0",
@@ -601,7 +679,7 @@ class _ImageCanvas(FigureCanvasQTAgg, QtWidgets.QWidget):
                     -lens.profile.shape[0] / 2 * lens.pixel_size,
                     lens.profile.shape[0] / 2 * lens.pixel_size,
                 ],
-                colorbar_ticks=colorbar_ticks,
+                colorbar_ticks=None,
             )
             axes = self.fig.axes[0]
             # axes.plot(
@@ -612,18 +690,55 @@ class _ImageCanvas(FigureCanvasQTAgg, QtWidgets.QWidget):
             arrow = axes.arrow(
                 x=position[0],
                 y=-position[1],
-                dx= points[0],
-                dy= points[1],
-                width=1e-6,
+                dx=points[0],
+                dy=-points[1],
+                width=1*units,
                 length_includes_head=True,
             )
             arrow.set_label("Tilt Direction and Shift")
             axes.legend()
 
-        else:
-            pass
+        elif profile == "convergence":
+            self.fig = utils.plot_array_2D(
+                array=array,
+                facecolor="#f0f0f0",
+                extent=[
+                    -lens.profile.shape[1-axis] / 2 * lens.pixel_size,
+                    lens.profile.shape[1-axis] / 2 * lens.pixel_size,
+                    100,
+                    0,
+                ],
+                title="",
+                colorbar_ticks=None
+            )
+            axes = self.fig.axes[0]
+            axes.plot(
+                [position[axis]-lens.diameter/2, position[axis]-lens.diameter/2 + points[0]],
+                (0, 100),
+                "k",
+                linewidth=2
+            )
+            axes.plot(
+                [position[axis]+lens.diameter/2, position[axis]+lens.diameter/2 - points[0]],
+                (0, 100),
+                "k",
+                linewidth=2
+            )
             # DO
 
+        else:
+            self.fig = utils.plot_array_2D(
+                array=array,
+                facecolor="#f0f0f0",
+                extent=[
+                    -lens.profile.shape[1] / 2 * lens.pixel_size,
+                    lens.profile.shape[1] / 2 * lens.pixel_size,
+                    -lens.profile.shape[0] / 2 * lens.pixel_size,
+                    lens.profile.shape[0] / 2 * lens.pixel_size,
+                ],
+                title="",
+                colorbar_ticks=None
+            )
         FigureCanvasQTAgg.__init__(self, self.fig)
         self.setParent(parent)
 
