@@ -282,9 +282,6 @@ def test_generate_simulation_stages(config_with_sweep):
         # check parameters are assigned correctly
         assert ss.output.refractive_index == sc.get("output")
         assert ss.output.wavelength == parameters.sim_wavelength
-        assert ss.n_steps != 0
-        assert ss.finish_distance != 0.0
-
 
 
 def test_generate_simulation_stage(config_with_sweep):
@@ -301,9 +298,9 @@ def test_generate_simulation_stage(config_with_sweep):
 
     assert stage.output.refractive_index == sim_config.get("output")
     assert stage.output.wavelength == parameters.sim_wavelength
-    assert stage.n_steps == sim_config.get("n_steps")
-    assert stage.start_distance == sim_config.get("start_distance")
-    assert stage.finish_distance == sim_config.get("finish_distance")
+    assert len(stage.distances) == sim_config.get("n_steps")
+    assert stage.distances[0] == sim_config.get("start_distance")
+    assert stage.distances[-1] == sim_config.get("finish_distance")
     assert stage._id == 0
 
 def test_generate_simulation_stage_with_dynamic_n_steps(config_with_sweep):
@@ -323,9 +320,9 @@ def test_generate_simulation_stage_with_dynamic_n_steps(config_with_sweep):
                     sim_config.get("step_size"), 
                     None)
 
-    assert stage.n_steps == n_steps
-    assert stage.start_distance == sim_config.get("start_distance")
-    assert stage.finish_distance == sim_config.get("finish_distance")
+    assert len(stage.distances) == n_steps
+    assert stage.distances[0] == sim_config.get("start_distance")
+    assert stage.distances[-1] == sim_config.get("finish_distance")
 
 
 def test_create_beam_simulation_stage(config_with_sweep):
@@ -336,9 +333,9 @@ def test_create_beam_simulation_stage(config_with_sweep):
     beam_stage = Simulation.generate_beam_simulation_stage(config, parameters)
 
     assert beam_stage.output.refractive_index == config["beam"]["output_medium"]
-    assert beam_stage.start_distance == 0
-    assert beam_stage.finish_distance == config["beam"]["source_distance"]
-    assert beam_stage.n_steps == config["beam"]["n_steps"]
+    assert len(beam_stage.distances) == config["beam"]["n_steps"]
+    assert beam_stage.distances[0] == 0
+    assert beam_stage.distances[-1] == config["beam"]["source_distance"]
     assert beam_stage.tilt["x"] == config["beam"]["tilt_x"]
     assert beam_stage.tilt["y"] == config["beam"]["tilt_y"]
 
@@ -346,7 +343,7 @@ def test_create_beam_simulation_stage(config_with_sweep):
     config["beam"]["step_size"] = (config["beam"]["source_distance"])  / 10
     beam_stage = Simulation.generate_beam_simulation_stage(config, parameters)
 
-    assert beam_stage.n_steps == 10
+    assert len(beam_stage.distances) == 10 + 1
 
 
 
@@ -359,7 +356,7 @@ def test_calculate_num_steps_in_distance():
 
     n_steps = Simulation.calculate_num_steps_in_distance(start_distance, finish_distance, step_size, n_steps)
 
-    assert n_steps == 10
+    assert n_steps == 11
 
 def test_calculate_num_steps_in_distance_raises_error():
 
@@ -387,3 +384,38 @@ def test_calculate_start_and_finish_distance(config_with_sweep):
     # lens = simulation_lenses.get(sim_config["lens"])
     # stage = Simulation.generate_simulation_stage(sim_config, lens, parameters, 0)
 
+
+
+def test_calculate_propagation_distances():
+
+    sd, fd, step_size, n_steps = 0, 10.e-3, 0, 3
+    distances = Simulation.calculate_propagation_distances(sd, fd, n_steps, step_size) 
+    assert np.array_equal(distances, [0, 5.e-3, 10.e-3]), "Distance arrays should be equal"
+    
+    sd, fd, step_size, n_steps = 0, 10.e-3, 5.e-3, 0
+    distances = Simulation.calculate_propagation_distances(sd, fd, n_steps, step_size) 
+    assert np.array_equal(distances, [0, 5.e-3, 10.e-3]), "Distance arrays should be equal"
+
+
+def test_calculate_propagation_distances_raises_error():
+
+    # start greater than finish
+    sd, fd, step_size, n_steps = 10, 0, 0, 3
+    with pytest.raises(ValueError):
+        distances = Simulation.calculate_propagation_distances(sd, fd, n_steps, step_size) 
+    
+    # step size and n_steps are both zero
+    sd, fd, step_size, n_steps = 0, 10.e-3, 0, 0
+    with pytest.raises(ValueError):
+        distances = Simulation.calculate_propagation_distances(sd, fd, n_steps, step_size) 
+    
+    # step size larger than range
+    sd, fd, step_size, n_steps = 0, 10, 20, 1
+    with pytest.raises(ValueError):
+        distances = Simulation.calculate_propagation_distances(sd, fd, n_steps, step_size) 
+    
+    # n_steps is zero, with no step_size defined
+    sd, fd, step_size, n_steps = 0, 10, 0, 0
+    with pytest.raises(ValueError):
+        distances = Simulation.calculate_propagation_distances(sd, fd, n_steps, step_size) 
+    
