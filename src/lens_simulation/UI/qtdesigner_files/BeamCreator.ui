@@ -652,7 +652,7 @@
                </item>
                <item>
                 <property name="text">
-                 <string>Final Beam Width</string>
+                 <string>Final Beam Diameter</string>
                 </property>
                </item>
                <item>
