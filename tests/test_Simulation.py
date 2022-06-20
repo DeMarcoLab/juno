@@ -295,6 +295,8 @@ def test_generate_simulation_stage(config_with_sweep):
     simulation_lenses = Simulation.generate_lenses(config["lenses"], parameters)
 
     sim_config = config["stages"][0]
+    sim_config["use_equivalent_focal_distance"] = False
+    sim_config["step_size"] = None
     stage = Simulation.generate_simulation_stage(sim_config, simulation_lenses, parameters, 0)
 
     assert stage.output.refractive_index == sim_config.get("output")
