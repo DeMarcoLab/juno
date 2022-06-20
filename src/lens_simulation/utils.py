@@ -259,7 +259,7 @@ def load_config(config_filename):
 
     config = validation._validate_simulation_config(config)
     # validation
-    
+
     # TODO move to validation, finish
     # convert all height and exponent values to float
     for i, lens in enumerate(config["lenses"]):
@@ -417,7 +417,7 @@ def _calculate_num_of_pixels(width: float, pixel_size: float, odd: bool = True) 
     Returns:
         int: the number of pixels in the image distance
     """
-    n_pixels = int(width / pixel_size)
+    n_pixels = int(round(width / pixel_size))
 
     # n_pixels must be odd (symmetry).
     if odd and n_pixels % 2 == 0:

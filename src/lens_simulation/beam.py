@@ -74,7 +74,7 @@ class Beam:
 
         self.tilt: list[float] = [settings.tilt_x, settings.tilt_y]
 
-        self.settings: BeamSettings = settings 
+        self.settings: BeamSettings = settings
 
     def __repr__(self) -> str:
 
@@ -102,7 +102,7 @@ class Beam:
             diameter=max(self.width, self.height),
             height=100,                     # arbitrary non-zero
             exponent=2,                     # must be 2 for focusing
-            medium=Medium(100),              # arbitrary non-zero
+            medium=Medium(100),                  # arbitrary non-zero
         )
 
         lens.generate_profile(pixel_size=pixel_size)
@@ -153,6 +153,8 @@ class Beam:
         pixel_size = parameters.pixel_size
         sim_width = parameters.sim_width
         sim_height = parameters.sim_height
+        sim_width_px = utils._calculate_num_of_pixels(sim_width, pixel_size)
+        sim_height_px = utils._calculate_num_of_pixels(sim_height, pixel_size)
 
         # set up the part of the lens profile that isn't the lens for aperturing
         non_lens_profile = lens.profile == 0
@@ -163,8 +165,8 @@ class Beam:
         beam_position = self.position
 
         # when sim height 2px less than sim_width
-        pad_height = (int(sim_height/pixel_size)-lens.profile.shape[0])//2 + 1    # px
-        pad_width = (int(sim_width/pixel_size)-lens.profile.shape[1])//2 + 1    # px
+        pad_height = (sim_height_px-lens.profile.shape[0])//2   # px
+        pad_width = (sim_width_px-lens.profile.shape[1])//2    # px
 
         relative_position_x = int(beam_position[0]/pixel_size)                  # px
         relative_position_y = int(beam_position[1]/pixel_size)                  # px

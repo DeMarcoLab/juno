@@ -596,12 +596,10 @@ class GUIBeamCreator(BeamCreator.Ui_BeamCreator, QtWidgets.QMainWindow):
             self.t_shift_x = finish_distance * np.tan(
                 np.deg2rad(self.beam_dict["tilt_x"])
             )
-            print(self.t_shift_x)
         if self.beam_dict["tilt_y"] != 0:
             self.t_shift_y = finish_distance * np.tan(
                 np.deg2rad(self.beam_dict["tilt_y"])
             )
-            print(self.t_shift_y)
 
     def calculate_convergence_effect(self):
         finish_distance = self.beam.calculate_propagation_distance()[1]
