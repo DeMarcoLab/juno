@@ -1,14 +1,11 @@
 import os
 from pathlib import Path
 import uuid
-from venv import create
-
 import petname
 import numpy as np
 import matplotlib.pyplot as plt
 
 from pprint import pprint
-from regex import R
 from scipy import fftpack
 from tqdm import tqdm
 
@@ -166,7 +163,7 @@ def generate_simulation_stages(config: dict, simulation_lenses: dict, parameters
     ################################ BEAM STAGE ################################
 
     # first stage is a beam
-    beam_stage = create_beam_simulation_stage(config, parameters)
+    beam_stage = generate_beam_simulation_stage(config, parameters)
 
     sim_stages.append(beam_stage)
 
@@ -176,7 +173,7 @@ def generate_simulation_stages(config: dict, simulation_lenses: dict, parameters
 
         sim_stage_no = len(sim_stages)
 
-        sim_stage = create_simulation_stage(stage, simulation_lenses, parameters, sim_stage_no)
+        sim_stage = generate_simulation_stage(stage, simulation_lenses, parameters, sim_stage_no)
 
         # NOTE: if the lens and the output have the same medium, the lens is assumed to be 'double-sided'
         # therefore, we invert the lens profile to create an 'air lens' to properly simulate the double sided lens
@@ -195,24 +192,20 @@ def generate_simulation_stages(config: dict, simulation_lenses: dict, parameters
 
     return sim_stages
 
-def generate_stage(config: dict, lens: Lens, parameters: SimulationParameters, sim_stage_no: int = 0):
+def generate_simulation_stage(stage_config: dict, simulation_lenses: dict, parameters: SimulationParameters, sim_stage_no: int = 0) -> SimulationStage:
 
-    # TODO: could probably wait to generate the lens here?
+    # stage = generate_stage(stage_config, simulation_lenses.get(stage_config.get("lens")), parameters, sim_stage_no)
+
     stage = SimulationStage(
-        lens=lens,
-        output=Medium(config.get("output"), parameters.sim_wavelength),
-        n_slices=config.get("n_slices"),
-        start_distance=config.get("start_distance"),
-        finish_distance=config.get("finish_distance"),
+        lens=simulation_lenses.get(stage_config.get("lens")),
+        output=Medium(stage_config.get("output"), parameters.sim_wavelength),
+        n_slices=stage_config.get("n_slices"),
+        start_distance=stage_config.get("start_distance"),
+        finish_distance=stage_config.get("finish_distance"),
         lens_inverted=False,
         _id=sim_stage_no,
     )
 
-    return stage
-
-def create_simulation_stage(stage_config: dict, simulation_lenses: dict, parameters: SimulationParameters, sim_stage_no: int = 0) -> SimulationStage:
-
-    stage = generate_stage(stage_config, simulation_lenses.get(stage_config.get("lens")), parameters, sim_stage_no)
 
     # dynamically calculate distance based on focal distance
     if stage_config["use_equivalent_focal_distance"] is True:
@@ -230,7 +223,7 @@ def create_simulation_stage(stage_config: dict, simulation_lenses: dict, paramet
     return stage
 
 
-def create_beam_simulation_stage(config: dict, parameters: SimulationParameters) -> SimulationStage:
+def generate_beam_simulation_stage(config: dict, parameters: SimulationParameters) -> SimulationStage:
 
     beam = generate_beam(config["beam"], parameters)
     beam_stage = SimulationStage(
@@ -571,7 +564,7 @@ def calculate_tilted_delta_profile(
         x_tilt_rad = np.deg2rad(tilt["x"])
 
         # modify the optical path of the light based on tilt
-        delta = delta + np.add.outer(y * np.tan(y_tilt_rad), -x * np.tan(x_tilt_rad))
+        delta = delta + np.add.outer(y * np.tan(y_tilt_rad), x * np.tan(x_tilt_rad))
 
     return delta
 
