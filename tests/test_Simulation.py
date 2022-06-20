@@ -1,9 +1,10 @@
+from matplotlib.pyplot import step
 import numpy as np
 import pytest
 from lens_simulation import Simulation
-from lens_simulation.Lens import Lens, LensType
+from lens_simulation.Lens import Lens, LensType, generate_lens
 from lens_simulation.Medium import Medium
-from lens_simulation.structures import SimulationParameters
+from lens_simulation.structures import SimulationParameters, SimulationStage
 from lens_simulation import utils
 
 
@@ -175,3 +176,185 @@ def test_pad_simulation_symmetric(sim_parameters):
     assert sim_profile[-1, 0] == 0, "Corners should be zero"
     assert sim_profile[-1, -1] == 0, "Corners should be zero"
 
+
+## SIMULATION SETUP
+import os
+
+@pytest.fixture
+def config_with_sweep():
+
+    config = utils.load_config(
+        os.path.join(os.path.dirname(__file__), "test_config_with_sweep.yaml")
+    )
+
+    return config
+
+
+def test_Simulation_init():
+
+    return NotImplemented
+
+## GENERATE SIM PROPERTIES AND DATA
+
+def test_generate_simulation_parameters(config_with_sweep):
+    config = config_with_sweep
+
+    parameters = Simulation.generate_simulation_parameters(config)
+
+    assert parameters.A == config["sim_parameters"]["A"]
+    assert parameters.pixel_size == config["sim_parameters"]["pixel_size"]
+    assert parameters.sim_width == config["sim_parameters"]["sim_width"]
+    assert parameters.sim_height == config["sim_parameters"]["sim_height"]
+    assert parameters.sim_wavelength == config["sim_parameters"]["sim_wavelength"]
+
+
+def test_generate_simulation_options(config_with_sweep):
+
+    config = config_with_sweep
+
+    options = Simulation.generate_simulation_options(config, "log")
+
+    assert options.log_dir == "log"
+    assert options.save == config["options"]["save"]
+    assert options.save_plot == config["options"]["save_plot"]
+    assert options.verbose == config["options"]["verbose"]
+    assert options.debug == config["options"]["debug"]
+
+
+
+def test_generate_lenses(config_with_sweep):
+    config = config_with_sweep
+
+    parameters = Simulation.generate_simulation_parameters(config)
+
+    simulation_lenses = Simulation.generate_lenses(config["lenses"], parameters)
+
+    assert len(simulation_lenses) == len(config.get("lenses")), f"The number of generated lenses is different than specified in the config. generated: {len(simulation_lenses)} , config: {len(config.get('lenses'))} "
+
+    for lc in config.get("lenses"):
+        
+        lens = simulation_lenses.get(lc["name"])  # get lens by name, check parameters are the same
+        assert lens.diameter == lc.get("diameter")
+        assert lens.height == lc.get("height")
+        assert lens.exponent == lc.get("exponent")
+        assert lens.pixel_size == parameters.pixel_size
+
+def test_generate_lens_raises_error_for_lens_larger_than_sim(config_with_sweep):
+
+    config = config_with_sweep
+    config["sim_parameters"]["sim_width"] = 1.e-6
+    config["sim_parameters"]["sim_height"] = 1.e-6
+
+    parameters = Simulation.generate_simulation_parameters(config)
+
+    # raises value error if lens larger than sim width / height
+    with pytest.raises(ValueError):
+        simulation_lenses = Simulation.generate_lenses(config["lenses"], parameters)
+    
+
+def test_generate_lens_raises_error_for_lens_escape_path_outside_sim(config_with_sweep):
+
+    config = config_with_sweep
+    config["lenses"][0]["escape_path"] = 2.0
+
+    parameters = Simulation.generate_simulation_parameters(config)
+
+    # raises value error because escape path outside sim
+    with pytest.raises(ValueError):
+        simulation_lenses = Simulation.generate_lenses(config["lenses"], parameters)
+    
+
+
+def test_generate_simulation_stages(config_with_sweep):
+
+    config = config_with_sweep
+
+    parameters = Simulation.generate_simulation_parameters(config)
+    simulation_lenses = Simulation.generate_lenses(config["lenses"], parameters)
+
+    simulation_stages = Simulation.generate_simulation_stages(config, simulation_lenses, parameters)
+
+    # needs to be +1 to account for beam stage
+    assert len(simulation_stages) == len(config["stages"]) + 1,   f"The number of generated stages is different than specified in the config. generated: {len(simulation_stages)} , config: {len(config.get('stages'))} "
+
+    for ss, sc in zip(simulation_stages, config["stages"]):
+
+        # check parameters are assigned correctly
+        assert ss.output.refractive_index == sc.get("output")
+        assert ss.output.wavelength == parameters.sim_wavelength
+        assert ss.n_slices != 0
+        assert ss.finish_distance != 0.0
+
+
+
+def test_generate_simulation_stage(config_with_sweep):
+
+    config = config_with_sweep
+
+    parameters = Simulation.generate_simulation_parameters(config)
+    simulation_lenses = Simulation.generate_lenses(config["lenses"], parameters)
+
+    sim_config = config["stages"][0]
+    lens = simulation_lenses.get(sim_config["lens"])
+    stage = Simulation.generate_stage(sim_config, lens, parameters, 0)
+
+    assert stage.output.refractive_index == sim_config.get("output")
+    assert stage.output.wavelength == parameters.sim_wavelength
+    assert stage.n_slices == sim_config.get("n_slices")
+    assert stage.start_distance == sim_config.get("start_distance")
+    assert stage.finish_distance == sim_config.get("finish_distance")
+    assert stage._id == 0
+
+# TODO: START_HERE
+# def test_create_simulation_stage(config_with_sweep):
+#     config = config_with_sweep
+
+
+
+# def test_create_beam_simulation_stage(config_with_sweep):
+#     config = config_with_sweep
+
+
+def test_calculate_num_slices_in_distance():
+
+    start_distance = 0.0
+    finish_distance = 10.0
+    step_size = 1.0
+    n_slices = 0.0
+
+    n_slices = Simulation.calculate_num_slices_in_distance(start_distance, finish_distance, step_size, n_slices)
+
+    assert n_slices == 10
+
+def test_calculate_num_slices_in_distance_raises_error():
+
+    start_distance = 0.0
+    finish_distance = 10.0
+    step_size = 0.0
+    n_slices = 0.0
+
+    with pytest.raises(ValueError):
+        n_slices = Simulation.calculate_num_slices_in_distance(start_distance, finish_distance, step_size, n_slices)
+    
+
+
+def test_calculate_start_and_finish_distance(config_with_sweep):
+
+    config = config_with_sweep
+
+    parameters = Simulation.generate_simulation_parameters(config)
+    simulation_lenses = Simulation.generate_lenses(config["lenses"], parameters)
+
+    sim_config = config["stages"][0]
+    lens = simulation_lenses.get(sim_config["lens"])
+    stage = Simulation.generate_stage(sim_config, lens, parameters, 0)
+
+    sd, fd = Simulation.calculate_start_and_finish_distance_v2(lens, stage.output, 
+        sim_config.get("focal_distance_start_multiple"), sim_config.get("focal_distance_multiple"))
+
+    stage = Simulation.calculate_start_and_finish_distance(stage, 
+                sim_config.get("focal_distance_start_multiple"), 
+                    sim_config.get("focal_distance_multiple"))
+
+    assert sd == stage.start_distance
+    assert fd == stage.finish_distance

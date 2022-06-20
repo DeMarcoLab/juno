@@ -177,7 +177,7 @@ def plot_array_2D(array: np.ndarray, title="", facecolor="#ffffff", tickstyle="s
 
 
 
-def plot_lens_profile_slices(lens: Lens, max_height: float = None, title: str = "Lens Profile Slices", facecolor: str = "#ffffff") -> plt.Figure:
+def plot_lens_profile_slices(lens: Lens, max_height: float = None, title: str = "Lens Profile Slices", facecolor: str = "#ffffff", dim: int = 0) -> plt.Figure:
     # TODO: add proper distances to plot
     """Plot slices of a two-dimensional lens at one-eighth, one-quarter and one-half distances"""
 
@@ -188,13 +188,11 @@ def plot_lens_profile_slices(lens: Lens, max_height: float = None, title: str = 
     else:
         raise TypeError("Non-Lens passed")
 
-    thirty_two_px = lens.profile.shape[0] // 32
-    sixteen_px = lens.profile.shape[0] // 16
-    sixth_px = lens_profile.shape[0] // 8
-    quarter_px = lens_profile.shape[0] // 4
-    mid_px = lens_profile.shape[0] // 2
-
-    # TODO: slice in the other directions
+    thirty_two_px = lens.profile.shape[dim] // 32
+    sixteen_px = lens.profile.shape[dim] // 16
+    sixth_px = lens_profile.shape[dim] // 8
+    quarter_px = lens_profile.shape[dim] // 4
+    mid_px = lens_profile.shape[dim] // 2
 
     fig = plt.figure()
     fig.set_facecolor(facecolor)
@@ -210,65 +208,6 @@ def plot_lens_profile_slices(lens: Lens, max_height: float = None, title: str = 
     return fig
 
 
-def save_propagation_gif(path: str):
-    """Save a gif of the propagation"""
-
-
-    search_path = os.path.join(path, "*mm.npy")
-
-    filenames = sorted(glob.glob(search_path))
-    images = []
-    for fname in filenames:
-
-        slice = np.load(fname)
-        img = Image.fromarray(slice)
-
-        images.append(img)
-
-    save_path = os.path.join(path, "propagation.gif")
-    imageio.mimsave(save_path, images, duration=0.2)
-
-def save_propagation_slices_gif(path: str) -> None:
-    """Save vertical and horizontal simulation slices as gif"""
-    filenames = sorted(glob.glob(os.path.join(path, "*mm.npy")))
-
-    # TODO: might not be possible for very large sims to load full sim,
-    # will need to come up with another way to load slices in right format
-    sim = None
-    for i, fname in enumerate(filenames):
-
-        slice = np.load(fname)
-
-        if sim is None:
-            sim = np.zeros(shape=(len(filenames), *slice.shape), dtype=np.float32)
-
-        sim[i,:, :] = slice
-
-    # normalise sim values
-    sim = (sim - np.mean(sim)) / np.std(sim)
-    # sim = (sim - np.min(sim)) / (np.max(sim) - np.min(sim))
-    # sim = np.clip(sim, 0.5, np.max(sim))
-    # sim = sim.astype(np.uint16)
-
-    # save horizontal slices
-    horizontal = []
-    for i in range(sim.shape[2]):
-
-        slice = sim[:, :, i]
-        horizontal.append(slice)
-
-    save_path = os.path.join(path, "horizontal.gif")
-    imageio.mimsave(save_path, horizontal, duration=0.05)
-
-    # save vertical slices
-    vertical = []
-    for i in range(sim.shape[1]):
-
-        slice = sim[:, i, :]
-        vertical.append(slice)
-
-    save_path = os.path.join(path, "vertical.gif")
-    imageio.mimsave(save_path, vertical, duration=0.05)
 
 #################### DATA ####################
 
@@ -318,11 +257,10 @@ def load_config(config_filename):
     with open(config_filename, "r") as f:
         config = yaml.full_load(f)
 
-
     config = validation._validate_simulation_config(config)
     # validation
-    # TODO move to validation,
-    # TODO: medium, stages, see _format_dictionary
+    
+    # TODO move to validation, finish
     # convert all height and exponent values to float
     for i, lens in enumerate(config["lenses"]):
         for param in ["height", "exponent"]:
@@ -411,8 +349,6 @@ def load_simulation_data(path):
     df_aperture = df_aperture.add_prefix("aperture_")
     df_lens = pd.concat([df_lens, df_aperture], axis=1)
 
-
-
     # common metadata
     df_beam = pd.DataFrame.from_dict([metadata["beam"]])
     df_beam = df_beam.add_prefix("beam_")
@@ -458,7 +394,7 @@ def load_run_simulation_data(directory):
         df_join = load_simulation_data(path)
 
         df = pd.concat([df, df_join],ignore_index=True).reset_index()
-        df = df.drop(columns=["index", "options"])
+        df = df.drop(columns=["index"])
 
     # df = df.drop(columns=["level_0", "index", "options"])
 
@@ -533,103 +469,3 @@ def pad_to_equal_size(small: np.ndarray, large: np.ndarray, value: int = 0) -> t
 
     return padded
 
-
-def plot_apeture_masks(lens: Lens) -> plt.Figure:
-
-    fig, ax = plt.subplots(2, 3, figsize=(10, 7.5))
-
-    plt.suptitle("Lens Aperture Masks")
-    ax[0, 0].imshow(lens.non_lens_mask, cmap="plasma")
-    ax[0, 0].set_title("non_lens_area")
-
-    ax[0, 1].imshow(lens.truncation_aperture_mask, cmap="plasma")
-    ax[0, 1].set_title("truncation_aperture")
-
-    ax[1, 0].imshow(lens.custom_aperture_mask, cmap="plasma")
-    ax[1, 0].set_title("custom_aperture")
-
-    ax[1, 1].imshow(lens.sim_aperture_mask, cmap="plasma")
-    ax[1, 1].set_title("sim_aperture")
-
-
-    ax[0, 2].imshow(lens.aperture, cmap="plasma")
-    ax[0, 2].set_title("full_aperture")
-
-    # lens.profile[lens.aperture] = 0
-    # lens.profile[lens.non_lens_mask.astype(bool)] = 1
-    # lens.profile[lens.truncation_aperture_mask.astype(bool)] = 2
-    # lens.profile[lens.custom_aperture_mask.astype(bool)] = 3
-    # lens.profile[lens.sim_aperture_mask.astype(bool)] = 4
-    ax[1, 2].imshow(lens.profile, cmap="plasma")
-    ax[1, 2].set_title("lens_profile")
-
-    return fig
-
-def plot_lens_modifications(lens):
-    from lens_simulation.Lens import check_modification_masks
-
-    lens = check_modification_masks(lens)
-
-    fig, ax = plt.subplots(2, 2, figsize=(7.5, 7.5))
-
-    plt.suptitle("Lens Modifcations")
-    ax[0, 0].imshow(lens.grating_mask, cmap="plasma")
-    ax[0, 0].set_title("grating mask")
-
-    ax[0, 1].imshow(lens.escape_mask, cmap="plasma")
-    ax[0, 1].set_title("escape mask")
-
-    ax[1, 0].imshow(lens.truncation_mask, cmap="plasma")
-    ax[1, 0].set_title("truncation mask")
-
-    ax[1, 1].imshow(lens.profile, cmap="plasma")
-    ax[1, 1].set_title("lens profile")
-
-    return fig
-
-def plot_simulation_setup(config):
-
-    arr = None
-    sim_height = config["sim_parameters"]["sim_height"]
-    pixel_size = config["sim_parameters"]["pixel_size"]
-    sim_n_pixels_h = _calculate_num_of_pixels(sim_height, pixel_size, True)
-
-    for conf in config["stages"]:
-
-        # get stage info
-        output_medium = conf["output"]
-        sd = conf["start_distance"]
-        fd = conf["finish_distance"]
-        total = fd - sd
-        n_pixels = _calculate_num_of_pixels(total, pixel_size, True)
-
-        # get lens info
-        lens_name = conf["lens"]
-        for lc in config["lenses"]:
-            if lens_name == lc["name"]:
-                lens_height = lc["height"]
-                lens_medium = lc["medium"]
-                break
-
-        lens_n_pixels_z = _calculate_num_of_pixels(lens_height, pixel_size, True)
-
-        # create arr
-        output = np.ones(shape=(sim_n_pixels_h, n_pixels)) * output_medium
-        lens = np.ones(shape=(sim_n_pixels_h, lens_n_pixels_z)) * lens_medium
-
-        if arr is None:
-            arr = arr = np.hstack([lens, output])
-        else:
-            arr = np.hstack([arr, lens, output])
-
-
-    # create plot
-    fig = plt.figure(figsize=(15, 2))
-    plt.imshow(arr, cmap="plasma")
-    clb = plt.colorbar()
-    clb.ax.set_title("Medium")
-    plt.title("Simulation Stages")
-    plt.xlabel("Propagation Distance (px)")
-    plt.ylabel("Simulation Height (px)")
-    # TODO: correct the propagation distances to mm
-    return fig

@@ -67,7 +67,6 @@ class Lens:
         self.aperture = None  # full aperture mask
 
         # modifications
-        # TODO: Change self.aperture_mask to self.aperture in UI?
         self.aperture_mask = None
         self.grating_mask = None
         self.escape_mask = None
@@ -322,7 +321,6 @@ class Lens:
 
         if type == "radial":
 
-            # TODO: only works for spherical?
 
             distance = utils.create_distance_map_px(w, h)
             mask = ((distance <= outer_px) * (distance >= inner_px)).astype(bool)
@@ -449,8 +447,6 @@ class Lens:
         pad_w = int((ep_w - lens_w) // 2)
 
         # use the maxium dimension to pad escape path?
-        # TODO: decide if we use the maximum dimension for calculating the escape path or individual
-        # TODO: if we use the maxium padding amount, we need to check it fits in both dimensions
         # pad_d = max(pad_h, pad_w)
 
         profile_with_escape_path = np.pad(

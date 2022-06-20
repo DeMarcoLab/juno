@@ -37,7 +37,7 @@ lenses:
     # escape_path: 0.1
     inverted: false 
     # length: nu # core
-    # custom: null # core
+    # custom: \\ad.monash.edu\home\User028\pcle0002\Documents\repos\lens_simulation\src\lens_simulation\custom\profile.npy
     grating: 
       width: 10.e-6 # core
       distance: 20.e-6 # core
@@ -74,6 +74,7 @@ stages:
   - lens: lens_1
     output: 1.33 # nice 
     step_size: 0.1e-3
+    n_slices: 10
     start_distance: 0 # core 
     finish_distance: 6.e-3 # core 
     use_equivalent_focal_distance: true

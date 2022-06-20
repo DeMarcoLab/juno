@@ -74,7 +74,7 @@ class Beam:
 
         self.tilt: list[float] = [settings.tilt_x, settings.tilt_y]
 
-        self.settings: BeamSettings = settings # TODO: remove?
+        self.settings: BeamSettings = settings 
 
     def __repr__(self) -> str:
 

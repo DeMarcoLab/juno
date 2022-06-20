@@ -41,28 +41,13 @@ from lens_simulation.constants import (
     METRE_TO_MICRON,
     NANO_TO_METRE,
     METRE_TO_NANO,
+    BEAM_SWEEPABLE_KEYS,
+    LENS_SWEEPABLE_KEYS,
+    MODIFICATION_SWEEPABLE_KEYS,
+    STAGE_SWEEPABLE_KEYS
 )
 
 
-BEAM_SWEEPABLE_KEYS = ["width", "height", 
-                "position_x", "position_y", 
-                "theta", "numerical_aperture", 
-                "tilt_x", "tilt_y", 
-                "source_distance", "final_width", "focal_multiple"]
-
-
-LENS_SWEEPABLE_KEYS = [
-    "medium", "diameter", "height", "exponent"
-]
-
-MODIFICATION_SWEEPABLE_KEYS = [    
-    "width", "distance", "depth", 
-    "height", "radius",
-    "inner", "outer"]
-
-STAGE_SWEEPABLE_KEYS = [
-    "output", "start_distance", "finish_distance", "focal_distance_start_multiple", "focal_distance_multiple" 
-]
 
 
 class GUIParameterSweep(ParameterSweep.Ui_MainWindow, QtWidgets.QMainWindow):
@@ -85,9 +70,7 @@ class GUIParameterSweep(ParameterSweep.Ui_MainWindow, QtWidgets.QMainWindow):
         print("setup_connections")
 
         self.pushButton_save_config.clicked.connect(self.save_sweepable_config)
-
-        # pprint(self.config)
-       
+      
         paramBox = QGroupBox()
         paramGridLayout = QGridLayout()
 
@@ -236,8 +219,6 @@ class GUIParameterSweep(ParameterSweep.Ui_MainWindow, QtWidgets.QMainWindow):
             self.sweep_config["beam"][f"{k}_stop"] = None if v[2].text() == "" else float(v[2].text())
             self.sweep_config["beam"][f"{k}_step"] = None if v[3].text() == "" else float(v[3].text())
 
-
-
         # lenses
         lens_configs = []
         for val, conf in zip(self.lens_widgets, self.config["lenses"]):
@@ -274,13 +255,8 @@ class GUIParameterSweep(ParameterSweep.Ui_MainWindow, QtWidgets.QMainWindow):
 
         self.sweep_config["stages"] = stage_configs
 
-
-
-        # update config?
-        print("-"*100)
+        # update config
         self.config.update(self.sweep_config)
-
-
 
 
     def save_sweepable_config(self):
@@ -302,7 +278,7 @@ class GUIParameterSweep(ParameterSweep.Ui_MainWindow, QtWidgets.QMainWindow):
 
 
 # TODO: update combination counts?
-# TODO: save CONFIG
+
 
 
 
