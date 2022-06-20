@@ -619,11 +619,11 @@ class GUIBeamCreator(BeamCreator.Ui_BeamCreator, QtWidgets.QMainWindow):
             self.c_shift_r *= -1
 
     def calculate_final_profile(self):
-        
+
         from lens_simulation.Simulation import calculate_propagation_distances
         distances = calculate_propagation_distances(
             self.beam.calculate_propagation_distance()[0],
-            self.beam.calculate_propagation_distance()[1], 
+            self.beam.calculate_propagation_distance()[1],
             n_steps=2
         )
 
@@ -673,7 +673,7 @@ class _ImageCanvas(FigureCanvasQTAgg, QtWidgets.QWidget):
     ):
 
         if profile == "main":
-            self.fig = plotting.plot_lens_profile_2d(
+            self.fig = plotting.plot_lens_profile_2D(
                 lens,
                 facecolor="#f0f0f0",
                 extent=[
@@ -702,7 +702,7 @@ class _ImageCanvas(FigureCanvasQTAgg, QtWidgets.QWidget):
             axes.legend()
 
         elif profile == "convergence":
-            self.fig = plotting.plot_lens_profile_2d(
+            self.fig = plotting.plot_array_2D(
                 array=array,
                 facecolor="#f0f0f0",
                 extent=[
@@ -730,7 +730,7 @@ class _ImageCanvas(FigureCanvasQTAgg, QtWidgets.QWidget):
             # DO
 
         else:
-            self.fig = plotting.plot_lens_profile_2d(
+            self.fig = plotting.plot_array_2D(
                 array=array,
                 facecolor="#f0f0f0",
                 extent=[

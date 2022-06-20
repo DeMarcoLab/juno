@@ -606,10 +606,10 @@ class _ImageCanvas(FigureCanvasQTAgg, QtWidgets.QWidget):
                 if image is None:
                     image = np.zeros(shape=lens.profile.shape)
                     colorbar_ticks = [0]
-                func_ = plotting.plot_lens_profile_2d
+                func_ = plotting.plot_array_2D
                 thing_to_plot = image
             else:
-                func_ = plotting.plot_lens_profile_2d
+                func_ = plotting.plot_lens_profile_2D
                 thing_to_plot = lens
 
             self.fig = func_(

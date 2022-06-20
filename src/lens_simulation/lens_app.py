@@ -87,24 +87,24 @@ if submitted:
 
     # generate profile plots
     lens_fig = plotting.plot_lens_profile_slices(lens, max_height=height)
-    lens2d_fig = plotting.plot_lens_profile_2d(lens)
+    lens2d_fig = plotting.plot_lens_profile_2D(lens)
 
     lens.generate_profile(1e-6, lens_type=LensType.Spherical)
     lens.create_grating_mask(grating_settings, x_axis=grating_x, y_axis=grating_y)
     lens.apply_masks(grating=True)
-    grating_fig = plotting.plot_lens_profile_2d(lens)
+    grating_fig = plotting.plot_lens_profile_2D(lens)
     grating1d_fig = plotting.plot_lens_profile_slices(lens, max_height=height)
 
     lens.generate_profile(1e-6, lens_type=LensType.Spherical)
     lens.create_truncation_mask(truncation=truncation, radius= truncation_radius, type=truncation_type)
     lens.apply_masks(truncation=True)
-    truncation_fig = plotting.plot_lens_profile_2d(lens)
+    truncation_fig = plotting.plot_lens_profile_2D(lens)
     truncation1d_fig = plotting.plot_lens_profile_slices(lens, max_height=height)
 
     lens.generate_profile(1e-6, lens_type=LensType.Spherical)
     lens.create_custom_aperture(inner_m = inner_m, outer_m=outer_m, type=aperture_type, inverted=invert_aperture)
     lens.apply_masks(aperture=True)
-    aperture_fig = plotting.plot_lens_profile_2d(lens)
+    aperture_fig = plotting.plot_lens_profile_2D(lens)
     aperture1d_fig = plotting.plot_lens_profile_slices(lens, max_height=height)
 
 
@@ -113,7 +113,7 @@ if submitted:
     lens.create_truncation_mask(truncation=truncation, radius= truncation_radius, type=truncation_type)
     lens.create_custom_aperture(inner_m = inner_m, outer_m=outer_m, type=aperture_type)
     lens.apply_masks(grating=True, truncation=True, aperture=True) # TODO: inverting doesnt work in this case?
-    mask_fig = plotting.plot_lens_profile_2d(lens)
+    mask_fig = plotting.plot_lens_profile_2D(lens)
     mask1d_fig = plotting.plot_lens_profile_slices(lens, max_height=height)
 
     # show plots

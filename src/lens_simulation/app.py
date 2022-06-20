@@ -85,7 +85,7 @@ def plot_lens_profile(df, stage_no):
         lens.extrude_profile(lens.diameter)
 
     # generate profile plots
-    fig_2d = plotting.plot_lens_profile_2d(lens)
+    fig_2d = plotting.plot_lens_profile_2D(lens)
     lens_fig = plotting.plot_lens_profile_slices(lens)
 
     # invert the profile

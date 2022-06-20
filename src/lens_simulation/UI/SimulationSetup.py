@@ -436,7 +436,7 @@ def create_stage_structure_display(config):
         plotting.save_figure(fig, side_on_fname)
         plt.close(fig)
 
-        fig = plotting.plot_lens_profile_2d(lens)
+        fig = plotting.plot_lens_profile_2D(lens)
         top_down_fname = os.path.join(tmp_directory, "top_down_profile.png")
         plotting.save_figure(fig, top_down_fname)
         plt.close(fig)
