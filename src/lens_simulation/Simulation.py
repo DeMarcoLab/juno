@@ -305,6 +305,12 @@ def generate_lenses(lenses: list, parameters: SimulationParameters):
         if lens_config["escape_path"] is not None:
             test_escape_path_fits_inside_simulation(lens, parameters, lens_config["escape_path"])
 
+        # pad the lens profile to be the same size as the simulation
+        lens = pad_simulation(lens, parameters=parameters)
+
+        # apply all aperture masks
+        lens.apply_aperture_masks()
+
         simulation_lenses[lens_config.get("name")] = lens
 
         # TODO: Why not pad to sim size here? have everything we need now
@@ -342,11 +348,11 @@ def propagate_wavefront(
     DEBUG = options.debug
     save_path = os.path.join(options.log_dir, str(stage._id))
 
-    # pad the lens profile to be the same size as the simulation
-    lens = pad_simulation(lens, parameters=parameters)
+    # # pad the lens profile to be the same size as the simulation
+    # lens = pad_simulation(lens, parameters=parameters)
 
-    # apply all aperture masks, N.B. there is a probably a better place for this
-    lens.apply_aperture_masks()
+    # # apply all aperture masks, N.B. there is a probably a better place for this
+    # lens.apply_aperture_masks()
     sim_profile = lens.profile
 
     # generate frequency array
