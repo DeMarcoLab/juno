@@ -564,8 +564,8 @@ def calculate_tilted_delta_profile(
 
     # tilt the beam
     if tilt is not None:
-        x = np.arange(len(sim_profile)) * lens.pixel_size
-        y = np.arange(len(sim_profile)) * lens.pixel_size
+        x = np.arange(sim_profile.shape[1]) * lens.pixel_size
+        y = np.arange(sim_profile.shape[0]) * lens.pixel_size
 
         y_tilt_rad = np.deg2rad(tilt["y"])
         x_tilt_rad = np.deg2rad(tilt["x"])
