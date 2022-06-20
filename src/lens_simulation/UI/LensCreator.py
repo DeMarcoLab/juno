@@ -5,7 +5,7 @@ import traceback
 import lens_simulation.UI.qtdesigner_files.LensCreator as LensCreator
 import numpy as np
 import yaml
-from lens_simulation import constants, utils
+from lens_simulation import constants, plotting, utils
 from lens_simulation.Lens import GratingSettings, LensType, Medium, generate_lens
 from matplotlib import pyplot as plt
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
@@ -606,10 +606,10 @@ class _ImageCanvas(FigureCanvasQTAgg, QtWidgets.QWidget):
                 if image is None:
                     image = np.zeros(shape=lens.profile.shape)
                     colorbar_ticks = [0]
-                func_ = utils.plot_array_2D
+                func_ = plotting.plot_lens_profile_2d
                 thing_to_plot = image
             else:
-                func_ = utils.plot_lens_profile_2D
+                func_ = plotting.plot_lens_profile_2d
                 thing_to_plot = lens
 
             self.fig = func_(
@@ -641,7 +641,7 @@ class _ImageCanvas(FigureCanvasQTAgg, QtWidgets.QWidget):
                 image = axes.plot(image)
 
             else:
-                self.fig = utils.plot_lens_profile_slices(
+                self.fig = plotting.plot_lens_profile_slices(
                     lens=lens, max_height=lens.height, title="", facecolor="#f0f0f0"
                 )
 
