@@ -128,10 +128,10 @@ class GUISimulationSetup(SimulationSetup.Ui_MainWindow, QtWidgets.QMainWindow):
         sim_config_filename, _ = QFileDialog.getSaveFileName(self,
                     caption="Save Simulation Config",
                     directory=os.path.dirname(lens_simulation.__file__),
-                    filter="Yaml files (*.yml, *.yaml)")
+                    filter="Yaml files (*.yml *.yaml)")
+
         if sim_config_filename:
             # set name
-
             # same as yaml file
             with open(sim_config_filename, "w") as f:
                 yaml.safe_dump(self.simulation_config, f)
@@ -144,7 +144,7 @@ class GUISimulationSetup(SimulationSetup.Ui_MainWindow, QtWidgets.QMainWindow):
         sim_config_filename, _ = QFileDialog.getOpenFileName(self,
                     caption="Load Simulation Config",
                     directory=os.path.dirname(lens_simulation.__file__),
-                    filter="Yaml files (*.yml, *.yaml)"
+                    filter="Yaml files (*.yml *.yaml)"
                     )
         if sim_config_filename:
 

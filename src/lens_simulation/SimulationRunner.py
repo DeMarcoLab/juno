@@ -42,6 +42,7 @@ class SimulationRunner:
         utils.save_metadata(self.config, self.data_path)
 
     def run_simulations(self):
+        logging.info(f"Run: {self.petname}")
         logging.info(f"Running {len(self.simulation_configurations)} Simulations")
 
         logging.info("----------- Simulation Summary -----------")

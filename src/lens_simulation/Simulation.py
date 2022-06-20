@@ -344,16 +344,10 @@ def propagate_wavefront(
     output_medium: Medium = stage.output
     distances: np.ndarray = stage.distances
     amplitude: float = parameters.A if passed_wavefront is None else 1.0
+    sim_profile: np.ndarray = lens.profile
 
     DEBUG = options.debug
     save_path = os.path.join(options.log_dir, str(stage._id))
-
-    # # pad the lens profile to be the same size as the simulation
-    # lens = pad_simulation(lens, parameters=parameters)
-
-    # # apply all aperture masks, N.B. there is a probably a better place for this
-    # lens.apply_aperture_masks()
-    sim_profile = lens.profile
 
     # generate frequency array
     freq_arr = generate_sq_freq_arr(sim_profile, pixel_size=parameters.pixel_size)
