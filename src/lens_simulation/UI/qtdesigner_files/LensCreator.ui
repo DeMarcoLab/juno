@@ -1131,7 +1131,7 @@
                  <item>
                   <widget class="QFrame" name="frame_GratingDirectionX">
                    <property name="enabled">
-                    <bool>false</bool>
+                    <bool>true</bool>
                    </property>
                    <property name="maximumSize">
                     <size>
@@ -1156,7 +1156,7 @@
                     <item>
                      <widget class="QCheckBox" name="checkBox_GratingDirectionX">
                       <property name="enabled">
-                       <bool>false</bool>
+                       <bool>true</bool>
                       </property>
                       <property name="text">
                        <string> X Axis</string>
@@ -1172,7 +1172,7 @@
                  <item>
                   <widget class="QFrame" name="frame_GratingDirectionY">
                    <property name="enabled">
-                    <bool>false</bool>
+                    <bool>true</bool>
                    </property>
                    <property name="maximumSize">
                     <size>
@@ -1197,7 +1197,7 @@
                     <item>
                      <widget class="QCheckBox" name="checkBox_GratingDirectionY">
                       <property name="enabled">
-                       <bool>false</bool>
+                       <bool>true</bool>
                       </property>
                       <property name="text">
                        <string> Y Axis</string>
@@ -1213,7 +1213,7 @@
                  <item>
                   <widget class="QFrame" name="frame_GratingCentred">
                    <property name="enabled">
-                    <bool>false</bool>
+                    <bool>true</bool>
                    </property>
                    <property name="maximumSize">
                     <size>
@@ -1238,7 +1238,7 @@
                     <item>
                      <widget class="QCheckBox" name="checkBox_GratingCentred">
                       <property name="enabled">
-                       <bool>false</bool>
+                       <bool>true</bool>
                       </property>
                       <property name="text">
                        <string>Centred</string>

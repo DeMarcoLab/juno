@@ -139,7 +139,7 @@ class GUIBeamCreator(BeamCreator.Ui_BeamCreator, QtWidgets.QMainWindow):
         self.beam_dict["source_distance"] = 25.0e-6
         self.beam_dict["final_width"] = None
         self.beam_dict["focal_multiple"] = None
-        # self.beam_dict["n_slices"] = 10
+        # self.beam_dict["n_steps"] = 10
         self.beam_dict["step_size"] = 3.3e-6
         self.beam_dict["output_medium"] = 1.0
         # This only exists because config yaml loading gives it the lens value
@@ -184,10 +184,10 @@ class GUIBeamCreator(BeamCreator.Ui_BeamCreator, QtWidgets.QMainWindow):
     def update_UI_general(self):
         # Config -> UI | General settings #
         self.lineEdit_LensName.setText(self.beam_dict["name"])
-        if self.beam_dict["n_slices"] != 0:
+        if self.beam_dict["n_steps"] != 0:
             self.doubleSpinBox_DistanceMethod.setDecimals(0)
-            self.comboBox_DistanceMethod.setCurrentText("# Slices")
-            self.doubleSpinBox_DistanceMethod.setValue(self.beam_dict["n_slices"])
+            self.comboBox_DistanceMethod.setCurrentText("# Steps")
+            self.doubleSpinBox_DistanceMethod.setValue(self.beam_dict["n_steps"])
         elif self.beam_dict["step_size"] != 0:
             self.comboBox_DistanceMethod.setCurrentText("Step Size")
             self.doubleSpinBox_DistanceMethod.setDecimals(2)
@@ -207,11 +207,11 @@ class GUIBeamCreator(BeamCreator.Ui_BeamCreator, QtWidgets.QMainWindow):
     def update_config_general(self):
         # UI -> config | General settings #
         self.beam_dict["name"] = self.lineEdit_LensName.text()
-        if self.comboBox_DistanceMethod.currentText() == "# Slices":
-            self.beam_dict["n_slices"] = self.doubleSpinBox_DistanceMethod.value()
+        if self.comboBox_DistanceMethod.currentText() == "# Steps":
+            self.beam_dict["n_steps"] = self.doubleSpinBox_DistanceMethod.value()
             self.beam_dict["step_size"] = 0
         else:
-            self.beam_dict["n_slices"] = 0
+            self.beam_dict["n_steps"] = 0
             self.beam_dict["step_size"] = (
                 self.doubleSpinBox_DistanceMethod.value() * self.units
             )
@@ -624,7 +624,7 @@ class GUIBeamCreator(BeamCreator.Ui_BeamCreator, QtWidgets.QMainWindow):
 
         stage = SimulationStage(lens=self.beam.lens,
                                 output=Medium(self.beam_dict["output_medium"]),
-                                n_slices=2,
+                                n_steps=2,
                                 start_distance=self.beam.calculate_propagation_distance()[0],
                                 finish_distance=self.beam.calculate_propagation_distance()[1],
                                 tilt={"x":self.beam_dict["tilt_x"], "y":self.beam_dict["tilt_y"]},

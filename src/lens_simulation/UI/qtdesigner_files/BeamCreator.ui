@@ -367,7 +367,7 @@
               <widget class="QComboBox" name="comboBox_DistanceMethod">
                <item>
                 <property name="text">
-                 <string># Slices</string>
+                 <string># Steps</string>
                 </property>
                </item>
                <item>
