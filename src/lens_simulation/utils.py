@@ -220,6 +220,10 @@ def load_run_simulation_data(directory):
 
     # df = df.drop(columns=["level_0", "index", "options"])
 
+    # remove sweep columns from frame
+    sweep_cols = [col for col in df.columns if "_stop" in col or "_step" in col]
+    df = df.drop(columns=sweep_cols)
+
     return df
 
 
