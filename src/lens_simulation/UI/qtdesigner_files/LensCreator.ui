@@ -693,6 +693,9 @@
                     </item>
                     <item>
                      <widget class="QDoubleSpinBox" name="doubleSpinBox_LensExponent">
+                      <property name="minimum">
+                       <double>-99.000000000000000</double>
+                      </property>
                       <property name="maximum">
                        <double>99.000000000000000</double>
                       </property>
@@ -952,7 +955,7 @@
                  <item>
                   <widget class="QFrame" name="frame_Title_Gratings">
                    <property name="enabled">
-                    <bool>false</bool>
+                    <bool>true</bool>
                    </property>
                    <property name="maximumSize">
                     <size>
@@ -979,7 +982,7 @@
                     <item>
                      <widget class="QLabel" name="label_PropertyName_Gratings">
                       <property name="enabled">
-                       <bool>false</bool>
+                       <bool>true</bool>
                       </property>
                       <property name="text">
                        <string>Property Name</string>
@@ -992,7 +995,7 @@
                     <item>
                      <widget class="QLabel" name="label_PropertyValue_Gratings">
                       <property name="enabled">
-                       <bool>false</bool>
+                       <bool>true</bool>
                       </property>
                       <property name="text">
                        <string>Property Value</string>
@@ -1041,6 +1044,9 @@
                       <property name="stepType">
                        <enum>QAbstractSpinBox::AdaptiveDecimalStepType</enum>
                       </property>
+                      <property name="value">
+                       <double>2.000000000000000</double>
+                      </property>
                      </widget>
                     </item>
                    </layout>
@@ -1080,7 +1086,7 @@
                        <enum>QAbstractSpinBox::AdaptiveDecimalStepType</enum>
                       </property>
                       <property name="value">
-                       <double>0.020000000000000</double>
+                       <double>5.000000000000000</double>
                       </property>
                      </widget>
                     </item>
@@ -1121,7 +1127,7 @@
                        <enum>QAbstractSpinBox::AdaptiveDecimalStepType</enum>
                       </property>
                       <property name="value">
-                       <double>0.300000000000000</double>
+                       <double>1.000000000000000</double>
                       </property>
                      </widget>
                     </item>
@@ -1131,7 +1137,7 @@
                  <item>
                   <widget class="QFrame" name="frame_GratingDirectionX">
                    <property name="enabled">
-                    <bool>true</bool>
+                    <bool>false</bool>
                    </property>
                    <property name="maximumSize">
                     <size>
@@ -1156,7 +1162,7 @@
                     <item>
                      <widget class="QCheckBox" name="checkBox_GratingDirectionX">
                       <property name="enabled">
-                       <bool>true</bool>
+                       <bool>false</bool>
                       </property>
                       <property name="text">
                        <string> X Axis</string>
@@ -1172,7 +1178,7 @@
                  <item>
                   <widget class="QFrame" name="frame_GratingDirectionY">
                    <property name="enabled">
-                    <bool>true</bool>
+                    <bool>false</bool>
                    </property>
                    <property name="maximumSize">
                     <size>
@@ -1197,13 +1203,13 @@
                     <item>
                      <widget class="QCheckBox" name="checkBox_GratingDirectionY">
                       <property name="enabled">
-                       <bool>true</bool>
+                       <bool>false</bool>
                       </property>
                       <property name="text">
                        <string> Y Axis</string>
                       </property>
                       <property name="checked">
-                       <bool>true</bool>
+                       <bool>false</bool>
                       </property>
                      </widget>
                     </item>
@@ -1213,7 +1219,7 @@
                  <item>
                   <widget class="QFrame" name="frame_GratingCentred">
                    <property name="enabled">
-                    <bool>true</bool>
+                    <bool>false</bool>
                    </property>
                    <property name="maximumSize">
                     <size>
@@ -1238,7 +1244,7 @@
                     <item>
                      <widget class="QCheckBox" name="checkBox_GratingCentred">
                       <property name="enabled">
-                       <bool>true</bool>
+                       <bool>false</bool>
                       </property>
                       <property name="text">
                        <string>Centred</string>
@@ -1295,7 +1301,7 @@
                  <item>
                   <widget class="QFrame" name="frame_Title_Truncation">
                    <property name="enabled">
-                    <bool>false</bool>
+                    <bool>true</bool>
                    </property>
                    <property name="maximumSize">
                     <size>
@@ -1322,7 +1328,7 @@
                     <item>
                      <widget class="QLabel" name="label_PropertyName_Truncation">
                       <property name="enabled">
-                       <bool>false</bool>
+                       <bool>true</bool>
                       </property>
                       <property name="text">
                        <string>Property Name</string>
@@ -1335,7 +1341,7 @@
                     <item>
                      <widget class="QLabel" name="label_PropertyValue_Truncation">
                       <property name="enabled">
-                       <bool>false</bool>
+                       <bool>true</bool>
                       </property>
                       <property name="text">
                        <string>Property Value</string>
@@ -1418,7 +1424,7 @@
                        <enum>QAbstractSpinBox::AdaptiveDecimalStepType</enum>
                       </property>
                       <property name="value">
-                       <double>1.000000000000000</double>
+                       <double>9.000000000000000</double>
                       </property>
                      </widget>
                     </item>
@@ -1504,7 +1510,7 @@
                  <item>
                   <widget class="QFrame" name="frame_Title_Aperture">
                    <property name="enabled">
-                    <bool>false</bool>
+                    <bool>true</bool>
                    </property>
                    <property name="maximumSize">
                     <size>
@@ -1531,7 +1537,7 @@
                     <item>
                      <widget class="QLabel" name="label_PropertyName_Aperture">
                       <property name="enabled">
-                       <bool>false</bool>
+                       <bool>true</bool>
                       </property>
                       <property name="text">
                        <string>Property Name</string>
@@ -1544,7 +1550,7 @@
                     <item>
                      <widget class="QLabel" name="label_PropertyValue_Aperture">
                       <property name="enabled">
-                       <bool>false</bool>
+                       <bool>true</bool>
                       </property>
                       <property name="text">
                        <string>Property Value</string>
@@ -1581,6 +1587,9 @@
                     </item>
                     <item>
                      <widget class="QComboBox" name="comboBox_ApertureMode">
+                      <property name="currentIndex">
+                       <number>1</number>
+                      </property>
                       <item>
                        <property name="text">
                         <string>Square</string>
@@ -1627,7 +1636,7 @@
                        <enum>QAbstractSpinBox::AdaptiveDecimalStepType</enum>
                       </property>
                       <property name="value">
-                       <double>0.150000000000000</double>
+                       <double>20.000000000000000</double>
                       </property>
                      </widget>
                     </item>
@@ -1665,7 +1674,7 @@
                        <enum>QAbstractSpinBox::AdaptiveDecimalStepType</enum>
                       </property>
                       <property name="value">
-                       <double>0.300000000000000</double>
+                       <double>25.000000000000000</double>
                       </property>
                      </widget>
                     </item>

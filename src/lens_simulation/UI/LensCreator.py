@@ -97,7 +97,7 @@ class GUILensCreator(LensCreator.Ui_LensCreator, QtWidgets.QMainWindow):
         self.lens_dict["height"] = 10.0e-6
         self.pixel_size = 0.1e-6
         self.lens_dict["custom"] = filename
-        self.lens_dict["inverted"] = True
+        self.lens_dict["inverted"] = False
         self.lens_dict["escape_path"] = None
         self.lens_dict["grating"] = None
         self.lens_dict["truncation"] = None
@@ -113,9 +113,6 @@ class GUILensCreator(LensCreator.Ui_LensCreator, QtWidgets.QMainWindow):
         self.lens_dict['diameter'] = self.lens.diameter
         self.pixel_size = self.lens.pixel_size
         self.lens_dict['height'] = self.lens.height
-
-        if self.lens_dict["inverted"]:
-            self.lens.invert_profile()
 
         self.update_image_frames()
 
@@ -136,6 +133,16 @@ class GUILensCreator(LensCreator.Ui_LensCreator, QtWidgets.QMainWindow):
         self.update_UI_aperture()
 
         self.frame_TruncationAperture.setEnabled(
+            self.lens_dict["truncation"] is not None
+            and self.lens_dict["aperture"] is not None
+        )
+
+        self.label_TruncationAperture.setEnabled(
+            self.lens_dict["truncation"] is not None
+            and self.lens_dict["aperture"] is not None
+        )
+
+        self.checkBox_TruncationAperture.setEnabled(
             self.lens_dict["truncation"] is not None
             and self.lens_dict["aperture"] is not None
         )
@@ -218,6 +225,13 @@ class GUILensCreator(LensCreator.Ui_LensCreator, QtWidgets.QMainWindow):
             return
 
         self.groupBox_Gratings.setChecked(True)
+        self.frame_GratingCentred.setEnabled(True)
+        self.frame_GratingDirectionX.setEnabled(True)
+        self.frame_GratingDirectionY.setEnabled(True)
+        self.checkBox_GratingCentred.setEnabled(True)
+        self.checkBox_GratingDirectionX.setEnabled(True)
+        self.checkBox_GratingDirectionY.setEnabled(True)
+
         self.doubleSpinBox_GratingWidth.setValue(
             self.lens_dict["grating"]["width"] / self.units
         )
@@ -308,6 +322,10 @@ class GUILensCreator(LensCreator.Ui_LensCreator, QtWidgets.QMainWindow):
             return
 
         self.groupBox_Aperture.setChecked(True)
+
+        self.frame_ApertureInverted.setEnabled(True)
+        self.label_ApertureInverted.setEnabled(True)
+        self.checkBox_ApertureInverted.setEnabled(True)
         self.checkBox_ApertureInverted.setChecked(self.lens_dict["aperture"]["invert"])
 
         if self.lens_dict["aperture"]["type"] == "radial":
