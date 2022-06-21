@@ -147,7 +147,7 @@ class Lens:
         from lens_simulation.utils import _calculate_num_of_pixels
 
         # generate 1d profile
-        profile = create_profile_1d(self.diameter, self.height, self.exponent, n_pixels)
+        profile = self.create_profile_1d(self.diameter, self.height, self.exponent, n_pixels)
 
         # length in pixels
         length_px = _calculate_num_of_pixels(length, self.pixel_size, odd=True)
@@ -191,6 +191,8 @@ class Lens:
 
         # filter profile
         # profile = ndimage.gaussian_filter(profile, sigma=3)
+        
+        self.coefficient = coefficient
 
         return profile
 
@@ -472,36 +474,37 @@ class Lens:
         self.profile = profile_with_escape_path
 
 
-def create_profile_1d(
-    diameter: float, height: float, exponent: float, n_pixels: int
-) -> np.ndarray:
-    """Create 1 dimensional lens profile"""
+    def create_profile_1d(self,
+        diameter: float, height: float, exponent: float, n_pixels: int
+    ) -> np.ndarray:
+        """Create 1 dimensional lens profile"""
 
-    # # make functional
-    # height = self.height
-    # exponent = self.exponent
+        # # make functional
+        # height = self.height
+        # exponent = self.exponent
 
-    radius = diameter / 2
-    n_pixels_in_radius = n_pixels // 2 + 1
+        radius = diameter / 2
+        n_pixels_in_radius = n_pixels // 2 + 1
 
-    # x coordinate of pixels
-    radius_px = np.linspace(0, radius, n_pixels_in_radius)
+        # x coordinate of pixels
+        radius_px = np.linspace(0, radius, n_pixels_in_radius)
 
-    # determine coefficent at boundary conditions
-    # TODO: will be different for Hershel, Paraxial approximation)
-    coefficient = height / (radius ** exponent)
+        # determine coefficent at boundary conditions
+        # TODO: will be different for Hershel, Paraxial approximation)
+        coefficient = height / (radius ** exponent)
 
-    # generic lens formula
-    # H = h - C*r ^ e
-    heights = height - coefficient * radius_px ** exponent
+        # generic lens formula
+        # H = h - C*r ^ e
+        heights = height - coefficient * radius_px ** exponent
 
-    # generate symmetric height profile (NOTE: assumed symmetric lens).
-    profile = np.append(np.flip(heights[1:]), heights)
+        # generate symmetric height profile (NOTE: assumed symmetric lens).
+        profile = np.append(np.flip(heights[1:]), heights)
 
-    # always smooth
-    profile = ndimage.gaussian_filter(profile, sigma=3)
+        # always smooth
+        profile = ndimage.gaussian_filter(profile, sigma=3)
 
-    return profile
+        self.coefficient = coefficient
+        return profile
 
 
 def calculate_grating_coords(
