@@ -10,7 +10,7 @@ import numpy as np
 from tqdm import tqdm
 
 from lens_simulation import Simulation, utils, constants
-
+import lens_simulation
 from copy import deepcopy
 
 class SimulationRunner:
@@ -23,7 +23,8 @@ class SimulationRunner:
         self.config = utils.load_config(config_filename)
 
         # create logging directory
-        self.data_path: Path = os.path.join(self.config["options"]["log_dir"], str(self.petname))
+        self.data_path: Path = os.path.join(os.path.dirname(lens_simulation.__file__), # TODO: might need to change this path?
+                self.config["options"]["log_dir"], str(self.petname))
         os.makedirs(self.data_path, exist_ok=True)
 
         # update metadata
@@ -57,7 +58,10 @@ class SimulationRunner:
             sim = Simulation.Simulation(sim_config)
             sim.run_simulation()
             logging.info(f"Finished simulation {sim.petname}")
-        
+    
+        self.finish_simulations()
+
+    def finish_simulations(self):
         # save final sim configuration
         logging.info(f"Finished running {len(self.simulation_configurations)} Simulations")
         self.config["finished"] = utils.current_timestamp()

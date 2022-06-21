@@ -14,6 +14,7 @@ from lens_simulation.UI.LensCreator import GUILensCreator
 from lens_simulation.UI.SimulationSetup import GUISimulationSetup
 from lens_simulation.UI.VisualiseResults import GUIVisualiseResults
 from lens_simulation.UI.BeamCreator import GUIBeamCreator
+from lens_simulation.UI.SimulationRun import GUISimulationRun
 
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtWidgets import (
@@ -59,6 +60,7 @@ class GUILensSimulation(LensSimulation.Ui_MainWindow, QtWidgets.QMainWindow):
         self.pushButton_create_lens.clicked.connect(self.launch_lens_creation)
         self.pushButton_create_beam.clicked.connect(self.launch_beam_creation)
         self.pushButton_setup_sim.clicked.connect(self.launch_setup_simulation)
+        self.pushButton_run_simulation.clicked.connect(self.launch_run_simulation)
         self.pushButton_view_results.clicked.connect(self.launch_view_results)
        
 
@@ -79,6 +81,12 @@ class GUILensSimulation(LensSimulation.Ui_MainWindow, QtWidgets.QMainWindow):
         print("launch setup_simulation")
 
         self.simulation_setup = GUISimulationSetup()
+
+    def launch_run_simulation(self):
+
+        print("launch run_simulation")
+
+        self.simulation_run = GUISimulationRun()
 
     def launch_view_results(self):
 

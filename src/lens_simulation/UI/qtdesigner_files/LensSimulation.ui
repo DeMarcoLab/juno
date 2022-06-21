@@ -24,6 +24,13 @@
        <enum>QFrame::Raised</enum>
       </property>
       <layout class="QGridLayout" name="gridLayout_2">
+       <item row="3" column="0" colspan="2">
+        <widget class="QPushButton" name="pushButton_setup_sim">
+         <property name="text">
+          <string>Setup Simulation</string>
+         </property>
+        </widget>
+       </item>
        <item row="0" column="0">
         <widget class="QLabel" name="label_title">
          <property name="font">
@@ -35,13 +42,6 @@
          </property>
          <property name="text">
           <string>Lens Simulation Package (TBD)</string>
-         </property>
-        </widget>
-       </item>
-       <item row="0" column="1">
-        <widget class="QLabel" name="label_logo">
-         <property name="text">
-          <string>LOGO</string>
          </property>
         </widget>
        </item>
@@ -59,17 +59,24 @@
          </property>
         </widget>
        </item>
-       <item row="3" column="0" colspan="2">
-        <widget class="QPushButton" name="pushButton_setup_sim">
+       <item row="5" column="0" colspan="2">
+        <widget class="QPushButton" name="pushButton_view_results">
          <property name="text">
-          <string>Setup Simulation</string>
+          <string>View Results</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="1">
+        <widget class="QLabel" name="label_logo">
+         <property name="text">
+          <string>LOGO</string>
          </property>
         </widget>
        </item>
        <item row="4" column="0" colspan="2">
-        <widget class="QPushButton" name="pushButton_view_results">
+        <widget class="QPushButton" name="pushButton_run_simulation">
          <property name="text">
-          <string>View Results</string>
+          <string>Run Simulation</string>
          </property>
         </widget>
        </item>
