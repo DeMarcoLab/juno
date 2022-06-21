@@ -313,7 +313,7 @@ def draw_filter_layout(n_filters = 5):
 
 
         filterGridLayout = QGridLayout()
-        filterGridLayout.setColumnStretch(0, 2)
+        filterGridLayout.setColumnStretch(0, 1)
 
         combobox_filter_column = QComboBox()
         combobox_filter_modifier = QComboBox()

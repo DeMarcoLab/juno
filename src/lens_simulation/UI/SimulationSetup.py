@@ -399,7 +399,7 @@ def create_stage_structure_display(config):
     sim_label = QLabel()
     sim_label.setPixmap(QPixmap(sim_setup_fname))
 
-    layout.addWidget(sim_label, 0, 0, 1, len(config["stages"]) + 1)
+    layout.addWidget(sim_label, 0, 0, 1, len(config["stages"]))
 
     # beam
     beam_label = QLabel()
