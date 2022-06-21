@@ -62,7 +62,7 @@ Define the stages for the simulation to run. Simulation will be run in the order
 stages:
   - lens: lens_1
     output: medium_1 
-    n_slices: 100 
+    n_steps: 100 
     start_distance: 0
     finish_distance: 10.0e-3 
     options: 
@@ -70,7 +70,7 @@ stages:
       focal_distance_multiple: 2.0
   - lens: lens_2
     output: medium_2 
-    n_slices: 1000 
+    n_steps: 1000 
     start_distance: 0
     finish_distance: 10.0e-3 
     options: 

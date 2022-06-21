@@ -4,7 +4,7 @@ import streamlit as st
 import matplotlib.pyplot as plt
 import pandas as pd
 
-from lens_simulation import utils
+from lens_simulation import plotting, utils
 from lens_simulation.Lens import Lens, LensType, GratingSettings
 from lens_simulation.Medium import Medium
 
@@ -86,26 +86,26 @@ if submitted:
         lens.invert_profile()
 
     # generate profile plots
-    lens_fig = utils.plot_lens_profile_slices(lens, max_height=height)
-    lens2d_fig = utils.plot_lens_profile_2D(lens)
+    lens_fig = plotting.plot_lens_profile_slices(lens, max_height=height)
+    lens2d_fig = plotting.plot_lens_profile_2D(lens)
 
     lens.generate_profile(1e-6, lens_type=LensType.Spherical)
     lens.create_grating_mask(grating_settings, x_axis=grating_x, y_axis=grating_y)
     lens.apply_masks(grating=True)
-    grating_fig = utils.plot_lens_profile_2D(lens)
-    grating1d_fig = utils.plot_lens_profile_slices(lens, max_height=height)
+    grating_fig = plotting.plot_lens_profile_2D(lens)
+    grating1d_fig = plotting.plot_lens_profile_slices(lens, max_height=height)
 
     lens.generate_profile(1e-6, lens_type=LensType.Spherical)
     lens.create_truncation_mask(truncation=truncation, radius= truncation_radius, type=truncation_type)
     lens.apply_masks(truncation=True)
-    truncation_fig = utils.plot_lens_profile_2D(lens)
-    truncation1d_fig = utils.plot_lens_profile_slices(lens, max_height=height)
+    truncation_fig = plotting.plot_lens_profile_2D(lens)
+    truncation1d_fig = plotting.plot_lens_profile_slices(lens, max_height=height)
 
     lens.generate_profile(1e-6, lens_type=LensType.Spherical)
     lens.create_custom_aperture(inner_m = inner_m, outer_m=outer_m, type=aperture_type, inverted=invert_aperture)
     lens.apply_masks(aperture=True)
-    aperture_fig = utils.plot_lens_profile_2D(lens)
-    aperture1d_fig = utils.plot_lens_profile_slices(lens, max_height=height)
+    aperture_fig = plotting.plot_lens_profile_2D(lens)
+    aperture1d_fig = plotting.plot_lens_profile_slices(lens, max_height=height)
 
 
     lens.generate_profile(1e-6, lens_type=LensType.Spherical)
@@ -113,8 +113,8 @@ if submitted:
     lens.create_truncation_mask(truncation=truncation, radius= truncation_radius, type=truncation_type)
     lens.create_custom_aperture(inner_m = inner_m, outer_m=outer_m, type=aperture_type)
     lens.apply_masks(grating=True, truncation=True, aperture=True) # TODO: inverting doesnt work in this case?
-    mask_fig = utils.plot_lens_profile_2D(lens)
-    mask1d_fig = utils.plot_lens_profile_slices(lens, max_height=height)
+    mask_fig = plotting.plot_lens_profile_2D(lens)
+    mask1d_fig = plotting.plot_lens_profile_slices(lens, max_height=height)
 
     # show plots
     cols = st.columns(5)

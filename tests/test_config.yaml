@@ -6,8 +6,6 @@ sim_parameters:
   sim_wavelength: 488.e-9
 options:
   log_dir: "log"
-  save: true
-  save_plot: true
 beam:
   width: 300.e-6
   height: 50.e-6
@@ -18,12 +16,11 @@ lenses:
     diameter: 300.e-6
     height: 5.e-6
     exponent: 2.0
-    lens_type:  "Spherical"     # "Cylindrical" or "Spherical 
+    lens_type:  "Spherical" 
 stages:
   - lens: lens_1
-    output: 1.33
+    output: medium_2
     step_size: 0.1e-3
     start_distance: 0
-    finish_distance: 3.e-3
-
+    finish_distance: 10.e-3
 

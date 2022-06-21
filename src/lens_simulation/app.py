@@ -6,7 +6,7 @@ import streamlit as st
 import matplotlib.pyplot as plt
 import pandas as pd
 
-from lens_simulation import utils, Lens
+from lens_simulation import plotting, utils, Lens
 from lens_simulation.Medium import Medium
 from lens_simulation.Lens import LensType
 
@@ -85,9 +85,9 @@ def plot_lens_profile(df, stage_no):
         lens.extrude_profile(lens.diameter)
 
     # generate profile plots
-    fig_2d = utils.plot_lens_profile_2D(lens)
-    lens_fig = utils.plot_lens_profile_slices(lens)
-    
+    fig_2d = plotting.plot_lens_profile_2D(lens)
+    lens_fig = plotting.plot_lens_profile_slices(lens)
+
     # invert the profile
     if bool(df_lens["lens_inverted"].values[0]) is True:
         lens.invert_profile()
@@ -174,7 +174,7 @@ def show_simulation_data(sim_path, df_sim):
             # try to load sim
             if os.path.exists(sim_fname):
                 sim = utils.load_simulation(sim_fname)
-                fig = utils.plot_simulation(
+                fig = plotting.plot_simulation(
                     sim,
                     sim.shape[1],
                     sim.shape[0],

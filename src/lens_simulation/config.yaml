@@ -1,10 +1,9 @@
 sim_parameters:
   A: 10000
-  pixel_size: 1.e-6
-  sim_height: 500.e-6
-  sim_width: 500.e-6
-  sim_wavelength: 488.e-9
-  # lens_type:  "Spherical"     # "Cylindrical" or "Spherical
+  pixel_size: 0.1e-6
+  sim_height: 50.e-6
+  sim_width: 50.e-6
+  sim_wavelength: 488.e-9 # nice
 options:
   log_dir: "log"
   # verbose: false
@@ -13,51 +12,55 @@ options:
   # debug: false
 beam:
   # distance_mode: "direct"   # "Direct", "Width", "Focal"
-  # beam_spread: "plane"      # "Plane", "Converging", "Diverging"
-  # beam_shape: "square"      # "Square", "Circular", "Rectangular"
-  width: 300.e-6
-  height: 50.e-6
-  # position: [0.e-6, 0.e-6] 
-  # theta: 45.0
-  # # numerical_aperture: null
-  # tilt: [0.0, 0.0]
-  source_distance: 2.0e-3
-  # # final_width: 10.0e-6
-  # # focal_multiple: null
-  # n_slices: 10
-  # lens_type:  "Spherical"     # "Cylindrical" or "Spherical 
+  # spread: "plane"           # "Plane", "Converging", "Diverging"
+  shape: "rectangular"        # "Circular", "Rectangular"
+  width: 25.e-6 # nice
+  height: 25.e-6 # nice
+  # position_x: 100.e-6 # core
+  # position_y:  0.e-6 #core 
+  # # theta: 45.0 # nice
+  # # # numerical_aperture: null # nice
+  # tilt_x: 45.0 # core
+  # tilt_y: 45.0 # core
+  source_distance: 2.e-3
+  # # final_diameter: 10.0e-6 # core
+  # # focal_multiple: null # core
+  n_slices: 10
+  # step_size: 0.001
 lenses:
   - name: lens_1
-    medium: medium_1
-    diameter: 300.e-6
-    height: 5.e-6
-    exponent: 2.0
+    medium: 2.348 # nice
+    diameter: 25.e-6 # core
+    height: 10.e-6 # core
+    exponent: 2.0 # core
     lens_type:  "Spherical"     # "Cylindrical" or "Spherical 
     # escape_path: 0.1
-    # length: nu
-    # custom: null
-    # grating: 
-    #   width: 10.e-6
-    #   distance: 20.e-6
-    #   depth: 0.15e-6
-    #   x: true
-    #   y: false
-    #   centred: true
-    # truncation: 
-    #   height: 3.e-6
-    #   radius: 50.e-6
-    #   type: radial # radial, square
-    #   aperture: false
-    # aperture:
-    #   inner: 50.e-6
-    #   outer: 100.e-6
-    #   type: radial   # radial, square
-    #   invert: false
-mediums:
-  - name: medium_1
-    refractive_index: 2.348
-  - name: medium_2
-    refractive_index: 1.33
+    inverted: false 
+    # length: nu # core
+    # custom: \\ad.monash.edu\home\User028\pcle0002\Documents\repos\lens_simulation\src\lens_simulation\custom\profile.npy
+  #   grating: 
+  #     width: 10.e-6 # core
+  #     distance: 20.e-6 # core
+  #     depth: 0.15e-6 # core 
+  #     x: true
+  #     y: false
+  #     centred: true
+  #   truncation: 
+  #     height: 3.e-6 # core 
+  #     radius: 50.e-6 # core 
+  #     type: radial # radial, square
+  #     aperture: false
+  #   aperture:
+  #     inner: 50.e-6 # nice 
+  #     outer: 100.e-6 # core 
+  #     type: radial   # radial, square
+  #     invert: false
+  # - name: lens_2
+  #   medium: 2.348
+  #   diameter: 300.e-6
+  #   height: 10.e-6
+  #   exponent: 2.4
+  #   lens_type:  "Spherical"     # "Cylindrical" or "Spherical 
 stages:
   # - lens: lens_1
   #   output: medium_1
@@ -69,22 +72,23 @@ stages:
   #     focal_distance_start_multiple: 0.0
   #     focal_distance_multiple: 2.0
   - lens: lens_1
-    output: medium_2
-    step_size: 0.1e-3
-    start_distance: 0
-    finish_distance: 10.e-3
-    # options:
-    #   use_equivalent_focal_distance: true
-    #   focal_distance_start_multiple: 0.0
-    #   focal_distance_multiple: 2.0
+    output: 1.33 # nice 
+    # step_size: 0.1e-3
+    n_slices: 10
+    start_distance: 0 # core 
+    finish_distance: 6.e-3 # core 
+    use_equivalent_focal_distance: true
+    focal_distance_start_multiple: 0.0 # core 
+    focal_distance_multiple: 2.0 # core 
   # - lens: lens_2
-  #   output: medium_2
-  #   n_slices: 100
+  #   output: 1.0
+  #   # step_size: 0.1e-3
+  #   n_slices: 10
   #   start_distance: 0
-  #   finish_distance: [10.0e-3] #, 15.0e-3, 2.5e-3]
-  #   options:
-  #     use_equivalent_focal_distance: True
-  #     focal_distance_multiple: 2.0
+  #   finish_distance: 6.e-3
+  #   use_equivalent_focal_distance: true
+  #   focal_distance_start_multiple: 0.0
+  #   focal_distance_multiple: 2.0
   # - lens: lens_2
   #   output: medium_2
   #   n_slices: 100

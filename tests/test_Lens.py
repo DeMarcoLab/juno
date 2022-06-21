@@ -1,12 +1,13 @@
 import pytest
 
-from lens_simulation.Lens import Lens, LensType, GratingSettings
+from lens_simulation.Lens import Lens, LensType, GratingSettings, generate_lens
 from lens_simulation.Medium import Medium
 import numpy as np
 
 
 LENS_DIAMETER = 100e-6
 LENS_HEIGHT = 20e-6
+LENS_MEDIUM = 2.348
 LENS_FOCUS_EXPONENT = 2.0
 LENS_AXICON_EXPONENT = 1.0
 LENS_PIXEL_SIZE = 1e-6
@@ -17,7 +18,7 @@ def spherical_lens():
     lens = Lens(diameter=LENS_DIAMETER,
                 height=LENS_HEIGHT,
                 exponent=LENS_FOCUS_EXPONENT,
-                medium=Medium(2.348),
+                medium=Medium(LENS_MEDIUM),
                 lens_type=LensType.Spherical)
 
     lens.generate_profile(LENS_PIXEL_SIZE)
@@ -182,7 +183,7 @@ def test_truncation_by_radius(spherical_lens):
     lens.create_truncation_mask(radius=truncation_radius, type="radial")
     lens.apply_masks(truncation=True)
 
-    assert np.isclose(np.max(lens.profile), 15.e-6, atol=0.25e-6), "Maximum value should be 15e-6"
+    assert np.isclose(np.max(lens.profile), 15.e-6, atol=0.5e-6), "Maximum value should be 15e-6"
 
 
 # def test_aperture(spherical_lens):
@@ -226,3 +227,24 @@ def test_truncation_by_radius(spherical_lens):
 #     assert lens.profile[0, -1] == 0, "Outer area should be apertured"
 #     assert lens.profile[-1, 0] == 0, "Outer area should be apertured"
 #     assert lens.profile[0, -1] == 0, "Outer area should be apertured"
+
+
+def test_generate_lens(spherical_lens):
+
+
+    lc = {"name": "test_lens", 
+        "medium": LENS_MEDIUM,
+        "diameter": LENS_DIAMETER,
+        "height": LENS_HEIGHT,
+        "exponent": LENS_FOCUS_EXPONENT,
+        "lens_type": "Spherical"
+    }
+    pixel_size = LENS_PIXEL_SIZE
+
+    lens = generate_lens(lc, Medium(lc["medium"]), pixel_size)
+
+    assert lens.diameter == spherical_lens.diameter
+    assert lens.height == spherical_lens.height
+    assert lens.exponent == spherical_lens.exponent
+    assert lens.medium.refractive_index == spherical_lens.medium.refractive_index
+    assert lens.lens_type == spherical_lens.lens_type

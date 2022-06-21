@@ -12,10 +12,11 @@ def beam_settings():
     return BeamSettings(
         distance_mode=DistanceMode.Direct,
         beam_spread=BeamSpread.Plane, 
-        beam_shape=BeamShape.Square,
+        beam_shape=BeamShape.Rectangular,
         width= 10e-6,
         height= 5e-6,
-        position=[-0e-6, 0e-6],
+        position_x=0,
+        position_y=0,
         source_distance=10e-6
     )
 
@@ -34,10 +35,6 @@ def sim_parameters():
 def test_beam_is_symmetric(beam_settings):
     """Non-rectangular beams should be symmetric"""
 
-    # square
-    beam = Beam(beam_settings)
-    assert beam.settings.width == beam.settings.height
-
     # circular
     beam_settings.beam_shape = BeamShape.Circular
     beam = Beam(beam_settings)
@@ -55,7 +52,7 @@ def test_beam_plane_wave_distance_mode(beam_settings):
 
 def test_beam_converging_is_circular(beam_settings):
 
-    beam_settings.beam_shape = BeamShape.Square
+    beam_settings.beam_shape = BeamShape.Rectangular
     beam_settings.beam_spread = BeamSpread.Converging
     beam_settings.theta = 10
 
@@ -70,13 +67,13 @@ def test_beam_plane_wave_has_constant_width(beam_settings):
     beam_settings.beam_spread = BeamSpread.Plane
     beam = Beam(beam_settings)
 
-    assert beam.final_width == beam.settings.width
+    assert beam.final_diameter == beam.settings.width
 
 
 def test_beam_generate_profile_plane_square(beam_settings, sim_parameters):
 
     # plane - square
-    beam_settings.beam_shape = BeamShape.Square
+    beam_settings.beam_shape = BeamShape.Rectangular
     beam_settings.beam_spread = BeamSpread.Plane
     beam = Beam(beam_settings)
     beam.generate_profile(sim_parameters)
@@ -181,16 +178,16 @@ def test_beam_propagation_distance_focal(beam_settings, sim_parameters):
 def test_beam_propagation_distance_width(beam_settings, sim_parameters):
 
     test_distance = 10.e-3
-    beam_settings.distance_mode = DistanceMode.Width
+    beam_settings.distance_mode = DistanceMode.Diameter
     beam_settings.beam_spread = BeamSpread.Converging
     beam_settings.theta = 10
-    beam_settings.final_width = 5e-6
+    beam_settings.final_diameter = 5e-6
     beam_settings.source_distance = test_distance 
     beam = Beam(beam_settings)
     beam.generate_profile(sim_parameters)
 
     sd, fd = beam.calculate_propagation_distance()
 
-    # assert beam.distance_mode == DistanceMode.Width
+    # assert beam.distance_mode == DistanceMode.Diameter
     # assert sd == 0
     # assert fd == beam.focal_distance, "finish distance for DistanceMode.Focal should be the same as focal_distance"

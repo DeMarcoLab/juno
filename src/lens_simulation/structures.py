@@ -27,15 +27,10 @@ class SimulationOptions:
 class SimulationStage:
     lens: Lens
     output: Medium
-    n_slices: int
-    start_distance: float
-    finish_distance: float
-    options: dict = None
+    distances: np.ndarray = None # (propagation distances)
     lens_inverted: bool = False
     _id: int = 0
     tilt: dict = None
-    step_size: float = None
-
 
 @dataclass
 class SimulationRun:
@@ -45,6 +40,14 @@ class SimulationRun:
     options: SimulationOptions
     stages: list 
 
+
+@dataclass
+class SimulationConfig:
+    beam: None
+    lenses: list
+    stages: list
+    options: SimulationOptions
+    parameters: SimulationParameters
 
 @dataclass
 class SimulationResult:
@@ -57,5 +60,18 @@ class SimulationResult:
     freq_arr: np.ndarray = None
     delta: np.ndarray = None
     phase: np.ndarray = None
+
+
+@dataclass
+class StageSettings:
+    lens: str
+    output: float
+    n_steps: int
+    step_size: float
+    start_distance: float
+    finish_distance: float
+    use_equivalent_focal_distance: bool
+    focal_distance_start_multiple: float
+    focal_distance_multiple: float
 
 

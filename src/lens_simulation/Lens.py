@@ -1,4 +1,6 @@
+from cmath import exp
 from dataclasses import dataclass
+from math import trunc
 
 import numpy as np
 
@@ -20,15 +22,42 @@ class GratingSettings:
     distance_px: int = None  # pixels
     width_px: int = None  # pixels
 
+@dataclass
+class TruncationSettings:
+    type: str 
+    height: float = None
+    radius: float = None
+    aperture: bool = False
+
+@dataclass
+class ApertureSettings:
+    type: str
+    inner: float
+    outer: float
+    invert: bool = False
 
 class LensType(Enum):
     Cylindrical = 1
     Spherical = 2
 
+@dataclass
+class LensSettings:
+    diameter: float
+    height: float
+    exponent: float
+    medium: Medium
+    lens_type: LensType = LensType.Spherical
+    length: float = None
+    custom: str = None
+    escape_path: float = None
+    inverted: bool = False
+    grating: GratingSettings = None
+    truncation: None  = None
+    aperture: None = None 
 
 class Lens:
     def __init__(
-        self, diameter: float, height: float, exponent: float, medium: Medium = Medium(), lens_type: LensType = LensType.Spherical
+        self, diameter: float, height: float, exponent: float, medium: Medium = Medium(), lens_type: LensType = LensType.Spherical, settings: LensSettings = None
     ) -> None:
 
         # lens properties
@@ -38,6 +67,14 @@ class Lens:
         self.medium = medium
         self.length = diameter
         self.lens_type = lens_type
+
+        # lens properties (TODO: change over)
+        # self.diameter = settings.diameter
+        # self.height = settings.height
+        # self.exponent = settings.exponent
+        # self.medium = settings.medium
+        # self.length = settings.diameter
+        # self.lens_type = settings.lens_type
 
         # lens profile
         self.profile = None
@@ -50,6 +87,7 @@ class Lens:
         self.aperture = None  # full aperture mask
 
         # modifications
+        self.aperture_mask = None
         self.grating_mask = None
         self.escape_mask = None
         self.truncation_mask = None
@@ -61,14 +99,14 @@ class Lens:
     def generate_profile(
         self,
         pixel_size: float,
-        length: int = None,
+        length: float = None,
     ) -> np.ndarray:
         """_summary_
 
         Args:
             pixel_size (float): simulation pixel size
             lens_type (LensType, optional): method to create the lens profile [Cylindrical or Spherical]. Defaults to LensType.Cylindrical.
-            length (int, optional): distance to extrude the profile. Defaults to None. (metres) 
+            length (int, optional): distance to extrude the profile. Defaults to None. (metres)
 
         Returns:
             np.ndarray: lens profile
@@ -113,6 +151,10 @@ class Lens:
         self.pixel_size = pixel_size
         self.profile = arr
 
+        self.length = pixel_size * arr.shape[0]
+        self.diameter = pixel_size * arr.shape[1]
+        self.height = np.max(arr)
+
         return self.profile
 
     def extrude_profile(self, length: float, n_pixels: int) -> np.ndarray:
@@ -125,7 +167,7 @@ class Lens:
         from lens_simulation.utils import _calculate_num_of_pixels
 
         # generate 1d profile
-        profile = create_profile_1d(self.diameter, self.height, self.exponent, n_pixels)
+        profile = self.create_profile_1d(self.diameter, self.height, self.exponent, n_pixels)
 
         # length in pixels
         length_px = _calculate_num_of_pixels(length, self.pixel_size, odd=True)
@@ -169,6 +211,8 @@ class Lens:
 
         # filter profile
         # profile = ndimage.gaussian_filter(profile, sigma=3)
+        
+        self.coefficient = coefficient
 
         return profile
 
@@ -187,7 +231,7 @@ class Lens:
     """
 
     def apply_masks(
-        self, grating: bool = False, truncation: bool = False, aperture: bool = False,
+        self, grating: bool = False, truncation: bool = False, aperture: bool = True,
     ):
 
         # grating
@@ -299,7 +343,6 @@ class Lens:
 
         if type == "radial":
 
-            # TODO: only works for spherical?
 
             distance = utils.create_distance_map_px(w, h)
             mask = ((distance <= outer_px) * (distance >= inner_px)).astype(bool)
@@ -313,6 +356,11 @@ class Lens:
         self, settings: GratingSettings, x_axis: bool = True, y_axis: bool = False,
     ) -> None:
         """Calculate the grating mask for the specified settings"""
+
+        if self.profile.shape[0] == 1:
+            y_axis = False
+        if self.profile.shape[1] == 1:
+            raise ValueError('Lens must have width > 1 pixel in horizontal axis.')
 
         if settings.width == 0.0:
             self.grating_mask = np.zeros_like(self.profile, dtype=np.uint8)
@@ -388,12 +436,11 @@ class Lens:
             + self.sim_aperture_mask
         ).astype(bool)
 
-    def create_escape_path(self, parameters, ep: float) -> None:
+    def create_escape_path(self, ep: float) -> None:
         """Create the escape path for the lens
 
         Args:
             lens (Lens): lens
-            parameters (SimulationParameters): simulation parameters
             ep (float): escape path percentage
 
         Returns:
@@ -406,13 +453,14 @@ class Lens:
                 f"Lens type {self.lens_type} is not supported for escape paths."
             )
 
+        # no escape path required...
+        if ep == 0.0:
+            return
+
         lens_h, lens_w = self.profile.shape
 
         # TODO: decide if we want independent escape path amounts.
         ep_h, ep_w = calculate_escape_path_dimensions(self, ep)
-
-        # check if escape path fits within the simulation size
-        test_escape_path_fits_inside_simulation(self, parameters, ep)
 
         ESCAPE_PATH_VALUE = 0
 
@@ -421,8 +469,6 @@ class Lens:
         pad_w = int((ep_w - lens_w) // 2)
 
         # use the maxium dimension to pad escape path?
-        # TODO: decide if we use the maximum dimension for calculating the escape path or individual
-        # TODO: if we use the maxium padding amount, we need to check it fits in both dimensions
         # pad_d = max(pad_h, pad_w)
 
         profile_with_escape_path = np.pad(
@@ -431,7 +477,7 @@ class Lens:
             mode="constant",
             constant_values=ESCAPE_PATH_VALUE,
         )
-        
+
         if self.lens_type is LensType.Spherical:
 
             assert ep_h == ep_w, f"escape path must be symmetric {ep_h}, {ep_w}"
@@ -448,36 +494,37 @@ class Lens:
         self.profile = profile_with_escape_path
 
 
-def create_profile_1d(
-    diameter: float, height: float, exponent: float, n_pixels: int
-) -> np.ndarray:
-    """Create 1 dimensional lens profile"""
+    def create_profile_1d(self,
+        diameter: float, height: float, exponent: float, n_pixels: int
+    ) -> np.ndarray:
+        """Create 1 dimensional lens profile"""
 
-    # # make functional
-    # height = self.height
-    # exponent = self.exponent
+        # # make functional
+        # height = self.height
+        # exponent = self.exponent
 
-    radius = diameter / 2
-    n_pixels_in_radius = n_pixels // 2 + 1
+        radius = diameter / 2
+        n_pixels_in_radius = n_pixels // 2 + 1
 
-    # x coordinate of pixels
-    radius_px = np.linspace(0, radius, n_pixels_in_radius)
+        # x coordinate of pixels
+        radius_px = np.linspace(0, radius, n_pixels_in_radius)
 
-    # determine coefficent at boundary conditions
-    # TODO: will be different for Hershel, Paraxial approximation)
-    coefficient = height / (radius ** exponent)
+        # determine coefficent at boundary conditions
+        # TODO: will be different for Hershel, Paraxial approximation)
+        coefficient = height / (radius ** exponent)
 
-    # generic lens formula
-    # H = h - C*r ^ e
-    heights = height - coefficient * radius_px ** exponent
+        # generic lens formula
+        # H = h - C*r ^ e
+        heights = height - coefficient * radius_px ** exponent
 
-    # generate symmetric height profile (NOTE: assumed symmetric lens).
-    profile = np.append(np.flip(heights[1:]), heights)
+        # generate symmetric height profile (NOTE: assumed symmetric lens).
+        profile = np.append(np.flip(heights[1:]), heights)
 
-    # always smooth
-    profile = ndimage.gaussian_filter(profile, sigma=3)
+        # always smooth
+        profile = ndimage.gaussian_filter(profile, sigma=3)
 
-    return profile
+        self.coefficient = coefficient
+        return profile
 
 
 def calculate_grating_coords(
@@ -523,7 +570,61 @@ def calculate_grating_coords(
     return np.ravel(grating_coords)
 
 
-def generate_lens(lens_config: dict, medium: Medium) -> Lens:
+
+
+def load_lens_config(lens_config: dict):
+    # NB: not finished
+    # TODO: change over
+    lens_settings = LensSettings(
+        diameter=lens_config["diameter"],
+        height=lens_config["height"],
+        exponent=lens_config["exponent"],
+        medium=Medium(lens_config["medium"]), # TODO: this will be the wrong wavelength...
+        lens_type=LensType[lens_config["lens_type"]],
+        length=lens_config["length"],
+        custom=str(lens_config["custom"]),
+        escape_path=lens_config["escape_path"],
+        inverted=bool(lens_config["inverted"])
+    )
+
+    # modifications
+    grating_settings: GratingSettings = None
+    trunc_settings: TruncationSettings = None
+    aperture_settings: ApertureSettings = None
+
+
+    # TODO: add axes to gratings settings
+    if lens_config["grating"] is not None:
+        grating_settings = GratingSettings(
+            width=lens_config["grating"]["width"],
+            distance=lens_config["grating"]["distance"],
+            depth=lens_config["grating"]["depth"],
+            centred=lens_config["grating"]["centred"],
+        )
+
+    if lens_config["truncation"] is not None:
+        trunc_settings = TruncationSettings(
+            type=lens_config["truncation"]["type"],
+            height=lens_config["truncation"]["height"],
+            radius=lens_config["truncation"]["radius"],
+            aperture=lens_config["truncation"]["aperture"]
+        )
+    
+    if lens_config["aperture"] is not None:
+        aperture_settings = ApertureSettings(
+            type=lens_config["aperture"]["type"],
+            inner=lens_config["aperture"]["inner"],
+            outer=lens_config["aperture"]["outer"],
+            invert=lens_config["aperture"]["invert"],
+        )
+
+    lens_settings.grating = grating_settings
+    lens_settings.truncation = trunc_settings
+    lens_settings.aperture = aperture_settings
+
+    return lens_settings
+
+def generate_lens(lens_config: dict, medium: Medium, pixel_size: float) -> Lens:
     """Generate a lens from a dictionary configuration
 
     Args:
@@ -536,21 +637,42 @@ def generate_lens(lens_config: dict, medium: Medium) -> Lens:
 
     lens_config = validation._validate_default_lens_config(lens_config)
 
+    # lens_settings = load_lens_config(lens_config)
+
     lens = Lens(diameter=lens_config["diameter"],
                 height=lens_config["height"],
-                exponent=lens_config["exponent"], 
-                medium=medium, 
+                exponent=lens_config["exponent"],
+                medium=medium,
                 lens_type=LensType[lens_config["lens_type"]])
 
+
+    # load a custom lens profile
+    if lens_config["custom"]:
+        lens.load_profile(
+            fname=lens_config["custom"],
+            pixel_size=pixel_size)
+
+    # generate the profile from the configuration
+    else:
+        lens.generate_profile(
+            pixel_size=pixel_size,
+            length=lens_config["length"]
+        )
+
+    lens = apply_modifications(lens, lens_config)
+
     return lens
-    
 
 
-def apply_modifications(lens: Lens, lens_config: dict, parameters) -> Lens:
+
+def apply_modifications(lens: Lens, lens_config: dict) -> Lens:
     """Apply all lens modifications defined in config"""
 
+    if lens_config["inverted"] is True:
+        lens.invert_profile()
+
     if lens_config["escape_path"] is not None:
-        lens.create_escape_path(parameters, lens_config["escape_path"])
+        lens.create_escape_path(lens_config["escape_path"])
 
     if lens_config["grating"] is not None:
         grating_settings = GratingSettings(
@@ -584,10 +706,9 @@ def apply_modifications(lens: Lens, lens_config: dict, parameters) -> Lens:
     # apply masks
     use_grating = True if lens_config["grating"] is not None else False
     use_truncation = True if lens_config["truncation"] is not None else False
-    use_aperture = True if lens_config["aperture"] is not None else False
 
     lens.apply_masks(
-        grating=use_grating, truncation=use_truncation, aperture=use_aperture,
+        grating=use_grating, truncation=use_truncation, aperture=True,
     )
 
     return lens
@@ -600,31 +721,6 @@ def calculate_escape_path_dimensions(lens: Lens, ep: float):
     ep_h, ep_w = int(lens_h * (1 + ep)), int(lens_w * (1 + ep))
 
     return (ep_h, ep_w)
-
-
-def test_escape_path_fits_inside_simulation(lens: Lens, parameters, ep: float):
-    from lens_simulation import utils
-    from lens_simulation.structures import SimulationParameters
-
-    n_pixels_sim_height = utils._calculate_num_of_pixels(
-        parameters.sim_height, parameters.pixel_size
-    )
-    n_pixels_sim_width = utils._calculate_num_of_pixels(
-        parameters.sim_width, parameters.pixel_size
-    )
-
-    # calculate the escape path dimensions
-    ep_h, ep_w = calculate_escape_path_dimensions(lens, ep)
-
-    if ep_h > n_pixels_sim_height:
-        raise ValueError(
-            f"The given escape path is outside the simulation size: ep: {ep_h}px, sim: {n_pixels_sim_height}px"
-        )
-
-    if ep_w > n_pixels_sim_width:
-        raise ValueError(
-            f"The given escape path is outside the simulation size: ep: {ep_w}px, sim: {n_pixels_sim_width}px"
-        )
 
 
 def check_modification_masks(lens):

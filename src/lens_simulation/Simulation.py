@@ -1,7 +1,7 @@
 import os
 from pathlib import Path
+from turtle import distance
 import uuid
-
 import petname
 import numpy as np
 import matplotlib.pyplot as plt
@@ -10,17 +10,17 @@ from pprint import pprint
 from scipy import fftpack
 from tqdm import tqdm
 
-from lens_simulation import utils
-from lens_simulation.Lens import Lens, LensType, GratingSettings
+from lens_simulation.Lens import Lens, generate_lens
 from lens_simulation.Medium import Medium
 from lens_simulation.structures import (
     SimulationOptions,
     SimulationParameters,
     SimulationStage,
     SimulationResult,
+    StageSettings
 )
 
-from lens_simulation import validation
+from lens_simulation import validation, plotting, utils
 from lens_simulation.beam import generate_beam
 
 # DONE:
@@ -48,44 +48,25 @@ class Simulation:
         config["petname"] = self.petname
         config["started"] = utils.current_timestamp()
 
-
         # create logging directory
         log_dir = os.path.join(config["log_dir"], str(self.petname))
         os.makedirs(log_dir, exist_ok=True)
 
         # options
-        self.options = SimulationOptions(
-            log_dir=log_dir,
-            save=config["options"]["save"],
-            save_plot=config["options"]["save_plot"],
-            verbose=config["options"]["verbose"],
-            debug=config["options"]["debug"],
-        )
-        
+        self.options = generate_simulation_options(config, log_dir)
+
         # common sim parameters
-        self.parameters = SimulationParameters(
-            A=config["sim_parameters"]["A"],
-            pixel_size=config["sim_parameters"]["pixel_size"],
-            sim_width=config["sim_parameters"]["sim_width"],
-            sim_height=config["sim_parameters"]["sim_height"], 
-            sim_wavelength=config["sim_parameters"]["sim_wavelength"],
-        )
+        self.parameters = generate_simulation_parameters(config)
 
         return config
 
     def setup_simulation(self, config: dict):
 
-        # generate all mediums for simulation
-        simulation_mediums = generate_mediums(config["mediums"])
-
         # generate all lenses for the simulations
-        simulation_lenses = generate_lenses(config["lenses"], simulation_mediums, self.parameters)
-
-        # validate sim, lens and medium setup 
-        stages_config = validation._validate_simulation_stage_list(config["stages"], simulation_mediums, simulation_lenses)
+        simulation_lenses = generate_lenses(config["lenses"], self.parameters)
 
         # generate all simulation stages
-        self.sim_stages = generate_simulation_stages(stages_config, simulation_mediums, simulation_lenses, config, self.parameters)
+        self.sim_stages = generate_simulation_stages(config, simulation_lenses, self.parameters)
 
     def run_simulation(self):
         """Run the simulation propagation over all simulation stages."""
@@ -128,7 +109,7 @@ class Simulation:
                     f"Sim: {petname} ({str(sim_id)[-10:]}) - Plotting Simulation"
                 )
 
-                save_result_plots(result, stage, parameters, save_path)
+                plotting.save_result_plots(result, stage, parameters, save_path)
 
             # pass the wavefront to the next stage
             passed_wavefront = result.propagation
@@ -137,20 +118,46 @@ class Simulation:
         config["finished"] = utils.current_timestamp()
         utils.save_metadata(config, options.log_dir)
 
-def generate_simulation_stages(stages: list, simulation_mediums: dict, simulation_lenses: dict, config: dict, parameters: SimulationParameters) -> list:
+
+def generate_simulation_options(config: dict, log_dir: str) -> SimulationOptions:
+
+    options = SimulationOptions(
+            log_dir=log_dir,
+            save=config["options"]["save"],
+            save_plot=config["options"]["save_plot"],
+            verbose=config["options"]["verbose"],
+            debug=config["options"]["debug"],
+        )
+    return options
+
+
+def generate_simulation_parameters(config: dict) -> SimulationParameters:
+    parameters = SimulationParameters(
+        A=config["sim_parameters"]["A"],
+        pixel_size=config["sim_parameters"]["pixel_size"],
+        sim_width=config["sim_parameters"]["sim_width"],
+        sim_height=config["sim_parameters"]["sim_height"],
+        sim_wavelength=config["sim_parameters"]["sim_wavelength"],
+    )
+
+    return parameters
+
+
+def generate_simulation_stages(config: dict, simulation_lenses: dict, parameters: SimulationParameters) -> list:
     """Generate the list of simulation stages
 
     Args:
         stages (list): config list containing simulation stages
-        simulation_mediums (dict): config dict containing simulation mediums
         simulation_lenses (dict): config dict containing simulation lenses
-        config (dict): simulation config 
+        config (dict): simulation config
         parameters (SimulationParameters): simulation parameters
 
     Returns:
         list[SimulationStage]: list of SimulationStages ready for simulation
     """
 
+    # validate sim, lens and medium setup
+    stages = validation._validate_simulation_stage_list(config["stages"], simulation_lenses)
 
     # stages to be simulated
     sim_stages = []
@@ -158,88 +165,158 @@ def generate_simulation_stages(stages: list, simulation_mediums: dict, simulatio
     ################################ BEAM STAGE ################################
 
     # first stage is a beam
-    beam = generate_beam(config["beam"], parameters)
-    beam_stage = SimulationStage(
-        lens=beam.lens,
-        output=Medium(1.33),
-        n_slices=beam.settings.n_slices,
-        start_distance=beam.start_distance,
-        finish_distance=beam.finish_distance,
-        tilt={"x": beam.tilt[0], "y": beam.tilt[1]},
-    )
+    beam_stage = generate_beam_simulation_stage(config, parameters)
 
-    sim_stages.append(beam_stage) 
+    sim_stages.append(beam_stage)
 
     ################################ LENS STAGES ################################
 
     for i, stage in enumerate(stages):
 
         sim_stage_no = len(sim_stages)
-        
-        sim_stage = SimulationStage(
-            lens=simulation_lenses[stage["lens"]],
-            output=simulation_mediums[stage["output"]],
-            n_slices=stage["n_slices"],
-            step_size=stage["step_size"],
-            start_distance=stage["start_distance"],
-            finish_distance=stage["finish_distance"],
-            options=stage["options"],
-            lens_inverted=False,
-            _id=sim_stage_no,
-        )
+
+        sim_stage = generate_simulation_stage(stage, simulation_lenses, parameters, sim_stage_no)
 
         # NOTE: if the lens and the output have the same medium, the lens is assumed to be 'double-sided'
         # therefore, we invert the lens profile to create an 'air lens' to properly simulate the double sided lens
-        if (sim_stage.lens.medium.refractive_index == sim_stage.output.refractive_index):  # TODO: figure out why dataclass comparison isnt working
+        if (sim_stage.lens.medium.refractive_index == sim_stage.output.refractive_index):
 
             sim_stage = invert_lens_and_output_medium(sim_stage, sim_stages[sim_stage_no - 1], parameters)
 
-        if sim_stage.options is not None:
-            sim_stage = calculate_start_and_finish_distance(sim_stage)
-    
         # update config
-        config["stages"][i]["start_distance"] = sim_stage.start_distance
-        config["stages"][i]["finish_distance"] = sim_stage.finish_distance
+        config["stages"][i]["n_steps"] = len(sim_stage.distances)
+        config["stages"][i]["start_distance"] = sim_stage.distances[0]
+        config["stages"][i]["finish_distance"] = sim_stage.distances[-1]
         config["stages"][i]["lens_inverted"] = sim_stage.lens_inverted
 
         # add to simulation
         sim_stages.append(sim_stage)
-    
+
     return sim_stages
 
 
-def calculate_start_and_finish_distance(stage: SimulationStage):
-    if stage.options["use_equivalent_focal_distance"]:
-        eq_fd = calculate_equivalent_focal_distance(stage.lens, stage.output)
+def load_sim_stage_config(sim_config):
 
-        stage.start_distance = (stage.options["focal_distance_start_multiple"] * eq_fd)
-        stage.finish_distance = (stage.options["focal_distance_multiple"] * eq_fd)
+    stage_settings = StageSettings(
+        lens = sim_config["lens"],
+        output = sim_config["output"], 
+        n_steps = sim_config["n_steps"], 
+        step_size = sim_config["step_size"],
+        start_distance = sim_config["start_distance"],
+        finish_distance = sim_config["finish_distance"],
+        use_equivalent_focal_distance = bool(sim_config["use_equivalent_focal_distance"]),
+        focal_distance_start_multiple = sim_config["focal_distance_start_multiple"],
+        focal_distance_multiple = sim_config["focal_distance_multiple"],
+    )
+
+    return stage_settings
+
+
+
+def generate_simulation_stage(stage_config: dict, simulation_lenses: dict, parameters: SimulationParameters, sim_stage_no: int = 0) -> SimulationStage:
+
+    # TODO: replace
+    settings = load_sim_stage_config(stage_config)
+
+    stage = SimulationStage(
+        lens=simulation_lenses.get(stage_config.get("lens")),
+        output=Medium(stage_config.get("output"), parameters.sim_wavelength),
+        distances=None,
+        lens_inverted=False,
+        _id=sim_stage_no,
+    )
+
+
+    # dynamically calculate distance based on focal distance
+    if stage_config["use_equivalent_focal_distance"] is True:
+        start_distance, finish_distance = calculate_start_and_finish_distance_v2(stage.lens, stage.output,
+                    stage_config.get("focal_distance_start_multiple"),
+                    stage_config.get("focal_distance_multiple"))
+    else:
+        start_distance = stage_config.get("start_distance")
+        finish_distance = stage_config.get("finish_distance")
+
+    # calculate propagation distances
+    stage.distances = calculate_propagation_distances(
+                                    start_distance=start_distance,
+                                    finish_distance=finish_distance,
+                                    n_steps=stage_config.get("n_steps"),
+                                    step_size=stage_config.get("step_size"))
+
+    return stage
+
+
+def generate_beam_simulation_stage(config: dict, parameters: SimulationParameters) -> SimulationStage:
+
+    beam = generate_beam(config["beam"], parameters)
+    beam_stage = SimulationStage(
+        lens=beam.lens,
+        output=beam.output_medium,
+        tilt={"x": beam.tilt[0], "y": beam.tilt[1]},
+    )
+    
+    # calculate propagation distances
+    beam_stage.distances = calculate_propagation_distances(                                    
+                                    start_distance=beam.start_distance,
+                                    finish_distance=beam.finish_distance,
+                                    n_steps=beam.settings.n_steps, 
+                                    step_size=beam.settings.step_size)
+    return beam_stage
+
+
+def calculate_start_and_finish_distance_v2(lens: Lens, output: Medium, start_multiple: float, finish_multiple: float):
+
+    eq_fd = calculate_equivalent_focal_distance(lens, output)
+
+    start_distance = (start_multiple * eq_fd)
+    finish_distance = (finish_multiple * eq_fd)
+
+    return start_distance, finish_distance
+
+
+def calculate_propagation_distances(start_distance: float, finish_distance: float, n_steps: int, step_size: float = None) -> np.ndarray:
+
+    if start_distance >= finish_distance:
+        raise ValueError(f"start_distance ({start_distance}) is greater than finish_distance ({finish_distance}).")
         
-    return stage 
+    # calculate n_steps
+    n_steps = calculate_num_steps_in_distance(start_distance, finish_distance, step_size, n_steps)
 
-def generate_mediums(mediums: list):
-    """Generate all the mediums for the simulation"""
+    # calculate propagation distances
+    distances = np.linspace(start_distance, finish_distance, n_steps)
 
-    simulation_mediums = {}
-    for med in mediums:
+    return distances
 
-        simulation_mediums[med["name"]] = Medium(med["refractive_index"])
 
-    return simulation_mediums
+def calculate_num_steps_in_distance(start, finish, step_size, n_steps) -> int:
 
-def generate_lenses(lenses: list, simulation_mediums: dict, parameters: SimulationParameters):
+    if n_steps in [0, None] and step_size in [0, None]:
+        raise ValueError(f"Both n_steps ({n_steps}) and step_size ({step_size}) cannot be zero or None.")
+
+    if step_size not in [0, None]:
+        if step_size > (finish - start):
+            raise ValueError(f"The step_size ({step_size}) is greater than the distance range: {finish - start}m.")
+        
+        n_steps = int(np.ceil((finish + 1e-12 - start) / step_size))
+
+    if n_steps in [0, None]:
+        raise ValueError(f"The number of steps is zero, this will cause an error in propagation. Please increase n_steps, or step_size. n_steps {n_steps}, step_size: {step_size}")
+
+    return n_steps
+
+def generate_lenses(lenses: list, parameters: SimulationParameters):
     """Generate all the lenses for the simulation"""
 
-    from lens_simulation.Lens import apply_modifications, generate_lens  
-    
     simulation_lenses = {}
     for lens_config in lenses:
 
-        if lens_config["medium"] not in simulation_mediums:
-            raise ValueError("Lens Medium not found in simulation mediums")
+        medium = Medium(refractive_index=lens_config["medium"],
+                wavelength=parameters.sim_wavelength)
 
         # generate lens from config
-        lens = generate_lens(lens_config=lens_config, medium=simulation_mediums[lens_config["medium"]])
+        lens = generate_lens(lens_config=lens_config,
+                        medium=medium,
+                        pixel_size=parameters.pixel_size)
 
         # check lens fits in the simulation
         if lens.diameter > parameters.sim_width or lens.diameter > parameters.sim_height:
@@ -247,24 +324,21 @@ def generate_lenses(lenses: list, simulation_mediums: dict, parameters: Simulati
                 f"Lens diameter must be smaller than the simulation size: lens: {lens.diameter:.2e}m, sim: {parameters.sim_width:.2e}mx{parameters.sim_height:.2e}m"
             )
 
-        # load a custom lens profile
-        if lens_config["custom"]:
-            lens.load_profile(fname=lens_config["custom"])
+        # check the escape path fits within then simulation
+        if lens_config["escape_path"] is not None:
+            test_escape_path_fits_inside_simulation(lens, parameters, lens_config["escape_path"])
 
-        # generate the profile from the configuration
-        else:
-            lens.generate_profile(
-                pixel_size=parameters.pixel_size,
-                length=lens_config["length"]
-            )
+        # pad the lens profile to be the same size as the simulation
+        lens = pad_simulation(lens, parameters=parameters)
 
-        lens = apply_modifications(lens, lens_config, parameters)
+        # apply all aperture masks
+        lens.apply_aperture_masks()
 
-        simulation_lenses[lens_config["name"]] = lens
+        simulation_lenses[lens_config.get("name")] = lens
+
+        # TODO: Why not pad to sim size here? have everything we need now
 
     return simulation_lenses
-
-
 
 
 
@@ -291,21 +365,12 @@ def propagate_wavefront(
 
     lens: Lens = stage.lens
     output_medium: Medium = stage.output
-    n_slices: int = stage.n_slices
-    step_size: float = stage.step_size    
-    start_distance: float = stage.start_distance
-    finish_distance: float = stage.finish_distance
+    distances: np.ndarray = stage.distances
     amplitude: float = parameters.A if passed_wavefront is None else 1.0
+    sim_profile: np.ndarray = lens.profile
 
     DEBUG = options.debug
     save_path = os.path.join(options.log_dir, str(stage._id))
-
-    # pad the lens profile to be the same size as the simulation
-    lens = pad_simulation(lens, parameters=parameters)
-    
-    # apply all aperture masks, TODO: mvoe this to a better place
-    lens.apply_aperture_masks()
-    sim_profile = lens.profile
 
     # generate frequency array
     freq_arr = generate_sq_freq_arr(sim_profile, pixel_size=parameters.pixel_size)
@@ -324,15 +389,10 @@ def propagate_wavefront(
     # fourier transform of wavefront
     fft_wavefront = fftpack.fft2(wavefront)
 
-    # calculate propagation distances
-    if n_slices is None:
-        n_slices = int((finish_distance - start_distance) / step_size)
-    distances = np.linspace(start_distance, finish_distance, n_slices)
-
     # pre-allocate view arrays
-    sim = np.zeros(shape=(n_slices, *sim_profile.shape), dtype=np.float32)
-    top_down_view = np.zeros(shape=(n_slices, sim_profile.shape[1]), dtype=np.float32)
-    side_on_view = np.zeros(shape=(n_slices, sim_profile.shape[0]), dtype=np.float32)
+    sim = np.zeros(shape=(len(distances), *sim_profile.shape), dtype=np.float32)
+    top_down_view = np.zeros(shape=(len(distances), sim_profile.shape[1]), dtype=np.float32)
+    side_on_view = np.zeros(shape=(len(distances), sim_profile.shape[0]), dtype=np.float32)
 
     # propagate the wavefront over distance
     prop_progress_bar = tqdm(distances, leave=False)
@@ -442,7 +502,7 @@ def calculate_equivalent_focal_distance(lens: Lens, medium: Medium) -> float:
 
 
 def pad_simulation(lens: Lens, parameters: SimulationParameters) -> np.ndarray:
-    """Pad the lens profile to match the simulation dimensions. Padding is used to 
+    """Pad the lens profile to match the simulation dimensions. Padding is used to
         prevent reflection in the simulation
 
     Args:
@@ -473,17 +533,17 @@ def pad_simulation(lens: Lens, parameters: SimulationParameters) -> np.ndarray:
 
     # pad the lens profile
     lens.profile = np.pad(lens.profile, pad_width=((diff_h, diff_h), (diff_w, diff_w)), mode="constant")
-    
+
     # apply aperture mask to sim padded area
     # TODO: could change this to calc the mask with == 0?
-    lens.profile[lens.sim_aperture_mask] = 0 
+    lens.profile[lens.sim_aperture_mask] = 0
 
     return lens
 
 def calculate_sim_aperture(lens, sim_h, sim_w) -> np.ndarray:
     lens_h, lens_w = lens.profile.shape
     aperture_mask = np.ones(shape=(sim_h, sim_w))
-    
+
     y0 = sim_h//2 - lens_h//2
     y1 = sim_h//2 + lens_h//2
     x0 = sim_w//2 - lens_w//2
@@ -523,14 +583,14 @@ def calculate_tilted_delta_profile(
 
     # tilt the beam
     if tilt is not None:
-        x = np.arange(len(sim_profile)) * lens.pixel_size
-        y = np.arange(len(sim_profile)) * lens.pixel_size
+        x = np.arange(sim_profile.shape[1]) * lens.pixel_size
+        y = np.arange(sim_profile.shape[0]) * lens.pixel_size
 
         y_tilt_rad = np.deg2rad(tilt["y"])
         x_tilt_rad = np.deg2rad(tilt["x"])
 
         # modify the optical path of the light based on tilt
-        delta = delta + np.add.outer(y * np.tan(y_tilt_rad), -x * np.tan(x_tilt_rad))
+        delta = delta + np.add.outer(y * np.tan(y_tilt_rad), x * np.tan(x_tilt_rad))
 
     return delta
 
@@ -584,85 +644,6 @@ def propagate_over_distance(
     return rounded_output, propagation
 
 
-def save_result_plots(
-    result: SimulationResult,
-    stage: SimulationStage,
-    parameters: SimulationParameters,
-    save_path: Path,
-):
-    """Plot and save the simulation results
-
-    Args:
-        result (SimulationResult): _description_
-        stage (SimulationStage): _description_
-        parameters (SimulationParameters): _description_
-        save_path (Path): _description_
-    """
-
-    # save top-down
-    fig = utils.plot_simulation(
-        arr=result.top_down,
-        pixel_size_x=parameters.pixel_size,
-        start_distance=stage.start_distance,
-        finish_distance=stage.finish_distance,
-    )
-
-    utils.save_figure(fig, os.path.join(save_path, "topdown.png"))
-    plt.close(fig)
-
-    fig = utils.plot_simulation(
-        np.log(result.top_down + 10e-12),
-        pixel_size_x=parameters.pixel_size,
-        start_distance=stage.start_distance,
-        finish_distance=stage.finish_distance,
-    )
-
-    utils.save_figure(fig, os.path.join(save_path, "log_topdown.png"))
-    plt.close(fig)
-
-    fig = utils.plot_simulation(
-        arr=result.side_on,
-        pixel_size_x=parameters.pixel_size,
-        start_distance=stage.start_distance,
-        finish_distance=stage.finish_distance,
-    )
-    utils.save_figure(fig, os.path.join(save_path, "sideon.png"))
-    plt.close(fig)
-
-    if result.freq_arr is not None:
-        fig = utils.plot_image(
-            result.freq_arr,
-            "Frequency Array",
-            save=True,
-            fname=os.path.join(save_path, "freq.png"),
-        )
-        plt.close(fig)
-
-    if result.delta is not None:
-        fig = utils.plot_image(
-            result.delta,
-            "Delta Profile",
-            save=True,
-            fname=os.path.join(save_path, "delta.png"),
-        )
-        plt.close(fig)
-
-    if result.phase is not None:
-        utils.plot_image(
-            result.phase,
-            "Phase Profile",
-            save=True,
-            fname=os.path.join(save_path, "phase.png"),
-        )
-        plt.close(fig)
-
-    if result.lens is not None:
-        fig = utils.plot_lens_profile_2D(result.lens)
-        utils.save_figure(fig, fname=os.path.join(save_path, "lens_profile.png"))
-
-        fig = utils.plot_lens_profile_slices(result.lens)
-        utils.save_figure(fig, fname=os.path.join(save_path, "lens_slices.png"))
-
 def invert_lens_and_output_medium(stage: SimulationStage, previous_stage: SimulationStage, parameters: SimulationParameters) -> SimulationStage:
     """Invert the lens profile, and swap the stage and lens mediums to create an 'inverse' lens
 
@@ -681,7 +662,7 @@ def invert_lens_and_output_medium(stage: SimulationStage, previous_stage: Simula
 
 
     if (stage.lens.medium.refractive_index == previous_stage.output.refractive_index):
-        raise ValueError("Lens and Medium on either side are the same Medium, Lens has no effect.")  # TODO: might be useful for someone...
+        raise ValueError("Lens and Medium on either side are the same Medium, Lens has no effect.")
 
     # change to 'air' lens, and invert the profile
     stage.lens = Lens(
@@ -696,3 +677,30 @@ def invert_lens_and_output_medium(stage: SimulationStage, previous_stage: Simula
     stage.lens_inverted = True
 
     return stage
+
+
+
+def test_escape_path_fits_inside_simulation(lens: Lens, parameters, ep: float):
+    from lens_simulation import utils
+    from lens_simulation.structures import SimulationParameters
+    from lens_simulation.Lens import calculate_escape_path_dimensions
+
+    n_pixels_sim_height = utils._calculate_num_of_pixels(
+        parameters.sim_height, parameters.pixel_size
+    )
+    n_pixels_sim_width = utils._calculate_num_of_pixels(
+        parameters.sim_width, parameters.pixel_size
+    )
+
+    # calculate the escape path dimensions
+    ep_h, ep_w = calculate_escape_path_dimensions(lens, ep)
+
+    if ep_h > n_pixels_sim_height:
+        raise ValueError(
+            f"The given escape path is outside the simulation size: ep: {ep_h}px, sim: {n_pixels_sim_height}px"
+        )
+
+    if ep_w > n_pixels_sim_width:
+        raise ValueError(
+            f"The given escape path is outside the simulation size: ep: {ep_w}px, sim: {n_pixels_sim_width}px"
+        )
