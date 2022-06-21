@@ -10,6 +10,7 @@ from lens_simulation import constants, plotting, utils
 from lens_simulation.Lens import Medium
 from lens_simulation.beam import generate_beam
 from lens_simulation.Simulation import SimulationStage, SimulationParameters, SimulationOptions, propagate_wavefront
+from lens_simulation.UI.utils import display_error_message
 from matplotlib import pyplot as plt
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
 from PyQt5 import QtCore, QtGui, QtWidgets
@@ -158,7 +159,7 @@ class GUIBeamCreator(BeamCreator.Ui_BeamCreator, QtWidgets.QMainWindow):
             self.beam = generate_beam(config=self.beam_dict, parameters=self.parameters)
             self.update_image_frames()
         except Exception as e:
-            self.display_error_message(traceback.format_exc())
+            display_error_message(traceback.format_exc())
 
     ### UI <-> Config methods ###
 
@@ -460,7 +461,7 @@ class GUIBeamCreator(BeamCreator.Ui_BeamCreator, QtWidgets.QMainWindow):
 
             self.checkBox_LiveUpdate.setChecked(was_live)
         except Exception as e:
-            self.display_error_message(traceback.format_exc())
+            display_error_message(traceback.format_exc())
 
     def save_profile(self):
         filename, ext = QtWidgets.QFileDialog.getSaveFileName(
@@ -583,7 +584,7 @@ class GUIBeamCreator(BeamCreator.Ui_BeamCreator, QtWidgets.QMainWindow):
                 self.update_image_frames()
                 self.checkBox_LiveUpdate.setChecked(True)
             except Exception as e:
-                self.display_error_message(traceback.format_exc())
+                display_error_message(traceback.format_exc())
 
     ### Calculation methods ###
     def calculate_tilt_effect(self):
@@ -655,16 +656,6 @@ class GUIBeamCreator(BeamCreator.Ui_BeamCreator, QtWidgets.QMainWindow):
             (desktop.width() - self.width()) / 2,
             (desktop.height() - self.height()) / 3.0,
         )
-
-    def display_error_message(self, message):
-        """PyQt dialog box displaying an error message."""
-        # logging.debug('display_error_message')
-        # logging.exception(message)
-        self.error_dialog = QtWidgets.QErrorMessage()
-        self.error_dialog.showMessage(message)
-        self.error_dialog.showNormal()
-        self.error_dialog.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
-        self.error_dialog.exec_()
 
 
 class _ImageCanvas(FigureCanvasQTAgg, QtWidgets.QWidget):

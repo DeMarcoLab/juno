@@ -7,6 +7,7 @@ import numpy as np
 import yaml
 from lens_simulation import constants, plotting, utils
 from lens_simulation.Lens import GratingSettings, LensType, Medium, generate_lens
+from lens_simulation.UI.utils import display_error_message
 from matplotlib import pyplot as plt
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
 from PyQt5 import QtCore, QtGui, QtWidgets
@@ -455,7 +456,7 @@ class GUILensCreator(LensCreator.Ui_LensCreator, QtWidgets.QMainWindow):
                 self.update_UI()
                 self.checkBox_LiveUpdate.setChecked(was_live)
             except Exception as e:
-                self.display_error_message(traceback.format_exc())
+                display_error_message(traceback.format_exc())
 
         else:
             try:
@@ -470,7 +471,7 @@ class GUILensCreator(LensCreator.Ui_LensCreator, QtWidgets.QMainWindow):
                 self.update_UI()
                 self.checkBox_LiveUpdate.setChecked(was_live)
             except Exception as e:
-                self.display_error_message(traceback.format_exc())
+                display_error_message(traceback.format_exc())
 
     def save_profile(self):
         filename, ext = QtWidgets.QFileDialog.getSaveFileName(self, "Save Profile", self.lens_dict["name"], filter="Yaml config (*.yml *.yaml)")
@@ -591,7 +592,7 @@ class GUILensCreator(LensCreator.Ui_LensCreator, QtWidgets.QMainWindow):
                 self.update_UI()
                 self.checkBox_LiveUpdate.setChecked(True)
             except Exception as e:
-                self.display_error_message(traceback.format_exc())
+                display_error_message(traceback.format_exc())
 
     ### Window methods ###
 
@@ -603,17 +604,6 @@ class GUILensCreator(LensCreator.Ui_LensCreator, QtWidgets.QMainWindow):
             (desktop.width() - self.width()) / 2,
             (desktop.height() - self.height()) / 3.0,
         )
-
-    def display_error_message(self, message):
-        """PyQt dialog box displaying an error message."""
-        # logging.debug('display_error_message')
-        # logging.exception(message)
-        self.error_dialog = QtWidgets.QErrorMessage()
-        self.error_dialog.showMessage(message)
-        self.error_dialog.showNormal()
-        self.error_dialog.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
-        self.error_dialog.exec_()
-
 
 class _ImageCanvas(FigureCanvasQTAgg, QtWidgets.QWidget):
     def __init__(self, parent=None, image=None, lens=None, ndim=2, mask=False):

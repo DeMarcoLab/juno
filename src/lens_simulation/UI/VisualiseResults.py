@@ -9,7 +9,7 @@ import lens_simulation
 import os
 
 from lens_simulation import utils
-
+from lens_simulation.UI.utils import display_error_message
 import lens_simulation.UI.qtdesigner_files.VisualiseResults as VisualiseResults
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtWidgets import QGroupBox, QGridLayout, QLabel, QVBoxLayout, QPushButton, QLineEdit, QComboBox
@@ -40,9 +40,9 @@ class GUIVisualiseResults(VisualiseResults.Ui_MainWindow, QtWidgets.QMainWindow)
         self.setup_connections()
 
         self.showNormal()
-    
+
     def setup_connections(self):
-        
+
         # load data
         self.pushButton_load_simulation.clicked.connect(self.load_simulation)
 
@@ -55,33 +55,35 @@ class GUIVisualiseResults(VisualiseResults.Ui_MainWindow, QtWidgets.QMainWindow)
 
 
     def load_simulation(self):
+        try:
+            # select directory
+            log_dir = os.path.join(os.path.dirname(lens_simulation.__file__), "log")
 
-        # select directory
-        log_dir = os.path.join(os.path.dirname(lens_simulation.__file__), "log")
+            directory = str(QtWidgets.QFileDialog.getExistingDirectory(self, "Load Simulation Run", log_dir))
 
-        directory = str(QtWidgets.QFileDialog.getExistingDirectory(self, "Load Simulation Run", log_dir))
+            if directory == "":
+                return
 
-        if directory == "":
-            return
-        
-        sim_run_name = os.path.basename(directory)
-        
-        self.sim_directories = [os.path.join(directory, path) for path in os.listdir(directory) if os.path.isdir(os.path.join(directory, path))] 
+            sim_run_name = os.path.basename(directory)
 
-        # set ui
-        self.label_sim_run_name.setText(f"Run: {sim_run_name}")
-        self.label_sim_no_loaded.setText(f"{len(self.sim_directories)} simulations loaded.")
-        self.directory = directory
+            self.sim_directories = [os.path.join(directory, path) for path in os.listdir(directory) if os.path.isdir(os.path.join(directory, path))]
 
-        self.load_dataframe()
+            # set ui
+            self.label_sim_run_name.setText(f"Run: {sim_run_name}")
+            self.label_sim_no_loaded.setText(f"{len(self.sim_directories)} simulations loaded.")
+            self.directory = directory
 
-        self.label_filter_title.setVisible(True)
-        self.frame_filter.setVisible(True)
+            self.load_dataframe()
 
-        self.SIMULATION_LOADED = True
-        
+            self.label_filter_title.setVisible(True)
+            self.frame_filter.setVisible(True)
+
+            self.SIMULATION_LOADED = True
+        except Exception as e:
+            display_error_message(f'Error loading simulation folder: {e}')
+
     def load_dataframe(self):
-        
+
         # load simulation data
         self.df = utils.load_run_simulation_data(self.directory)
 
@@ -97,11 +99,11 @@ class GUIVisualiseResults(VisualiseResults.Ui_MainWindow, QtWidgets.QMainWindow)
         print("updating column data")
 
         for widget in self.filter_widgets:
-            
+
             combo_col, combo_mod, lineedit_value, label_value = widget
             try:
                 # NOTE: need to check the order this updates in, sometimes col_name is none
-                col_name = combo_col.currentText()               
+                col_name = combo_col.currentText()
                 col_type = self.df.dtypes[col_name]
                 col_modifiers = get_valid_modifiers(col_type)
 
@@ -116,13 +118,13 @@ class GUIVisualiseResults(VisualiseResults.Ui_MainWindow, QtWidgets.QMainWindow)
                     label_value.setText(f"values: {unique_vals}")
             except Exception as e:
                 print(e)
-            
+
     def filter_by_each_filter(self):
-        
+
         df_filter = self.df
 
         for widgets in self.filter_widgets:
-            
+
             try:
                 col_name = widgets[0].currentText()
                 modifier = widgets[1].currentText()
@@ -135,7 +137,7 @@ class GUIVisualiseResults(VisualiseResults.Ui_MainWindow, QtWidgets.QMainWindow)
                 df_filter = filter_dataframe_by_modifier(df_filter, col_name, value, modifier)
             except:
                 value = "an error occured getting the value"
-            
+
             print(f"Filtered to {len(df_filter)} simulation stages.")
             print(col_name, col_type, modifier, value)
 
@@ -160,16 +162,16 @@ class GUIVisualiseResults(VisualiseResults.Ui_MainWindow, QtWidgets.QMainWindow)
         for widget in self.filter_widgets:
             widget[0].currentIndexChanged.connect(self.update_column_data)
             widget[0].addItems(list(self.df.columns))
-        
+
         self.label_num_filtered_simulations.setText(f"Filtered to {len(self.df)} simulation stages.")
         self.scroll_area_filter.update()
 
 
     def update_simulation_display(self, sim_paths: list, stages: list):
-        
+
         print("updating simulation display")
-        # TODO: add option to show beams by adding stage 0 to stages... 
-        if self.checkBox_show_beam.isChecked():   
+        # TODO: add option to show beams by adding stage 0 to stages...
+        if self.checkBox_show_beam.isChecked():
             stages.insert(0, 0)
 
         runGridLayout = draw_run_layout(sim_paths, stages)
@@ -188,7 +190,7 @@ def get_column_value_by_type(lineEdit: QLineEdit, type) -> Union[str, int, float
         value = float(lineEdit.text())
     if type == object:
         value = str(lineEdit.text())
-    
+
     return value
 
 def get_valid_modifiers(type):
@@ -211,15 +213,15 @@ def filter_dataframe_by_modifier(df, filter_col, value, modifier):
         df_filter = df[df[filter_col] > value]
     if modifier == MODIFIER.CONTAINS.name:
         df_filter = df[df[filter_col].isin([value])]
-    
-    return df_filter  
+
+    return df_filter
 
 def draw_image_on_label(fname: str, shape: tuple = (300, 300)) -> QLabel:
     """Load a image / gif from file, and set it on a label"""
     label = QLabel()
     if "gif" in fname:
         movie = QMovie(fname)
-        movie.setScaledSize(QtCore.QSize(shape[0], shape[1])) 
+        movie.setScaledSize(QtCore.QSize(shape[0], shape[1]))
         label.setScaledContents(True)
         label.setMovie(movie)
         if movie is not None:
@@ -229,7 +231,7 @@ def draw_image_on_label(fname: str, shape: tuple = (300, 300)) -> QLabel:
         label.setPixmap(QPixmap(fname).scaled(*shape))
 
     label.setStyleSheet("border-radius: 5px")
-    
+
     return label
 
 def generate_stage_grid_layout(stage_no, fnames) -> QGridLayout:
@@ -247,7 +249,7 @@ def generate_stage_grid_layout(stage_no, fnames) -> QGridLayout:
         stage_grid_layout.addWidget(label, 1, i)
 
     return stage_grid_layout
-        
+
 
 def draw_sim_grid_layout(path, stages):
     simGridLayout = QVBoxLayout()
@@ -276,20 +278,20 @@ def draw_sim_grid_layout(path, stages):
 
 
 def draw_run_layout(sim_directories, stages, nlim=None):
-    runGridLayout = QVBoxLayout()    
+    runGridLayout = QVBoxLayout()
 
     # limit the number of simulations shown
     if nlim is None:
         nlim = len(sim_directories)
-    
+
     for sim_path in sim_directories[:nlim]:
 
         simGridLayout = draw_sim_grid_layout(sim_path, stages)
-        
+
         simBox = QGroupBox(f"")
         simBox.setLayout(simGridLayout)
         runGridLayout.addWidget(simBox)
-        
+
     return runGridLayout
 
 
@@ -303,19 +305,19 @@ def draw_filter_layout(n_filters = 5):
 
         filterGridLayout = QGridLayout()
         filterGridLayout.setColumnStretch(0, 2)
-        
+
         combobox_filter_column = QComboBox()
         combobox_filter_modifier = QComboBox()
         line_edit_filter_value = QLineEdit()
         label_min_max = QLabel()
 
         filter_widgets.append([combobox_filter_column, combobox_filter_modifier, line_edit_filter_value, label_min_max])
-        
+
         filterGridLayout.addWidget(combobox_filter_column, 0, 0, 1, 2)
         filterGridLayout.addWidget(combobox_filter_modifier, 1, 0)
         filterGridLayout.addWidget(line_edit_filter_value, 1, 1)
         filterGridLayout.addWidget(label_min_max, 2, 0, 1, 2)
-        
+
         filterBox = QGroupBox(f"")
         filterBox.setLayout(filterGridLayout)
         filterLayout.addWidget(filterBox)
@@ -323,7 +325,6 @@ def draw_filter_layout(n_filters = 5):
 
 
     return filterLayout, filter_widgets
-
 
 
 
