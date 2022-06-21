@@ -208,7 +208,7 @@ class GUIBeamCreator(BeamCreator.Ui_BeamCreator, QtWidgets.QMainWindow):
         # UI -> config | General settings #
         self.beam_dict["name"] = self.lineEdit_LensName.text()
         if self.comboBox_DistanceMethod.currentText() == "# Steps":
-            self.beam_dict["n_steps"] = self.doubleSpinBox_DistanceMethod.value()
+            self.beam_dict["n_steps"] = round(self.doubleSpinBox_DistanceMethod.value())
             self.beam_dict["step_size"] = 0
         else:
             self.beam_dict["n_steps"] = 0
