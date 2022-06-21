@@ -133,6 +133,8 @@ class GUIVisualiseResults(VisualiseResults.Ui_MainWindow, QtWidgets.QMainWindow)
 
                 # TODO: check if filter val is valid?
                 # check if column exists?
+                if value == "":
+                    break # skip null filters
 
                 df_filter = filter_dataframe_by_modifier(df_filter, col_name, value, modifier)
             except:
@@ -212,7 +214,8 @@ def filter_dataframe_by_modifier(df, filter_col, value, modifier):
     if modifier == MODIFIER.GREATER_THAN.name:
         df_filter = df[df[filter_col] > value]
     if modifier == MODIFIER.CONTAINS.name:
-        df_filter = df[df[filter_col].isin([value])]
+        values = value.split(",")
+        df_filter = df[df[filter_col].isin(values)]
 
     return df_filter
 
