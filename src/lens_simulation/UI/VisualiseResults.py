@@ -192,6 +192,12 @@ def get_column_value_by_type(lineEdit: QLineEdit, type) -> Union[str, int, float
         value = float(lineEdit.text())
     if type == object:
         value = str(lineEdit.text())
+    if type == bool:
+        value = str(lineEdit.text())
+        if value == "False":
+            value = False
+        if value == "True":
+            value = True
 
     return value
 
