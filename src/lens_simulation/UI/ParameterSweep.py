@@ -45,6 +45,7 @@ class GUIParameterSweep(ParameterSweep.Ui_MainWindow, QtWidgets.QMainWindow):
         self.setWindowTitle("Parameter Sweep")
         
         self.config = config 
+        self.combination_label_widgets = []
 
         self.setup_connections()
 
@@ -80,7 +81,7 @@ class GUIParameterSweep(ParameterSweep.Ui_MainWindow, QtWidgets.QMainWindow):
         label_step_size_title.setAlignment(QtCore.Qt.AlignCenter)
     
         label_n_combo_title = QLabel()
-        label_n_combo_title.setText("Combination")
+        label_n_combo_title.setText("Combinations")
         label_n_combo_title.setStyleSheet("font-weight: bold;")
         label_n_combo_title.setAlignment(QtCore.Qt.AlignCenter)
 
@@ -99,7 +100,7 @@ class GUIParameterSweep(ParameterSweep.Ui_MainWindow, QtWidgets.QMainWindow):
         paramGridLayout.addWidget(label_beam_title, current_idx, 0)
         current_idx +=1
 
-        all_beam_widgets, current_idx = create_config_elements(self.config["beam"], 
+        all_beam_widgets, current_idx = self.create_config_elements(self.config["beam"], 
                         constants.BEAM_SWEEPABLE_KEYS, paramGridLayout, 
                         current_idx)
 
@@ -128,6 +129,7 @@ class GUIParameterSweep(ParameterSweep.Ui_MainWindow, QtWidgets.QMainWindow):
                     widgets = create_param_widgets(key, val, paramGridLayout, current_idx,
                                             stop_val=lens_config[f"{key}_stop"],
                                             step_val=lens_config[f"{key}_step"])
+                    self.update_combination_widget(widgets)
                     lens_widgets[key] = widgets
                     current_idx += 1
 
@@ -140,6 +142,7 @@ class GUIParameterSweep(ParameterSweep.Ui_MainWindow, QtWidgets.QMainWindow):
                                             paramGridLayout, current_idx, 
                                             stop_val=val[f"{k}_stop"],
                                             step_val=val[f"{k}_step"])
+                            self.update_combination_widget(widgets)
                             lens_widgets[key][k]= widgets
                             current_idx += 1
 
@@ -165,12 +168,28 @@ class GUIParameterSweep(ParameterSweep.Ui_MainWindow, QtWidgets.QMainWindow):
             paramGridLayout.addWidget(stage_name_label, current_idx, 0)
             current_idx +=1
 
-            stage_widgets, current_idx = create_config_elements(stage_config, 
+            stage_widgets, current_idx = self.create_config_elements(stage_config, 
                                             constants.STAGE_SWEEPABLE_KEYS, 
                                             paramGridLayout, 
                                             current_idx)                
 
             all_stage_widgets.append(stage_widgets) 
+
+
+        # total counter
+        self.total_combinations_title = QLabel()
+        self.total_combinations_title.setText(f"Total Combinations")
+        self.total_combinations_title.setStyleSheet("font-weight: bold")
+    
+        self.total_combinations = QLabel()
+        self.total_combinations.setText(f"1")
+        self.total_combinations.setStyleSheet("font-weight: bold; text-align: center")
+        self.total_combinations.setAlignment(QtCore.Qt.AlignCenter)
+
+        paramGridLayout.addWidget(self.total_combinations_title, current_idx, 0)
+        paramGridLayout.addWidget(self.total_combinations, current_idx, 4)
+        current_idx +=1
+
 
         paramBox.setLayout(paramGridLayout)
         self.scrollArea.setWidget(paramBox)
@@ -184,28 +203,19 @@ class GUIParameterSweep(ParameterSweep.Ui_MainWindow, QtWidgets.QMainWindow):
         self.connect_all_widgets()
 
 # TODO: consolidate and rationalise all these different data structures.... beam, lens and stage are all different?
+# TODO: update the initial display
 
     def connect_all_widgets(self):
 
-        for k, v in self.beam_widgets.items():
+        for wid in [self.beam_widgets, *self.lens_widgets, *self.stage_widgets]:
+            for k, widgets in wid.items():
 
-            self.connect_widgets(v)
-
-        for lw in self.lens_widgets:
-            for k, v in lw.items():
-                if isinstance(v, list):
-                    self.connect_widgets(v)
-                
-                if isinstance(v, dict):
-                    for k2, v2 in v.items():
+                if isinstance(widgets, list):
+                    self.connect_widgets(widgets)
+                if isinstance(widgets, dict):
+                    # recurse
+                    for k2, v2 in widgets.items():
                         self.connect_widgets(v2)
-        
-        for sw in self.stage_widgets:
-            for k, v in sw.items():
-                if isinstance(v, list):
-                    self.connect_widgets(v)
-
-
 
     def connect_widgets(self, widgets):
 
@@ -214,58 +224,73 @@ class GUIParameterSweep(ParameterSweep.Ui_MainWindow, QtWidgets.QMainWindow):
             widgets[2].textChanged.connect(self.on_update)
             widgets[3].textChanged.connect(self.on_update)
 
-        
-    def on_update(self):
-        def get_param_values(widgets):
+            self.combination_label_widgets.append(widgets[4])
+
+    def get_param_values(self, widgets):
             start, stop, step = float(widgets[1].text()), float(widgets[2].text()), float(widgets[3].text())
             
             return start, stop, step
         
-        def update_combination_widget(widgets):
-            try:
-
-                start, stop, step = get_param_values(widgets)
-                sweep = generate_parameter_sweep(start, stop, step)
-                widgets[4].setText(f"{len(sweep)}")
-                self.statusBar.clearMessage()
-
-            except Exception as e:
-                widgets[4].setText(f"INVALID")
-                self.statusBar.showMessage(f"Invalid parameter values: {e}")
-
-
-        def check_matching_widget(widgets: list, sender, k):
-            for w in widgets:
-                if w == self.sender():
-                    
-                    print(f"IT WAS ME: {k}: {sender} ")
-                    update_combination_widget(widgets)
-                    return True
+    def update_combination_widget(self, widgets):
+        try:
             
-            return False
+            # protect empty state as not invalid
+            if widgets[2].text() == "" and widgets[3].text() == "":
+                print("EMPTY")
+                return
 
-    
-        for k, widgets in self.beam_widgets.items():
-            if check_matching_widget(widgets, self.sender(), k):
-                break
+            start, stop, step = self.get_param_values(widgets)
+
+            sweep = generate_parameter_sweep(start, stop, step)
+            widgets[4].setText(f"{len(sweep)}")
+            widgets[4].setStyleSheet("background-color: LightGreen")
+            self.statusBar.clearMessage()
+
+        except Exception as e:
+            widgets[4].setText(f"INVALID")
+            widgets[4].setStyleSheet("background-color: LightCoral")
+            self.statusBar.showMessage(f"Invalid parameter values: {e}")
 
 
-        for lw in self.lens_widgets:
-            for k, v in lw.items():
-                if isinstance(v, list):
-                    if check_matching_widget(v, self.sender(), k):
-                        break
+    def check_matching_widget(self, widgets: list, sender):
+        for w in widgets:
+            if w == sender:
                 
-                if isinstance(v, dict):
-                    for k2, v2 in v.items():
-                        if check_matching_widget(v2, self.sender(), f"{k}_{k2}"):
+                self.update_combination_widget(widgets)
+                return True
+        
+        return False
+
+
+    def on_update(self):
+
+        for wid in [self.beam_widgets, *self.lens_widgets, *self.stage_widgets]:
+            for k, widgets in wid.items():
+
+                if isinstance(widgets, list):
+                    if self.check_matching_widget(widgets, self.sender()):
+                        break
+                if isinstance(widgets, dict):
+                    # recurse
+                    for k2, v2 in widgets.items():
+                        if self.check_matching_widget(v2, self.sender()):
                             break
         
-        for sw in self.stage_widgets:
-            for k, v in sw.items():
-                if isinstance(v, list):
-                    if check_matching_widget(v, self.sender(), k):
-                        break
+        n_total_combinations = 1
+        self.VALID_CONFIGURATION = True
+        for label in self.combination_label_widgets:
+            
+            try:
+                n_combo = int(label.text())
+                n_total_combinations = n_total_combinations * n_combo
+            except:
+                self.VALID_CONFIGURATION = False
+
+        print(f"TOTAL COMBINATIONS: {n_total_combinations}).")
+        self.total_combinations.setText(f"{n_total_combinations}")
+
+        # disable saving for invalid configs
+        self.pushButton_save_config.setEnabled(self.VALID_CONFIGURATION)
 
 
 
@@ -348,25 +373,25 @@ class GUIParameterSweep(ParameterSweep.Ui_MainWindow, QtWidgets.QMainWindow):
 # TODO: validate sweep values here?
 
 
-def create_config_elements(config: dict, sweep_keys, layout, current_idx: int) -> list:
+    def create_config_elements(self, config: dict, sweep_keys, layout, current_idx: int) -> list:
 
-    all_widgets = {}
+        all_widgets = {}
 
-    for key, val in config.items():
+        for key, val in config.items():
 
-        if key in sweep_keys:
-            if val is None:
-                continue # skip none values?
+            if key in sweep_keys:
+                if val is None:
+                    continue # skip none values?
 
-            widgets = create_param_widgets(key, val, layout, current_idx, 
-                                stop_val=config[f"{key}_stop"], 
-                                step_val=config[f"{key}_step"])
-            
-            all_widgets[key] = widgets
+                widgets = create_param_widgets(key, val, layout, current_idx, 
+                                    stop_val=config[f"{key}_stop"], 
+                                    step_val=config[f"{key}_step"])
+                self.update_combination_widget(widgets)
+                all_widgets[key] = widgets
 
-            current_idx += 1
+                current_idx += 1
 
-    return all_widgets, current_idx
+        return all_widgets, current_idx
 
 
 def create_param_widgets(key, val, layout, idx, stop_val = None, step_val = None ) -> list :
