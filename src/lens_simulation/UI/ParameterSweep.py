@@ -202,11 +202,12 @@ class GUIParameterSweep(ParameterSweep.Ui_MainWindow, QtWidgets.QMainWindow):
         # connect all widgets for combo updates
         self.connect_all_widgets()
 
+        self.update_combination_and_buttons()
+
 # TODO: consolidate and rationalise all these different data structures.... beam, lens and stage are all different?
-# TODO: update the initial display
 
     def connect_all_widgets(self):
-
+        # connect all widgets to updating functions
         for wid in [self.beam_widgets, *self.lens_widgets, *self.stage_widgets]:
             for k, widgets in wid.items():
 
@@ -227,20 +228,19 @@ class GUIParameterSweep(ParameterSweep.Ui_MainWindow, QtWidgets.QMainWindow):
             self.combination_label_widgets.append(widgets[4])
 
     def get_param_values(self, widgets):
-            start, stop, step = float(widgets[1].text()), float(widgets[2].text()), float(widgets[3].text())
-            
-            return start, stop, step
+        start, stop, step = float(widgets[1].text()), float(widgets[2].text()), float(widgets[3].text())
+        
+        return start, stop, step
         
     def update_combination_widget(self, widgets):
+        # update the number of combinations based on parameters
         try:
             
             # protect empty state as not invalid
             if widgets[2].text() == "" and widgets[3].text() == "":
-                print("EMPTY")
                 return
 
             start, stop, step = self.get_param_values(widgets)
-
             sweep = generate_parameter_sweep(start, stop, step)
             widgets[4].setText(f"{len(sweep)}")
             widgets[4].setStyleSheet("background-color: LightGreen")
@@ -253,6 +253,7 @@ class GUIParameterSweep(ParameterSweep.Ui_MainWindow, QtWidgets.QMainWindow):
 
 
     def check_matching_widget(self, widgets: list, sender):
+        # check if widget was the sender (changed)
         for w in widgets:
             if w == sender:
                 
@@ -263,7 +264,8 @@ class GUIParameterSweep(ParameterSweep.Ui_MainWindow, QtWidgets.QMainWindow):
 
 
     def on_update(self):
-
+        
+        # find the changed widgets and update
         for wid in [self.beam_widgets, *self.lens_widgets, *self.stage_widgets]:
             for k, widgets in wid.items():
 
@@ -275,7 +277,12 @@ class GUIParameterSweep(ParameterSweep.Ui_MainWindow, QtWidgets.QMainWindow):
                     for k2, v2 in widgets.items():
                         if self.check_matching_widget(v2, self.sender()):
                             break
-        
+                            
+        self.update_combination_and_buttons()
+
+    def update_combination_and_buttons(self):
+
+        # update total combinations label
         n_total_combinations = 1
         self.VALID_CONFIGURATION = True
         for label in self.combination_label_widgets:
@@ -286,7 +293,6 @@ class GUIParameterSweep(ParameterSweep.Ui_MainWindow, QtWidgets.QMainWindow):
             except:
                 self.VALID_CONFIGURATION = False
 
-        print(f"TOTAL COMBINATIONS: {n_total_combinations}).")
         self.total_combinations.setText(f"{n_total_combinations}")
 
         # disable saving for invalid configs
@@ -351,21 +357,30 @@ class GUIParameterSweep(ParameterSweep.Ui_MainWindow, QtWidgets.QMainWindow):
 
 
     def save_sweepable_config(self):
+        # save sweepable config back to parent ui
+        if self.VALID_CONFIGURATION and self.parent() is not None:
+            
+            print("saving sweep config to parent")
+            from copy import deepcopy
+            self.read_sweep_values_into_config()
 
-        self.read_sweep_values_into_config()
+            self.parent().simulation_config = deepcopy(self.config)
+            self.parent().SAVE_FROM_PARAMETER_SWEEP = True
 
-        # open file dialog
-        sim_config_filename, _ = QFileDialog.getSaveFileName(self,
-                    caption="Save Simulation Config", 
-                    directory=os.path.dirname(lens_simulation.__file__),
-                    filter="Yaml files (*.yml, *.yaml)")
-        if sim_config_filename:          
+            self.close()
 
-            # same as yaml file
-            with open(sim_config_filename, "w") as f:
-                yaml.safe_dump(self.config, f)
+        # # open file dialog
+        # sim_config_filename, _ = QFileDialog.getSaveFileName(self,
+        #             caption="Save Simulation Config", 
+        #             directory=os.path.dirname(lens_simulation.__file__),
+        #             filter="Yaml files (*.yml, *.yaml)")
+        # if sim_config_filename:          
 
-            self.statusBar.showMessage(f"Simulation config saved to {sim_config_filename}")
+        #     # same as yaml file
+        #     with open(sim_config_filename, "w") as f:
+        #         yaml.safe_dump(self.config, f)
+
+        #     self.statusBar.showMessage(f"Simulation config saved to {sim_config_filename}")
 
 
 # TODO: update combination counts?

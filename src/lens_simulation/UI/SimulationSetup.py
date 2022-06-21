@@ -12,6 +12,7 @@ from lens_simulation import utils, plotting
 import matplotlib.pyplot as plt
 
 import lens_simulation.UI.qtdesigner_files.SimulationSetup as SimulationSetup
+from lens_simulation.UI.ParameterSweep import GUIParameterSweep
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtWidgets import (
     QGroupBox,
@@ -55,6 +56,7 @@ class GUISimulationSetup(SimulationSetup.Ui_MainWindow, QtWidgets.QMainWindow):
         self.setWindowTitle("Simulation Setup")
 
         self.simulation_config = {}
+        self.SAVE_FROM_PARAMETER_SWEEP = False
 
         self.setup_connections()
 
@@ -74,6 +76,7 @@ class GUISimulationSetup(SimulationSetup.Ui_MainWindow, QtWidgets.QMainWindow):
         )
         self.pushButton_sim_beam.clicked.connect(self.load_beam_config)
 
+        self.pushButton_setup_parameter_sweep.clicked.connect(self.setup_parameter_sweep)
         self.pushButton_save_sim_config.clicked.connect(self.save_simulation_config)
 
         self.actionLoad_Config.triggered.connect(self.load_simulation_config)
@@ -121,9 +124,14 @@ class GUISimulationSetup(SimulationSetup.Ui_MainWindow, QtWidgets.QMainWindow):
             else:
                 widgets[9].setText("Start Distance")
                 widgets[11].setText("Finish Distance")
+    
+    def setup_parameter_sweep(self):
+        # param sweep ui
+        print("setup parameter sweep")
+        self.param_sweep_ui = GUIParameterSweep(self.simulation_config, parent_gui=self)
 
     def save_simulation_config(self):
-
+        
         # open file dialog
         sim_config_filename, _ = QFileDialog.getSaveFileName(self,
                     caption="Save Simulation Config",
@@ -151,8 +159,6 @@ class GUISimulationSetup(SimulationSetup.Ui_MainWindow, QtWidgets.QMainWindow):
             config = utils.load_config(sim_config_filename)
 
             self.statusBar.showMessage(f"Simulation config loaded from {sim_config_filename}")
-
-            pprint(config)
 
             print("loaded config")
             # TODO: how to handle partial configs??? throw error?
@@ -216,10 +222,13 @@ class GUISimulationSetup(SimulationSetup.Ui_MainWindow, QtWidgets.QMainWindow):
             print("Configuration is valid.")
             self.draw_simulation_stage_display()
 
+            self.pushButton_setup_parameter_sweep.setEnabled(True)
             self.pushButton_save_sim_config.setEnabled(True)
 
         except Exception as e:
             display_error_message(f"Invalid simulation config. \n{e}")
+            self.pushButton_setup_parameter_sweep.setEnabled(False)
+            self.pushButton_save_sim_config.setEnabled(False)
 
         # checks
         # beam selected
