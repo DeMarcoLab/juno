@@ -1,14 +1,4 @@
-from distutils.log import error
 import sys
-import traceback
-
-from enum import Enum, auto
-import glob
-import lens_simulation
-import os
-
-from lens_simulation import utils
-
 import  lens_simulation.UI.qtdesigner_files.LensSimulation as LensSimulation 
 from lens_simulation.UI.LensCreator import GUILensCreator
 from lens_simulation.UI.SimulationSetup import GUISimulationSetup
@@ -17,27 +7,8 @@ from lens_simulation.UI.BeamCreator import GUIBeamCreator
 from lens_simulation.UI.SimulationRun import GUISimulationRun
 
 from PyQt5 import QtCore, QtGui, QtWidgets
-from PyQt5.QtWidgets import (
-    QGroupBox,
-    QGridLayout,
-    QLabel,
-    QVBoxLayout,
-    QPushButton,
-    QLineEdit,
-    QComboBox,
-    QDoubleSpinBox,
-    QSpinBox,
-    QCheckBox,
-    QFileDialog,
-)
-from PyQt5.QtGui import QImage, QPixmap, QMovie
-import numpy as np
 
-from pathlib import Path
-from pprint import pprint
 
-from lens_simulation import validation
-from PyQt5.QtWidgets import QMessageBox
 
 
 

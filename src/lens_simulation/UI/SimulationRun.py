@@ -61,7 +61,7 @@ class GUISimulationRun(SimulationRun.Ui_MainWindow, QtWidgets.QMainWindow):
         self.label_running_info.setVisible(True)
         self.progressBar_running.setVisible(True)
                 
-        for i, sim_config in enumerate(self.sim_runner.simulation_configurations):
+        for i, sim_config in enumerate(self.sim_runner.simulation_configurations, 1):
             
             sim = Simulation(sim_config)
             self.label_running_info.setText(f"Running Simulation: {sim.petname}  ({i}/{self.n_sims})")
