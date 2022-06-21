@@ -29,3 +29,4 @@ scripts/*
 !*default.yaml
 src/lens_simulation/tmp/*
 src/lens_simulation/data/*
+src/lens_simulation/out.prof

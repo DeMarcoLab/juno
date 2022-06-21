@@ -278,7 +278,7 @@ def save_result_plots(
     # save propagation gifs
     try:
         save_propagation_gif(save_path)
-        save_propagation_steps_gif(save_path)
+        # save_propagation_steps_gif(save_path)
     except Exception as e:
         logging.error(f"Error during plotting GIF: {e}")
 
@@ -390,13 +390,13 @@ def save_propagation_gif(path: str):
     search_path = os.path.join(path, "*mm.npy")
 
     filenames = sorted(glob.glob(search_path))
-    images = []
-    for fname in filenames:
+    slice = np.load(filenames[0])
+    images = np.zeros(shape=(len(filenames), *slice.shape))
 
-        slice = np.load(fname)
-        img = Image.fromarray(slice)
+    for i, fname in enumerate(filenames):
 
-        images.append(img)
+        img = np.load(fname)
+        images[i, :, :] = img
 
     save_path = os.path.join(path, "propagation.gif")
     imageio.mimsave(save_path, images, duration=0.2)

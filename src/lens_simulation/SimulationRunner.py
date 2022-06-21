@@ -23,7 +23,7 @@ class SimulationRunner:
         self.config = utils.load_config(config_filename)
 
         # create logging directory
-        self.data_path: Path = os.path.join(os.path.dirname(lens_simulation.__file__), # TODO: might need to change this path?
+        self.data_path: Path = os.path.join(os.path.dirname(__file__), # TODO: might need to change this path?
                 self.config["options"]["log_dir"], str(self.petname))
         os.makedirs(self.data_path, exist_ok=True)
 
