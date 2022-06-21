@@ -62,6 +62,7 @@ class SimulationRunner:
         logging.info(f"Finished running {len(self.simulation_configurations)} Simulations")
         self.config["finished"] = utils.current_timestamp()
         utils.save_metadata(self.config, self.data_path)
+        utils.save_dataframe(self.data_path)
 
 
 

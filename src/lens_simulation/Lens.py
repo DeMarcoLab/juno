@@ -1,5 +1,6 @@
 from cmath import exp
 from dataclasses import dataclass
+from math import trunc
 
 import numpy as np
 
@@ -21,6 +22,19 @@ class GratingSettings:
     distance_px: int = None  # pixels
     width_px: int = None  # pixels
 
+@dataclass
+class TruncationSettings:
+    type: str 
+    height: float = None
+    radius: float = None
+    aperture: bool = False
+
+@dataclass
+class ApertureSettings:
+    type: str
+    inner: float
+    outer: float
+    invert: bool = False
 
 class LensType(Enum):
     Cylindrical = 1
@@ -34,6 +48,12 @@ class LensSettings:
     medium: Medium
     lens_type: LensType = LensType.Spherical
     length: float = None
+    custom: str = None
+    escape_path: float = None
+    inverted: bool = False
+    grating: GratingSettings = None
+    truncation: None  = None
+    aperture: None = None 
 
 class Lens:
     def __init__(
@@ -550,6 +570,60 @@ def calculate_grating_coords(
     return np.ravel(grating_coords)
 
 
+
+
+def load_lens_config(lens_config: dict):
+    # NB: not finished
+    # TODO: change over
+    lens_settings = LensSettings(
+        diameter=lens_config["diameter"],
+        height=lens_config["height"],
+        exponent=lens_config["exponent"],
+        medium=Medium(lens_config["medium"]), # TODO: this will be the wrong wavelength...
+        lens_type=LensType[lens_config["lens_type"]],
+        length=lens_config["length"],
+        custom=str(lens_config["custom"]),
+        escape_path=lens_config["escape_path"],
+        inverted=bool(lens_config["inverted"])
+    )
+
+    # modifications
+    grating_settings: GratingSettings = None
+    trunc_settings: TruncationSettings = None
+    aperture_settings: ApertureSettings = None
+
+
+    # TODO: add axes to gratings settings
+    if lens_config["grating"] is not None:
+        grating_settings = GratingSettings(
+            width=lens_config["grating"]["width"],
+            distance=lens_config["grating"]["distance"],
+            depth=lens_config["grating"]["depth"],
+            centred=lens_config["grating"]["centred"],
+        )
+
+    if lens_config["truncation"] is not None:
+        trunc_settings = TruncationSettings(
+            type=lens_config["truncation"]["type"],
+            height=lens_config["truncation"]["height"],
+            radius=lens_config["truncation"]["radius"],
+            aperture=lens_config["truncation"]["aperture"]
+        )
+    
+    if lens_config["aperture"] is not None:
+        aperture_settings = ApertureSettings(
+            type=lens_config["aperture"]["type"],
+            inner=lens_config["aperture"]["inner"],
+            outer=lens_config["aperture"]["outer"],
+            invert=lens_config["aperture"]["invert"],
+        )
+
+    lens_settings.grating = grating_settings
+    lens_settings.truncation = trunc_settings
+    lens_settings.aperture = aperture_settings
+
+    return lens_settings
+
 def generate_lens(lens_config: dict, medium: Medium, pixel_size: float) -> Lens:
     """Generate a lens from a dictionary configuration
 
@@ -563,15 +637,7 @@ def generate_lens(lens_config: dict, medium: Medium, pixel_size: float) -> Lens:
 
     lens_config = validation._validate_default_lens_config(lens_config)
 
-    # TODO: change over
-    lens_settings = LensSettings(
-        diameter=lens_config["diameter"],
-        height=lens_config["height"],
-        exponent=lens_config["exponent"],
-        medium=medium,
-        lens_type=LensType[lens_config["lens_type"]]
-    )
-
+    # lens_settings = load_lens_config(lens_config)
 
     lens = Lens(diameter=lens_config["diameter"],
                 height=lens_config["height"],

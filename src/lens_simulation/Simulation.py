@@ -17,6 +17,7 @@ from lens_simulation.structures import (
     SimulationParameters,
     SimulationStage,
     SimulationResult,
+    StageSettings
 )
 
 from lens_simulation import validation, plotting, utils
@@ -193,7 +194,29 @@ def generate_simulation_stages(config: dict, simulation_lenses: dict, parameters
 
     return sim_stages
 
+
+def load_sim_stage_config(sim_config):
+
+    stage_settings = StageSettings(
+        lens = sim_config["lens"],
+        output = sim_config["output"], 
+        n_steps = sim_config["n_steps"], 
+        step_size = sim_config["step_size"],
+        start_distance = sim_config["start_distance"],
+        finish_distance = sim_config["finish_distance"],
+        use_equivalent_focal_distance = bool(sim_config["use_equivalent_focal_distance"]),
+        focal_distance_start_multiple = sim_config["focal_distance_start_multiple"],
+        focal_distance_multiple = sim_config["focal_distance_multiple"],
+    )
+
+    return stage_settings
+
+
+
 def generate_simulation_stage(stage_config: dict, simulation_lenses: dict, parameters: SimulationParameters, sim_stage_no: int = 0) -> SimulationStage:
+
+    # TODO: replace
+    settings = load_sim_stage_config(stage_config)
 
     stage = SimulationStage(
         lens=simulation_lenses.get(stage_config.get("lens")),

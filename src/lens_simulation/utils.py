@@ -21,6 +21,8 @@ from lens_simulation import validation
 
 from pathlib import Path
 
+
+
 # TODO: visualisation
 # visualisation between lens and sim data is inconsistent,
 # light comes from bottom for lens profile, and top for sim result.
@@ -31,7 +33,7 @@ from pathlib import Path
 
 
 
-#################### DATA ####################
+#################### DATA / IO ####################
 
 
 def load_simulation(filename):
@@ -92,6 +94,21 @@ def load_config(config_filename):
 
     return config
 
+
+
+def load_config_struct(config_filename: str):
+    """Load the config as a struct"""
+    # from lens_simulation.structures import SimulationConfig
+    
+    config = load_config(config_filename)
+
+    config_stuct = config
+
+    return config_stuct
+
+
+
+
 def load_simulation_config(config_filename: str = "config.yaml") -> dict:
     """Load the default configuration ready to simulate.
 
@@ -118,7 +135,7 @@ def load_simulation_config(config_filename: str = "config.yaml") -> dict:
 
     return config
 
-
+######################## DATAFRAME ########################
 
 def load_simulation_data(path):
     """Load all simulation metadata into a single dataframe"""
@@ -218,17 +235,24 @@ def load_run_simulation_data(directory):
         df = pd.concat([df, df_join],ignore_index=True).reset_index()
         df = df.drop(columns=["index"])
 
-    # df = df.drop(columns=["level_0", "index", "options"])
-
     # remove sweep columns from frame
     sweep_cols = [col for col in df.columns if "_stop" in col or "_step" in col]
     df = df.drop(columns=sweep_cols)
 
     return df
 
+def save_dataframe(directory: Path, fname: str = "data.csv"):
+    """Save all the simulation data from dataframe to csv."""
+    df: pd.DataFrame = load_run_simulation_data(directory)
+
+    df.to_csv(os.path.join(directory, fname))
 
 
+def load_dataframe(path: Path):
+    """Load dataframe from disk"""
+    df = pd.read_csv(path)
 
+    return df
 
 ################
 
