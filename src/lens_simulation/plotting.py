@@ -1,21 +1,18 @@
-import os
 import glob
-
-import matplotlib.pyplot as plt
-import numpy as np
 import logging
+import os
+from pathlib import Path
 
 import imageio
-
+import matplotlib.pyplot as plt
+import numpy as np
+import zarr
 from PIL import Image
-from pathlib import Path
+
 from lens_simulation import utils
 from lens_simulation.Lens import Lens
-from lens_simulation.structures import (
-    SimulationResult,
-    SimulationStage,
-    SimulationParameters,
-)
+from lens_simulation.structures import (SimulationParameters, SimulationResult,
+                                        SimulationStage)
 
 #################### PLOTTING ####################
 
@@ -211,9 +208,12 @@ def save_result_plots(
         save_path (Path): _description_
     """
 
+    sim = result.sim
+    top_down, side_on = create_sim_views(sim)
+
     # save top-down
     fig = plot_simulation(
-        arr=result.top_down,
+        arr=top_down,
         pixel_size_x=parameters.pixel_size,
         start_distance=stage.distances[0],
         finish_distance=stage.distances[-1],
@@ -223,7 +223,7 @@ def save_result_plots(
     plt.close(fig)
 
     fig = plot_simulation(
-        np.log(result.top_down + 10e-12),
+        np.log(top_down + 10e-12),
         pixel_size_x=parameters.pixel_size,
         start_distance=stage.distances[0],
         finish_distance=stage.distances[-1],
@@ -233,7 +233,7 @@ def save_result_plots(
     plt.close(fig)
 
     fig = plot_simulation(
-        arr=result.side_on,
+        arr=side_on,
         pixel_size_x=parameters.pixel_size,
         start_distance=stage.distances[0],
         finish_distance=stage.distances[-1],
@@ -281,6 +281,19 @@ def save_result_plots(
         # save_propagation_steps_gif(save_path)
     except Exception as e:
         logging.error(f"Error during plotting GIF: {e}")
+
+def create_sim_views(sim: np.ndarray, px_h: int = None, px_v: int = None) -> tuple:
+    """Create vertical and horizontal slices of the simulation"""
+    if px_h is None:
+        px_h = sim.shape[1] // 2
+    if px_v is None:
+        px_v = sim.shape[2] // 2
+
+    # calculate views
+    top_down = sim[:, px_h, :]
+    side_on = sim[:, :, px_v]
+
+    return top_down, side_on
 
 
 def plot_apeture_masks(lens: Lens) -> plt.Figure:
@@ -383,23 +396,23 @@ def plot_simulation_setup(config: dict) -> plt.Figure:
     # TODO: correct the propagation distances to mm
     return fig
 
-
 def save_propagation_gif(path: str):
     """Save a gif of the propagation"""
 
-    search_path = os.path.join(path, "*mm.npy")
+    save_path = os.path.join(os.path.dirname(path), "propagation.gif")
+    print("sim path: ", path)
+    print("save_path: ", save_path)
 
-    filenames = sorted(glob.glob(search_path))
-    slice = np.load(filenames[0])
-    images = np.zeros(shape=(len(filenames), *slice.shape))
+    sim = zarr.open(path)
+    print("sim:", sim.shape)
 
-    for i, fname in enumerate(filenames):
+    # for i in range(sim.shape[0]):
 
-        img = np.load(fname)
-        images[i, :, :] = img
+    #     plt.imshow(sim[i])
+    #     plt.colorbar()
+    #     plt.show()
 
-    save_path = os.path.join(path, "propagation.gif")
-    imageio.mimsave(save_path, images, duration=0.2)
+    imageio.mimsave(save_path, sim, duration=0.2)
 
 
 def save_propagation_steps_gif(path: str) -> None:

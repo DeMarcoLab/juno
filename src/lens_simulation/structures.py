@@ -52,8 +52,8 @@ class SimulationConfig:
 @dataclass
 class SimulationResult:
     propagation: np.ndarray = None
-    top_down: np.ndarray = None
-    side_on: np.ndarray = None
+    # top_down: np.ndarray = None
+    # side_on: np.ndarray = None
     sim: np.ndarray = None
     lens: Lens = None
     freq_arr: np.ndarray = None

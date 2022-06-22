@@ -392,15 +392,12 @@ def propagate_wavefront(
     fft_wavefront = fftpack.fft2(wavefront)
 
     # pre-allocate view arrays
-    # sim = np.zeros(shape=(len(distances), *sim_profile.shape), dtype=np.float32)
-    
+    sim = zarr.zeros(shape=(len(distances), sim_profile.shape[0], sim_profile.shape[1]), 
+                    chunks=(1000, 1000), 
+                    dtype=np.float32)
 
-    sim = zarr.zeros(shape=(len(distances), sim_profile.shape[0], sim_profile.shape[1]), chunks=(1000, 1000), dtype=np.float32)
-    fname = os.path.join(save_path, f"sim.zarr")
-    zarr.save(fname, sim)
-
-    top_down_view = np.zeros(shape=(len(distances), sim_profile.shape[1]), dtype=np.float32)
-    side_on_view = np.zeros(shape=(len(distances), sim_profile.shape[0]), dtype=np.float32)
+    # top_down_view = np.zeros(shape=(len(distances), sim_profile.shape[1]), dtype=np.float32)
+    # side_on_view = np.zeros(shape=(len(distances), sim_profile.shape[0]), dtype=np.float32)
 
     # propagate the wavefront over distance
     prop_progress_bar = tqdm(distances, leave=False)
@@ -413,30 +410,24 @@ def propagate_wavefront(
             fft_wavefront, distance, freq_arr, output_medium.wave_number
         )
 
-        # if options.save:
-        #     # save output
-        #     utils.save_simulation(
-        #         rounded_output,
-        #         fname=os.path.join(save_path, f"{distance*1000:.8f}mm.npy"),
-        #     )
-
         # calculate views
-        centre_px_h = rounded_output.shape[0] // 2
-        centre_px_v = rounded_output.shape[1] // 2
-        top_down_slice = rounded_output[centre_px_h, :]
-        side_on_slice = rounded_output[:, centre_px_v]
+        # centre_px_h = rounded_output.shape[0] // 2
+        # centre_px_v = rounded_output.shape[1] // 2
+        # top_down_slice = rounded_output[centre_px_h, :]
+        # side_on_slice = rounded_output[:, centre_px_v]
 
-        # append views
-        top_down_view[i, :] = top_down_slice
-        side_on_view[i, :] = side_on_slice
+        # # append views
+        # top_down_view[i, :] = top_down_slice
+        # side_on_view[i, :] = side_on_slice
         sim[i, :, :] = rounded_output
 
+    zarr.save(os.path.join(save_path, f"sim.zarr"), sim)
 
     # return results (TODO: reduce in non-debug mode)
     result = SimulationResult(
         propagation=propagation,
-        top_down=top_down_view,
-        side_on=side_on_view,
+        # top_down=top_down_view,
+        # side_on=side_on_view,
         sim=sim,
         lens=lens,
         freq_arr=freq_arr,
