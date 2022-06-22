@@ -118,7 +118,8 @@ def sweep_custom_profiles(path: Path) -> list:
     elif os.path.isfile(path):
         custom_params = [path]
     elif os.path.isdir(path):
-        custom_params = glob.glob(os.path.join(path, "*.npy"), recursive=True)
+        # files = glob.glob('files_path/[!_]*') # TODO: use proper glob file exclusion
+        custom_params = [fname for fname in glob.glob(os.path.join(path, "**/*.npy"), recursive=True) if "aperture" not in fname]
     else:
         custom_params = [None]
 
