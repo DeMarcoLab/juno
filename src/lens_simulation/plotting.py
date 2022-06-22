@@ -278,7 +278,6 @@ def save_result_plots(
     # save propagation gifs
     try:
         save_propagation_gif(os.path.join(save_path, "sim.zarr"))
-        # save_propagation_steps_gif(save_path)
     except Exception as e:
         logging.error(f"Error during plotting GIF: {e}")
 

@@ -1,8 +1,8 @@
 sim_parameters:
   A: 100
-  pixel_size: 0.1e-6
-  sim_height: 25.e-6
-  sim_width: 25.e-6
+  pixel_size: 1.e-6
+  sim_height: 1000.e-6
+  sim_width: 1000.e-6
   sim_wavelength: 488.e-9 # nice
 options:
   log_dir: "log"
@@ -14,8 +14,8 @@ beam:
   # distance_mode: "direct"   # "Direct", "Width", "Focal"
   # spread: "plane"           # "Plane", "Converging", "Diverging"
   shape: "rectangular"        # "Circular", "Rectangular"
-  width: 25.e-6 # nice
-  height: 25.e-6 # nice
+  width: 500.e-6 # nice
+  height: 500.e-6 # nice
   # position_x: 100.e-6 # core
   # position_y:  0.e-6 #core 
   # # theta: 45.0 # nice
@@ -30,7 +30,7 @@ beam:
 lenses:
   - name: lens_1
     medium: 2.348 # nice
-    diameter: 25.e-6 # core
+    diameter: 500.e-6 # core
     height: 10.e-6 # core
     exponent: 2.0 # core
     lens_type:  "Spherical"     # "Cylindrical" or "Spherical 

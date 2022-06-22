@@ -53,8 +53,10 @@ class SimulationRunner:
         logging.info(f"No. Stages: {len(self.config['stages']) + 1}")
         logging.info("------------------------------------------")
 
-        for sim_config in tqdm(self.simulation_configurations):
-
+        progress_bar = tqdm(self.simulation_configurations)
+        
+        for i, sim_config in enumerate(progress_bar):
+            progress_bar.set_description(f"Run {self.petname} ({i+1}/{len(progress_bar)})")
             sim = Simulation.Simulation(sim_config)
             sim.run_simulation()
             logging.info(f"Finished simulation {sim.petname}")
