@@ -1,7 +1,6 @@
-from cmath import exp
 from dataclasses import dataclass
-from math import trunc
-
+import os
+import glob
 import numpy as np
 
 from pathlib import Path
@@ -84,6 +83,7 @@ class Lens:
         self.custom_aperture_mask = None  # user defined aperture
         self.truncation_aperture_mask = None  # truncation aperture
         self.sim_aperture_mask = None  # simulation padding aperture
+        self.loaded_aperture = None # custom aperture loaded from disk
         self.aperture = None  # full aperture mask
 
         # modifications
@@ -154,6 +154,8 @@ class Lens:
         self.length = pixel_size * arr.shape[0]
         self.diameter = pixel_size * arr.shape[1]
         self.height = np.max(arr)
+
+        self.loaded_aperture = load_aperture(fname)
 
         return self.profile
 
@@ -406,6 +408,8 @@ class Lens:
             self.truncation_aperture_mask = np.zeros_like(self.profile)
         if self.sim_aperture_mask is None:
             self.sim_aperture_mask = np.zeros_like(self.profile)
+        if self.loaded_aperture is None:
+            self.loaded_aperture = np.zeros_like(self.profile)
 
         # match shape
         if self.non_lens_mask.shape != self.profile.shape:
@@ -428,12 +432,18 @@ class Lens:
                 self.sim_aperture_mask, self.profile
             ).astype(bool)
 
+        if self.loaded_aperture.shape != self.profile.shape:
+            self.loaded_aperture = utils.pad_to_equal_size(
+                self.loaded_aperture, self.profile
+            ).astype(bool)
+
         # combine aperture masks
         self.aperture = (
             self.non_lens_mask
             + self.truncation_aperture_mask
             + self.custom_aperture_mask
             + self.sim_aperture_mask
+            + self.loaded_aperture
         ).astype(bool)
 
     def create_escape_path(self, ep: float) -> None:
@@ -712,6 +722,17 @@ def apply_modifications(lens: Lens, lens_config: dict) -> Lens:
     )
 
     return lens
+
+def load_aperture(fname):
+    """Load the aperture for a custom lens if it exists."""
+    path = os.path.dirname(fname)
+    aperture_path = glob.glob(os.path.join(path, "*.aperture.npy"))
+
+    loaded_aperture = None
+    if aperture_path:
+        loaded_aperture = np.load(aperture_path[0])
+
+    return loaded_aperture
 
 
 def calculate_escape_path_dimensions(lens: Lens, ep: float):
