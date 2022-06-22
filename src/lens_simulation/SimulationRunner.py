@@ -118,7 +118,7 @@ def sweep_custom_profiles(path: Path) -> list:
     elif os.path.isfile(path):
         custom_params = [path]
     elif os.path.isdir(path):
-        custom_params = glob.glob(os.path.join(path, "*.npy"))
+        custom_params = glob.glob(os.path.join(path, "*.npy"), recursive=True)
     else:
         custom_params = [None]
 
