@@ -6,15 +6,11 @@ import datetime
 import time
 
 import pandas as pd
-import plotly.express as px
 import os
 import json
 import yaml
 import petname
 
-import glob
-import imageio
-from PIL import Image
 
 from lens_simulation.Lens import Lens
 from lens_simulation import validation

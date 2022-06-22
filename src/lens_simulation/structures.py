@@ -55,7 +55,6 @@ class SimulationResult:
     top_down: np.ndarray = None
     side_on: np.ndarray = None
     sim: np.ndarray = None
-    sim_profile: np.ndarray = None
     lens: Lens = None
     freq_arr: np.ndarray = None
     delta: np.ndarray = None
