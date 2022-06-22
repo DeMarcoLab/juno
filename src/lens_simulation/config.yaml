@@ -1,8 +1,8 @@
 sim_parameters:
-  A: 10000
+  A: 100
   pixel_size: 0.1e-6
-  sim_height: 50.e-6
-  sim_width: 50.e-6
+  sim_height: 25.e-6
+  sim_width: 25.e-6
   sim_wavelength: 488.e-9 # nice
 options:
   log_dir: "log"
@@ -25,7 +25,7 @@ beam:
   source_distance: 2.e-3
   # # final_diameter: 10.0e-6 # core
   # # focal_multiple: null # core
-  n_slices: 10
+  n_steps: 10
   # step_size: 0.001
 lenses:
   - name: lens_1
@@ -64,7 +64,7 @@ lenses:
 stages:
   # - lens: lens_1
   #   output: medium_1
-  #   n_slices: 10
+  #   n_steps: 10
   #   start_distance: 0
   #   finish_distance: 0.1e-3
   #   options:
@@ -73,17 +73,17 @@ stages:
   #     focal_distance_multiple: 2.0
   - lens: lens_1
     output: 1.33 # nice 
-    # step_size: 0.1e-3
-    n_slices: 10
+    # step_size: 0.01e-3
+    n_steps: 25
     start_distance: 0 # core 
     finish_distance: 6.e-3 # core 
     use_equivalent_focal_distance: true
     focal_distance_start_multiple: 0.0 # core 
-    focal_distance_multiple: 2.0 # core 
+    focal_distance_multiple: 1.0 # core 
   # - lens: lens_2
   #   output: 1.0
   #   # step_size: 0.1e-3
-  #   n_slices: 10
+  #   n_steps: 10
   #   start_distance: 0
   #   finish_distance: 6.e-3
   #   use_equivalent_focal_distance: true
@@ -91,7 +91,7 @@ stages:
   #   focal_distance_multiple: 2.0
   # - lens: lens_2
   #   output: medium_2
-  #   n_slices: 100
+  #   n_steps: 100
   #   start_distance: 0
   #   finish_distance: 10.0e-3
   #   options:
