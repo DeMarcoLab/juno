@@ -50,11 +50,11 @@ lenses:
   #     radius: 50.e-6 # core 
   #     type: radial # radial, square
   #     aperture: false
-  #   aperture:
-  #     inner: 50.e-6 # nice 
-  #     outer: 100.e-6 # core 
-  #     type: radial   # radial, square
-  #     invert: false
+    # aperture:
+    #   inner: 50.e-6 # nice 
+    #   outer: 100.e-6 # core 
+    #   type: radial   # radial, square
+    #   invert: false
   # - name: lens_2
   #   medium: 2.348
   #   diameter: 300.e-6

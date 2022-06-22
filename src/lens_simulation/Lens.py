@@ -408,6 +408,8 @@ class Lens:
             self.truncation_aperture_mask = np.zeros_like(self.profile)
         if self.sim_aperture_mask is None:
             self.sim_aperture_mask = np.zeros_like(self.profile)
+        if self.loaded_aperture is None:
+            self.loaded_aperture = np.zeros_like(self.profile)
 
         # match shape
         if self.non_lens_mask.shape != self.profile.shape:
@@ -430,12 +432,18 @@ class Lens:
                 self.sim_aperture_mask, self.profile
             ).astype(bool)
 
+        if self.loaded_aperture.shape != self.profile.shape:
+            self.loaded_aperture = utils.pad_to_equal_size(
+                self.loaded_aperture, self.profile
+            ).astype(bool)
+
         # combine aperture masks
         self.aperture = (
             self.non_lens_mask
             + self.truncation_aperture_mask
             + self.custom_aperture_mask
             + self.sim_aperture_mask
+            + self.loaded_aperture
         ).astype(bool)
 
     def create_escape_path(self, ep: float) -> None:
@@ -722,7 +730,6 @@ def load_aperture(fname):
 
     loaded_aperture = None
     if aperture_path:
-        print(aperture_path[0])
         loaded_aperture = np.load(aperture_path[0])
 
     return loaded_aperture
