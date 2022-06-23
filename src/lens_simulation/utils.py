@@ -41,10 +41,10 @@ def load_simulation_np(filename):
     return sim
 
 def save_metadata(config: dict, log_dir: str) -> None:
-    # serialisable
-    if "sim_id" in config:
-        config["sim_id"] = str(config["sim_id"])
-    config["run_id"] = str(config["run_id"])
+    
+    # serialisable 
+    config["sim_id"] = str(config.get("sim_id"))
+    config["run_id"] = str(config.get("run_id"))
 
     # save as json
     with open(os.path.join(log_dir, "metadata.json"), "w") as f:
@@ -77,20 +77,13 @@ def load_yaml_config(config_filename) -> dict:
 
     return config
 
-def load_config(config_filename):
-    with open(config_filename, "r") as f:
-        config = yaml.full_load(f)
+def load_config(config_filename: str, validate: bool = True):
 
-    config = validation._validate_simulation_config(config)
+    config = load_yaml_config(config_filename)
+
     # validation
-
-    # TODO move to validation, finish
-    # convert all height and exponent values to float
-    for i, lens in enumerate(config["lenses"]):
-        for param in ["height", "exponent"]:
-            if isinstance(lens[param], list):
-                for j, h in enumerate(lens[param]):
-                    config["lenses"][i][param][j] = float(h)
+    if validate:
+        config = validation._validate_simulation_config(config)
 
     return config
 

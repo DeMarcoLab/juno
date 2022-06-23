@@ -277,11 +277,11 @@ def save_result_plots(
         save_figure(fig, fname=os.path.join(save_path, "lens_slices.png"))
         plt.close(fig)
             
-        fig = plot_apeture_masks(result.lens)
-        save_figure(fig, fname=os.path.join(save_path, "lens_aperture.png"))
-        plt.close(fig)
-        
         try:
+            fig = plot_apeture_masks(result.lens)
+            save_figure(fig, fname=os.path.join(save_path, "lens_aperture.png"))
+            plt.close(fig)
+        
             fig = plot_lens_modifications(result.lens)
             save_figure(fig, fname=os.path.join(save_path, "lens_modifications.png"))
             plt.close(fig)

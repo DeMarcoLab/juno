@@ -55,6 +55,7 @@ lenses:
       outer: 100.e-6 # core 
       type: radial   # radial, square
       invert: false
+    test: hello
   # - name: lens_2
   #   medium: 2.348
   #   diameter: 300.e-6
