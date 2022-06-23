@@ -55,6 +55,7 @@ class GUISimulationSetup(SimulationSetup.Ui_MainWindow, QtWidgets.QMainWindow):
 
         self.simulation_config = {}
         self.SAVE_FROM_PARAMETER_SWEEP = False
+        self.input_widgets = []
 
         self.setup_connections()
 
@@ -181,24 +182,7 @@ class GUISimulationSetup(SimulationSetup.Ui_MainWindow, QtWidgets.QMainWindow):
             self.spinBox_sim_num_stages.setValue(int(len(config["stages"])))
 
             # update each stage info
-
-            for i, stage_config in enumerate(config["stages"]):
-
-                widgets = self.input_widgets[i]
-                widgets[2].setText(str(stage_config["lens"]))
-                widgets[4].setText(str(stage_config["output"]))
-                widgets[6].setText(str(stage_config["n_steps"]))
-                widgets[8].setText(str(stage_config["step_size"]))
-                widgets[12].setText(str(stage_config["start_distance"]))
-                widgets[14].setText(str(stage_config["finish_distance"]))
-
-                widgets[10].setChecked(bool(stage_config["use_equivalent_focal_distance"]))
-
-                if widgets[10].isChecked():
-                    widgets[12].setText(str(stage_config["focal_distance_start_multiple"]))
-                    widgets[14].setText(str(stage_config["focal_distance_multiple"]))
-
-
+            load_stage_config_widgets(config, self.input_widgets)
             self.SIMULATION_CONFIG_LOADED = True
 
     def generate_simulation_config(self):
@@ -275,11 +259,9 @@ class GUISimulationSetup(SimulationSetup.Ui_MainWindow, QtWidgets.QMainWindow):
                 "step_size": step_size,
                 "start_distance": start_distance,
                 "finish_distance": finish_distance,
-                "options": {
-                    "use_equivalent_focal_distance": use_focal_distance,
-                    "focal_distance_start_multiple": focal_distance_start_multiple,
-                    "focal_distance_multiple": focal_distance_multiple,
-                },
+                "use_equivalent_focal_distance": use_focal_distance,
+                "focal_distance_start_multiple": focal_distance_start_multiple,
+                "focal_distance_multiple": focal_distance_multiple,
             }
 
             stage_configs.append(stage_config)
@@ -356,7 +338,19 @@ class GUISimulationSetup(SimulationSetup.Ui_MainWindow, QtWidgets.QMainWindow):
 
         input_layout = QVBoxLayout()
 
+        # if self.input_widgets:
+            
+        #     try:
+        #         self.read_stage_input_values()
+        #         pprint(self.simulation_config["stages"])
+        #     except: 
+        #         print("unable to update stage config values")
+
         self.input_widgets = []
+
+        # TODO: change it to store the current stage info before updating
+        # TODO: fix it to store always not only for valid stuff 
+
 
         for stage_no, _ in enumerate(range(sim_num_stages), 1):
 
@@ -370,6 +364,11 @@ class GUISimulationSetup(SimulationSetup.Ui_MainWindow, QtWidgets.QMainWindow):
             stageBox = QGroupBox(f"")
             stageBox.setLayout(layout)
             input_layout.addWidget(stageBox)
+
+        # try:
+        #     load_stage_config_widgets(self.simulation_config, self.input_widgets)
+        # except: 
+        #     print("unable to reload stage config values")
 
         inputBox = QGroupBox(f"")
         inputBox.setLayout(input_layout)
@@ -572,6 +571,24 @@ def create_stage_input_display(stage_no):
     ]
 
     return layout, widgets
+
+def load_stage_config_widgets(config, all_widgets):
+    for i, stage_config in enumerate(config["stages"]):
+
+        widgets = all_widgets[i]
+        widgets[2].setText(str(stage_config["lens"]))
+        widgets[4].setText(str(stage_config["output"]))
+        widgets[6].setText(str(stage_config["n_steps"]))
+        widgets[8].setText(str(stage_config["step_size"]))
+        widgets[12].setText(str(stage_config["start_distance"]))
+        widgets[14].setText(str(stage_config["finish_distance"]))
+
+        widgets[10].setChecked(bool(stage_config["use_equivalent_focal_distance"]))
+
+        if widgets[10].isChecked():
+            widgets[12].setText(str(stage_config["focal_distance_start_multiple"]))
+            widgets[14].setText(str(stage_config["focal_distance_multiple"]))
+
 
 
 def display_error_message(message, title="Error Message"):
