@@ -254,7 +254,7 @@ def load_dataframe(path: Path):
 
     return df
 
-################
+################ UTILITIES
 
 def _calculate_num_of_pixels(width: float, pixel_size: float, odd: bool = True) -> int:
     """Calculate the number of pixels for a given width and pixel size

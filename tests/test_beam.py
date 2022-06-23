@@ -1,6 +1,6 @@
 import pytest
 import numpy as np
-from lens_simulation.beam import Beam,BeamSettings, DistanceMode, BeamSpread, BeamShape, focal_distance_from_theta, height_from_focal_distance
+from lens_simulation.beam import Beam,BeamSettings, DistanceMode, BeamSpread, BeamShape, focal_distance_from_theta, height_from_focal_distance, validate_beam_configuration
 from lens_simulation.Lens import Lens, LensType
 from lens_simulation.Medium import Medium
 from lens_simulation.structures import SimulationParameters
@@ -191,3 +191,67 @@ def test_beam_propagation_distance_width(beam_settings, sim_parameters):
     # assert beam.distance_mode == DistanceMode.Diameter
     # assert sd == 0
     # assert fd == beam.focal_distance, "finish distance for DistanceMode.Focal should be the same as focal_distance"
+
+
+
+def test_generate_profile_raises_error(beam_settings, sim_parameters):
+
+
+    parameters = sim_parameters
+    beam = Beam(beam_settings)
+
+    # beam width greater than sim
+    parameters.sim_width = beam.width / 2.0
+    with pytest.raises(ValueError):
+        beam.generate_profile(parameters)
+
+    # beam height greater than sim
+    parameters = sim_parameters
+    parameters.sim_height = beam.height / 2.0
+    with pytest.raises(ValueError):
+        beam.generate_profile(parameters)
+
+    # beam position outside sim
+    parameters = sim_parameters
+    beam.position = (parameters.sim_width * 2, parameters.sim_height * 2)
+    with pytest.raises(ValueError):
+        beam.generate_profile(parameters)
+
+def test_validate_beam_configuration(beam_settings):
+
+    # plane beam with no source distance
+    settings = beam_settings
+    settings.beam_spread = BeamSpread.Plane
+    settings.source_distance = None
+
+    with pytest.raises(ValueError):
+        validate_beam_configuration(settings)
+
+    # converging beam with no theta or numerical aperture
+    settings.beam_spread = BeamSpread.Converging
+    settings.theta = 0.0
+    settings.numerical_aperture = None
+    with pytest.raises(ValueError):
+        validate_beam_configuration(settings)
+
+    # distance mode direct with no source distance
+    settings.distance_mode = DistanceMode.Direct
+    settings.source_distance = None
+    with pytest.raises(ValueError):
+        validate_beam_configuration(settings)
+
+    # distance mode focal with no convergence / divergence
+    settings.distance_mode = DistanceMode.Focal
+    settings.beam_spread = BeamSpread.Plane
+    with pytest.raises(ValueError):
+        validate_beam_configuration(settings)
+
+    # distance mode diameter with no diameter
+    settings.distance_mode = DistanceMode.Diameter
+    settings.final_diameter = None
+    with pytest.raises(ValueError):
+        validate_beam_configuration(settings)
+
+
+
+
