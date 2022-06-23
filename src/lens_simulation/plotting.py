@@ -1,21 +1,18 @@
-import os
 import glob
-
-import matplotlib.pyplot as plt
-import numpy as np
 import logging
+import os
+from pathlib import Path
 
 import imageio
+import matplotlib.pyplot as plt
+import numpy as np
+import zarr
+from PIL import Image, ImageDraw
 
-from PIL import Image
-from pathlib import Path
 from lens_simulation import utils
 from lens_simulation.Lens import Lens
-from lens_simulation.structures import (
-    SimulationResult,
-    SimulationStage,
-    SimulationParameters,
-)
+from lens_simulation.structures import (SimulationParameters, SimulationResult,
+                                        SimulationStage)
 
 #################### PLOTTING ####################
 
@@ -211,9 +208,12 @@ def save_result_plots(
         save_path (Path): _description_
     """
 
+    sim = result.sim
+    top_down, side_on = create_sim_views(sim)
+
     # save top-down
     fig = plot_simulation(
-        arr=result.top_down,
+        arr=top_down,
         pixel_size_x=parameters.pixel_size,
         start_distance=stage.distances[0],
         finish_distance=stage.distances[-1],
@@ -223,7 +223,7 @@ def save_result_plots(
     plt.close(fig)
 
     fig = plot_simulation(
-        np.log(result.top_down + 10e-12),
+        np.log(top_down + 10e-12),
         pixel_size_x=parameters.pixel_size,
         start_distance=stage.distances[0],
         finish_distance=stage.distances[-1],
@@ -233,7 +233,7 @@ def save_result_plots(
     plt.close(fig)
 
     fig = plot_simulation(
-        arr=result.side_on,
+        arr=side_on,
         pixel_size_x=parameters.pixel_size,
         start_distance=stage.distances[0],
         finish_distance=stage.distances[-1],
@@ -271,16 +271,41 @@ def save_result_plots(
     if result.lens is not None:
         fig = plot_lens_profile_2D(result.lens)
         save_figure(fig, fname=os.path.join(save_path, "lens_profile.png"))
+        plt.close(fig)
 
         fig = plot_lens_profile_slices(result.lens)
         save_figure(fig, fname=os.path.join(save_path, "lens_slices.png"))
+        plt.close(fig)
+            
+        fig = plot_apeture_masks(result.lens)
+        save_figure(fig, fname=os.path.join(save_path, "lens_aperture.png"))
+        plt.close(fig)
+        
+        try:
+            fig = plot_lens_modifications(result.lens)
+            save_figure(fig, fname=os.path.join(save_path, "lens_modifications.png"))
+            plt.close(fig)
+        except: 
+            pass # cant plot apertures and truncation for beam...
 
     # save propagation gifs
     try:
-        save_propagation_gif(save_path)
-        # save_propagation_steps_gif(save_path)
+        save_propagation_gif(os.path.join(save_path, "sim.zarr"))
     except Exception as e:
         logging.error(f"Error during plotting GIF: {e}")
+
+def create_sim_views(sim: np.ndarray, px_h: int = None, px_v: int = None) -> tuple:
+    """Create vertical and horizontal slices of the simulation"""
+    if px_h is None:
+        px_h = sim.shape[1] // 2
+    if px_v is None:
+        px_v = sim.shape[2] // 2
+
+    # calculate views
+    top_down = sim[:, px_h, :]
+    side_on = sim[:, :, px_v]
+
+    return top_down, side_on
 
 
 def plot_apeture_masks(lens: Lens) -> plt.Figure:
@@ -297,19 +322,14 @@ def plot_apeture_masks(lens: Lens) -> plt.Figure:
     ax[1, 0].imshow(lens.custom_aperture_mask, cmap="plasma")
     ax[1, 0].set_title("custom_aperture")
 
-    ax[1, 1].imshow(lens.sim_aperture_mask, cmap="plasma")
-    ax[1, 1].set_title("sim_aperture")
+    ax[1, 1].imshow(lens.loaded_aperture, cmap="plasma")
+    ax[1, 1].set_title("loaded_aperture")
 
-    ax[0, 2].imshow(lens.aperture, cmap="plasma")
-    ax[0, 2].set_title("full_aperture")
+    ax[0, 2].imshow(lens.sim_aperture_mask, cmap="plasma")
+    ax[0, 2].set_title("sim_aperture")
 
-    # lens.profile[lens.aperture] = 0
-    # lens.profile[lens.non_lens_mask.astype(bool)] = 1
-    # lens.profile[lens.truncation_aperture_mask.astype(bool)] = 2
-    # lens.profile[lens.custom_aperture_mask.astype(bool)] = 3
-    # lens.profile[lens.sim_aperture_mask.astype(bool)] = 4
-    ax[1, 2].imshow(lens.profile, cmap="plasma")
-    ax[1, 2].set_title("lens_profile")
+    ax[1, 2].imshow(lens.aperture, cmap="plasma")
+    ax[1, 2].set_title("full_aperture")
 
     return fig
 
@@ -383,63 +403,24 @@ def plot_simulation_setup(config: dict) -> plt.Figure:
     # TODO: correct the propagation distances to mm
     return fig
 
-
-def save_propagation_gif(path: str):
+def save_propagation_gif(path: str, vert: bool = False, hor: bool = False):
     """Save a gif of the propagation"""
 
-    search_path = os.path.join(path, "*mm.npy")
+    sim = utils.load_simulation(path)
+    # ref: https://stackoverflow.com/questions/46689428/convert-np-array-of-type-float64-to-type-uint8-scaling-values
+    # TODO: fix this properly: not converting to np.uint8 correctly, scaling is off
+    # normalise
+    # sim = (sim - np.mean(sim)) / (np.max(sim) - np.min(sim)) * np.iinfo(np.uint8).max
 
-    filenames = sorted(glob.glob(search_path))
-    slice = np.load(filenames[0])
-    images = np.zeros(shape=(len(filenames), *slice.shape))
+    if sim.dtype == np.float16:    
+        sim = sim.astype(np.uint8)
 
-    for i, fname in enumerate(filenames):
-
-        img = np.load(fname)
-        images[i, :, :] = img
-
-    save_path = os.path.join(path, "propagation.gif")
-    imageio.mimsave(save_path, images, duration=0.2)
-
-
-def save_propagation_steps_gif(path: str) -> None:
-    """Save vertical and horizontal simulation steps as gif"""
-    filenames = sorted(glob.glob(os.path.join(path, "*mm.npy")))
-
-    # TODO: might not be possible for very large sims to load full sim,
-    # will need to come up with another way to load steps in right format
-    sim = None
-    for i, fname in enumerate(filenames):
-
-        slice = np.load(fname)
-
-        if sim is None:
-            sim = np.zeros(shape=(len(filenames), *slice.shape), dtype=np.float32)
-
-        sim[i, :, :] = slice
-
-    # normalise sim values
-    sim = (sim - np.mean(sim)) / np.std(sim)
-    # sim = (sim - np.min(sim)) / (np.max(sim) - np.min(sim))
-    # sim = np.clip(sim, 0.5, np.max(sim))
-    # sim = sim.astype(np.uint16)
-
-    # save horizontal steps
-    horizontal = []
-    for i in range(sim.shape[2]):
-
-        slice = sim[:, :, i]
-        horizontal.append(slice)
-
-    save_path = os.path.join(path, "horizontal.gif")
-    imageio.mimsave(save_path, horizontal, duration=0.05)
-
-    # save vertical steps
-    vertical = []
-    for i in range(sim.shape[1]):
-
-        slice = sim[:, i, :]
-        vertical.append(slice)
-
-    save_path = os.path.join(path, "vertical.gif")
-    imageio.mimsave(save_path, vertical, duration=0.05)
+    save_path = os.path.join(os.path.dirname(path), "propagation.gif")
+    imageio.mimsave(save_path, sim, duration=0.2)
+    
+    if vert:
+        vertical_save_path = os.path.join(os.path.dirname(path), "vertical.gif")
+        imageio.mimsave(vertical_save_path, np.swapaxes(sim, 0, 1), duration=0.2)
+    if hor:
+        horizontal_save_path = os.path.join(os.path.dirname(path), "horizontal.gif")
+        imageio.mimsave(horizontal_save_path, np.swapaxes(sim, 0, 2), duration=0.2)

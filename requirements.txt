@@ -1,7 +1,6 @@
 numpy
 scipy
 pandas
-plotly
 petname
 flake8
 pytest
@@ -11,3 +10,4 @@ black
 streamlit
 pyyaml
 imageio
+zarr

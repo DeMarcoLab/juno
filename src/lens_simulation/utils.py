@@ -6,16 +6,12 @@ import datetime
 import time
 
 import pandas as pd
-import plotly.express as px
 import os
 import json
 import yaml
 import petname
 
-import glob
-import imageio
-from PIL import Image
-
+import zarr
 from lens_simulation.Lens import Lens
 from lens_simulation import validation
 
@@ -34,9 +30,13 @@ from pathlib import Path
 
 
 #################### DATA / IO ####################
+def load_simulation(path):
 
+    sim = zarr.open(path, mode="r")
 
-def load_simulation(filename):
+    return sim
+
+def load_simulation_np(filename):
     sim = np.load(filename)
     return sim
 
