@@ -42,10 +42,8 @@ from lens_simulation.constants import (
     METRE_TO_NANO,
 )
 
-
-# TODO: validate loaded configs
-# TODO: validate entire setup
-
+from lens_simulation.beam import generate_beam
+from lens_simulation.Simulation import generate_simulation_parameters
 
 class GUISimulationSetup(SimulationSetup.Ui_MainWindow, QtWidgets.QMainWindow):
     def __init__(self, parent_gui=None):
@@ -88,13 +86,11 @@ class GUISimulationSetup(SimulationSetup.Ui_MainWindow, QtWidgets.QMainWindow):
     def update_simulation_config(self):
         print("updating simulation config")
 
-        sim_pixel_size = float(self.doubleSpinBox_pixel_size.value()) * MICRON_TO_METRE
-        sim_width = float(self.doubleSpinBox_sim_width.value()) * MICRON_TO_METRE
-        sim_height = float(self.doubleSpinBox_sim_height.value()) * MICRON_TO_METRE
-        sim_wavelength = (
-            float(self.doubleSpinBox_sim_wavelength.value()) * NANO_TO_METRE
-        )
-        sim_amplitude = float(self.doubleSpinBox_sim_amplitude.value())
+        sim_pixel_size = float(self.lineEdit_pixel_size.text())
+        sim_width = float(self.lineEdit_sim_width.text())
+        sim_height = float(self.lineEdit_sim_height.text())
+        sim_wavelength = (float(self.lineEdit_sim_wavelength.text()))
+        sim_amplitude = float(self.lineEdit_sim_amplitude.text())
 
         self.simulation_config["sim_parameters"] = {
             "A": sim_amplitude,
@@ -118,12 +114,12 @@ class GUISimulationSetup(SimulationSetup.Ui_MainWindow, QtWidgets.QMainWindow):
 
         for stage_no, widgets in enumerate(self.input_widgets, 1):
 
-            if widgets[14].isChecked():
-                widgets[9].setText("Focal Distance Start Multiple")
-                widgets[11].setText("Focal Distance Finish Multiple")
+            if widgets[10].isChecked():
+                widgets[11].setText("Start Multiple")
+                widgets[13].setText("Finish Multiple")
             else:
-                widgets[9].setText("Start Distance")
-                widgets[11].setText("Finish Distance")
+                widgets[11].setText("Start Distance")
+                widgets[13].setText("Finish Distance")
     
     def setup_parameter_sweep(self):
         # param sweep ui
@@ -167,11 +163,11 @@ class GUISimulationSetup(SimulationSetup.Ui_MainWindow, QtWidgets.QMainWindow):
             self.simulation_config = config
 
             # set sim parameters
-            self.doubleSpinBox_pixel_size.setValue(float(config["sim_parameters"]["pixel_size"]) * METRE_TO_MICRON)
-            self.doubleSpinBox_sim_width.setValue(float(config["sim_parameters"]["sim_width"])* METRE_TO_MICRON)
-            self.doubleSpinBox_sim_height.setValue(float(config["sim_parameters"]["sim_height"]) * METRE_TO_MICRON)
-            self.doubleSpinBox_sim_wavelength.setValue(float(config["sim_parameters"]["sim_wavelength"]) * METRE_TO_NANO)
-            self.doubleSpinBox_sim_amplitude.setValue(float(config["sim_parameters"]["A"]))
+            self.lineEdit_pixel_size.setText(str(config["sim_parameters"]["pixel_size"]))
+            self.lineEdit_sim_width.setText(str(config["sim_parameters"]["sim_width"]))
+            self.lineEdit_sim_height.setText(str(config["sim_parameters"]["sim_height"]) )
+            self.lineEdit_sim_wavelength.setText(str(config["sim_parameters"]["sim_wavelength"]) )
+            self.lineEdit_sim_amplitude.setText(str(config["sim_parameters"]["A"]))
 
             # set sim optiosn
             self.lineEdit_log_dir.setText(str(config["options"]["log_dir"]))
@@ -190,17 +186,17 @@ class GUISimulationSetup(SimulationSetup.Ui_MainWindow, QtWidgets.QMainWindow):
 
                 widgets = self.input_widgets[i]
                 widgets[2].setText(str(stage_config["lens"]))
-                widgets[4].setValue(float(stage_config["output"]))
-                widgets[6].setValue(int(stage_config["n_steps"]))
-                widgets[8].setValue(float(stage_config["step_size"]))
-                widgets[10].setValue(float(stage_config["start_distance"]))
-                widgets[12].setValue(float(stage_config["finish_distance"]))
+                widgets[4].setText(str(stage_config["output"]))
+                widgets[6].setText(str(stage_config["n_steps"]))
+                widgets[8].setText(str(stage_config["step_size"]))
+                widgets[12].setText(str(stage_config["start_distance"]))
+                widgets[14].setText(str(stage_config["finish_distance"]))
 
-                widgets[14].setChecked(bool(stage_config["use_equivalent_focal_distance"]))
+                widgets[10].setChecked(bool(stage_config["use_equivalent_focal_distance"]))
 
-                if widgets[14].isChecked():
-                    widgets[10].setValue(float(stage_config["focal_distance_start_multiple"]))
-                    widgets[12].setValue(float(stage_config["focal_distance_multiple"]))
+                if widgets[10].isChecked():
+                    widgets[12].setText(str(stage_config["focal_distance_start_multiple"]))
+                    widgets[14].setText(str(stage_config["focal_distance_multiple"]))
 
 
             self.SIMULATION_CONFIG_LOADED = True
@@ -210,14 +206,15 @@ class GUISimulationSetup(SimulationSetup.Ui_MainWindow, QtWidgets.QMainWindow):
 
         # TODO: need to check if things are loaded...
 
-        self.update_simulation_config()
-        self.read_stage_input_values()
-
-        print("-" * 50)
-        pprint(self.simulation_config)
-        print("-" * 50)
-
         try:
+            self.update_simulation_config()
+            self.read_stage_input_values()
+
+            print("-" * 50)
+            pprint(self.simulation_config)
+            print("-" * 50)
+
+
             validation._validate_simulation_config(self.simulation_config)
             print("Configuration is valid.")
             self.draw_simulation_stage_display()
@@ -255,19 +252,19 @@ class GUISimulationSetup(SimulationSetup.Ui_MainWindow, QtWidgets.QMainWindow):
             stage_config = {}
 
             lens_name = str(widgets[2].text())
-            output = float(widgets[4].value())
-            n_steps = int(widgets[6].value())
-            step_size = float(widgets[8].value())
+            output = float(widgets[4].text())
+            n_steps = int(widgets[6].text())
+            step_size = float(widgets[8].text())
 
-            use_focal_distance = bool(widgets[14].isChecked())
+            use_focal_distance = bool(widgets[10].isChecked())
             if use_focal_distance:
                 start_distance = 0.0
                 finish_distance = 0.5e-3
-                focal_distance_start_multiple = float(widgets[10].value())
-                focal_distance_multiple = float(widgets[12].value())
+                focal_distance_start_multiple = float(widgets[12].text())
+                focal_distance_multiple = float(widgets[14].text())
             else:
-                start_distance = float(widgets[10].value())
-                finish_distance = float(widgets[12].value())
+                start_distance = float(widgets[12].text())
+                finish_distance = float(widgets[14].text())
                 focal_distance_start_multiple = 0.0
                 focal_distance_multiple = 0.0
 
@@ -293,17 +290,17 @@ class GUISimulationSetup(SimulationSetup.Ui_MainWindow, QtWidgets.QMainWindow):
         # 1. lens_label,
         # 2. lens_button,
         # 3. output_label,
-        # 4. output_spinbox,
+        # 4. output_lineEdit,
         # 5. n_steps_label,
-        # 6. n_steps_spinbox,
+        # 6. n_steps_lineEdit,
         # 7. step_size_label,
-        # 8. step_size_spinbox,
-        # 9. start_distance_label,
-        # 10. start_distance_spinbox,
-        # 11. finish_distance_label,
-        # 12. finish_distance_spinbox,
-        # 13. use_focal_label,
-        # 14. use_focal_checkbox
+        # 8. step_size_lineEdit,
+        # 9. use_focal_label,
+        # 10. use_focal_checkbox
+        # 11. start_distance_label,
+        # 12. start_distance_lineEdit,
+        # 13. finish_distance_label,
+        # 14. finish_distance_lineEdit,
 
     def load_lens_config(self):
 
@@ -366,7 +363,7 @@ class GUISimulationSetup(SimulationSetup.Ui_MainWindow, QtWidgets.QMainWindow):
             layout, widgets = create_stage_input_display(stage_no)
 
             widgets[2].clicked.connect(self.load_lens_config)
-            widgets[14].stateChanged.connect(self.input_widget_state_change)
+            widgets[10].stateChanged.connect(self.input_widget_state_change)
 
             self.input_widgets.append(widgets)
 
@@ -397,33 +394,41 @@ def create_stage_structure_display(config):
     plt.close(fig)
 
     sim_label = QLabel()
-    sim_label.setPixmap(QPixmap(sim_setup_fname))
+    sim_label.setPixmap(QPixmap(sim_setup_fname))#.scaled(300*(len(config["stages"])+1), 300))
 
-    layout.addWidget(sim_label, 0, 0, 1, len(config["stages"]))
+    layout.addWidget(sim_label, 0, 0, 1, len(config["stages"])+1)
 
     # beam
+    parameters = generate_simulation_parameters(config)
+    beam = generate_beam(config["beam"], parameters)
+    
+    fig = plotting.plot_lens_profile_slices(beam.lens, max_height=np.max(beam.lens.profile))
+    beam_sideon_fname  = os.path.join(tmp_directory, "beam_sideon.png")
+    plotting.save_figure(fig, beam_sideon_fname)
+    plt.close(fig)
+
+    fig = plotting.plot_lens_profile_2D(beam.lens)
+    beam_topdown_fname = os.path.join(tmp_directory, "beam_topdown.png")
+    plotting.save_figure(fig, beam_topdown_fname)
+    plt.close(fig)
+
     beam_label = QLabel()
-    beam_label.setText("I'm a Beam (side-on).")
+    beam_label.setPixmap(QPixmap(beam_sideon_fname))#.scaled(300, 300))
 
     beam_top_down_label = QLabel()
-    beam_top_down_label.setText("I'm a Beam (top-down).")
-    layout.addWidget(beam_label, 1, 0)
-    layout.addWidget(beam_top_down_label, 2, 0)
+    beam_top_down_label.setPixmap(QPixmap(beam_topdown_fname))#.scaled(300, 300))
+
+    beam_title_label = QLabel()
+    beam_title_label.setText("Beam Stage")
+    beam_title_label.setStyleSheet("font-weight: bold; font-size: 16px")
+    layout.addWidget(beam_title_label, 1, 0)
+    layout.addWidget(beam_label, 2, 0)
+    layout.addWidget(beam_top_down_label, 3, 0)
 
     display_widgets = [[beam_label, beam_top_down_label]]
 
     # stages
     for i, stage_config in enumerate(config["stages"], 1):
-
-        def array_to_qlabel(arr):
-            """Convert a numpy array to a QLabel"""
-            label = QLabel()
-            if arr.ndim == 2:
-                qimage = QImage(arr, arr.shape[1], arr.shape[0], QImage.Format_Grayscale8)
-            if arr.ndim == 3:
-                qimage = QImage(arr, arr.shape[1], arr.shape[0], arr.shape[1] * 3, QImage.Format_RGB888)
-            label.setPixmap(QPixmap(qimage))
-            return label
 
         lens_name = stage_config["lens"]
 
@@ -438,8 +443,6 @@ def create_stage_structure_display(config):
                     Medium(lens_config["medium"], config["sim_parameters"]["sim_wavelength"]),
                     config["sim_parameters"]["pixel_size"])
 
-        output = stage_config["output"]
-
         fig = plotting.plot_lens_profile_slices(lens, max_height=lens.height)
         side_on_fname = os.path.join(tmp_directory, "side_on_profile.png")
         plotting.save_figure(fig, side_on_fname)
@@ -450,17 +453,19 @@ def create_stage_structure_display(config):
         plotting.save_figure(fig, top_down_fname)
         plt.close(fig)
 
-        img = np.random.rand(400,400,3).astype(np.uint8) * 255
-        output_img = np.ones_like(img) * output
-
         stage_label = QLabel()
-        stage_label.setPixmap(QPixmap(side_on_fname).scaled(300, 300))
+        stage_label.setPixmap(QPixmap(side_on_fname))#.scaled(300, 300))
 
         stage_top_down_label = QLabel()
-        stage_top_down_label.setPixmap(QPixmap(top_down_fname).scaled(300, 300)) #array_to_qlabel(lens.profile)
+        stage_top_down_label.setPixmap(QPixmap(top_down_fname))#.scaled(300, 300))
 
-        layout.addWidget(stage_label, 1, i)
-        layout.addWidget(stage_top_down_label, 2, i)
+        stage_title_label = QLabel()
+        stage_title_label.setText(f"Lens Stage {i+1}")
+        stage_title_label.setStyleSheet("font-weight: bold; font-size: 16px")
+
+        layout.addWidget(stage_title_label, 1, i)
+        layout.addWidget(stage_label, 2, i)
+        layout.addWidget(stage_top_down_label, 3, i)
 
         display_widgets.append([stage_label, stage_top_down_label])
 
@@ -480,6 +485,7 @@ def create_stage_input_display(stage_no):
 
     label_title = QLabel()
     label_title.setText(f"Stage Number {stage_no}")
+    label_title.setStyleSheet("font-weight: bold")
 
     # lens
     lens_label = QLabel()
@@ -491,30 +497,28 @@ def create_stage_input_display(stage_no):
     # output
     output_label = QLabel()
     output_label.setText(f"Output Medium")
-    output_spinbox = QDoubleSpinBox()
+    output_lineEdit = QLineEdit()
 
     # n_steps
     n_steps_label = QLabel()
     n_steps_label.setText(f"Number of steps")
-    n_steps_spinbox = QSpinBox()
+    n_steps_lineEdit = QLineEdit()
 
     # step size
     step_size_label = QLabel()
     step_size_label.setText(f"Step Size")
-    step_size_spinbox = QDoubleSpinBox()
-    step_size_spinbox.setDecimals(6)
+    step_size_lineEdit = QLineEdit()
 
     # start distance
     start_distance_label = QLabel()
     start_distance_label.setText(f"Start Distance")
-    start_distance_spinbox = QDoubleSpinBox()
-    start_distance_spinbox.setDecimals(6)
+    start_distance_lineEdit = QLineEdit()
+
 
     # finish distance
     finish_distance_label = QLabel()
     finish_distance_label.setText(f"Finish Distance")
-    finish_distance_spinbox = QDoubleSpinBox()
-    finish_distance_spinbox.setDecimals(6)
+    finish_distance_lineEdit = QLineEdit()
 
     # options
     #   use focal distance
@@ -531,39 +535,40 @@ def create_stage_input_display(stage_no):
     layout.addWidget(lens_button, 1, 1)
 
     layout.addWidget(output_label, 2, 0)
-    layout.addWidget(output_spinbox, 2, 1)
+    layout.addWidget(output_lineEdit, 2, 1)
 
     layout.addWidget(n_steps_label, 3, 0)
-    layout.addWidget(n_steps_spinbox, 3, 1)
+    layout.addWidget(n_steps_lineEdit, 3, 1)
 
     layout.addWidget(step_size_label, 4, 0)
-    layout.addWidget(step_size_spinbox, 4, 1)
+    layout.addWidget(step_size_lineEdit, 4, 1)
 
-    layout.addWidget(start_distance_label, 5, 0)
-    layout.addWidget(start_distance_spinbox, 5, 1)
+    layout.addWidget(use_focal_label, 5, 0)
+    layout.addWidget(use_focal_checkbox, 5, 1)
 
-    layout.addWidget(finish_distance_label, 6, 0)
-    layout.addWidget(finish_distance_spinbox, 6, 1)
+    layout.addWidget(start_distance_label, 6, 0)
+    layout.addWidget(start_distance_lineEdit, 6, 1)
 
-    layout.addWidget(use_focal_label, 7, 0)
-    layout.addWidget(use_focal_checkbox, 7, 1)
+    layout.addWidget(finish_distance_label, 7, 0)
+    layout.addWidget(finish_distance_lineEdit, 7, 1)
+
 
     widgets = [
         label_title,
         lens_label,
         lens_button,
         output_label,
-        output_spinbox,
+        output_lineEdit,
         n_steps_label,
-        n_steps_spinbox,
+        n_steps_lineEdit,
         step_size_label,
-        step_size_spinbox,
-        start_distance_label,
-        start_distance_spinbox,
-        finish_distance_label,
-        finish_distance_spinbox,
+        step_size_lineEdit,
         use_focal_label,
         use_focal_checkbox,
+        start_distance_label,
+        start_distance_lineEdit,
+        finish_distance_label,
+        finish_distance_lineEdit,
     ]
 
     return layout, widgets

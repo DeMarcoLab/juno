@@ -393,7 +393,7 @@ def plot_simulation_setup(config: dict) -> plt.Figure:
             arr = np.hstack([arr, lens, output])
 
     # create plot
-    fig = plt.figure(figsize=(15, 2))
+    fig = plt.figure()
     plt.imshow(arr, cmap="plasma")
     clb = plt.colorbar()
     clb.ax.set_title("Medium")
