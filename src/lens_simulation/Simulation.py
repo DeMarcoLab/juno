@@ -391,7 +391,7 @@ def propagate_wavefront(
     sim = zarr.open(fname, mode="w", 
                     shape=sim_shape, 
                     # chunks=(1000, 1000),  # note dont manaully set chunk size
-                    dtype=np.float32)
+                    dtype=np.float16)
 
     # propagate the wavefront over distance
     prop_progress_bar = tqdm(distances, leave=False)

@@ -393,13 +393,14 @@ def plot_simulation_setup(config: dict) -> plt.Figure:
 def save_propagation_gif(path: str, vert: bool = False, hor: bool = False):
     """Save a gif of the propagation"""
 
-    sim = zarr.open(path, mode="r")
-
+    sim = utils.load_simulation(path)
     # ref: https://stackoverflow.com/questions/46689428/convert-np-array-of-type-float64-to-type-uint8-scaling-values
     # TODO: fix this properly: not converting to np.uint8 correctly, scaling is off
     # normalise
     # sim = (sim - np.mean(sim)) / (np.max(sim) - np.min(sim)) * np.iinfo(np.uint8).max
-    # sim = sim.astype(np.uint8)
+
+    if sim.dtype == np.float16:    
+        sim = sim.astype(np.uint8)
 
     save_path = os.path.join(os.path.dirname(path), "propagation.gif")
     imageio.mimsave(save_path, sim, duration=0.2)
