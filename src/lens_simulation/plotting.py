@@ -271,9 +271,22 @@ def save_result_plots(
     if result.lens is not None:
         fig = plot_lens_profile_2D(result.lens)
         save_figure(fig, fname=os.path.join(save_path, "lens_profile.png"))
+        plt.close(fig)
 
         fig = plot_lens_profile_slices(result.lens)
         save_figure(fig, fname=os.path.join(save_path, "lens_slices.png"))
+        plt.close(fig)
+            
+        fig = plot_apeture_masks(result.lens)
+        save_figure(fig, fname=os.path.join(save_path, "lens_aperture.png"))
+        plt.close(fig)
+        
+        try:
+            fig = plot_lens_modifications(result.lens)
+            save_figure(fig, fname=os.path.join(save_path, "lens_modifications.png"))
+            plt.close(fig)
+        except: 
+            pass # cant plot apertures and truncation for beam...
 
     # save propagation gifs
     try:

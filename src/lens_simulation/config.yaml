@@ -1,6 +1,6 @@
 sim_parameters:
   A: 1
-  pixel_size: 0.1e-6
+  pixel_size: 1.e-6
   sim_height: 500.e-6
   sim_width: 500.e-6
   sim_wavelength: 488.e-9 # nice
@@ -38,23 +38,23 @@ lenses:
     inverted: false 
     # length: nu # core
     # custom: \\ad.monash.edu\home\User028\pcle0002\Documents\repos\lens_simulation\src\lens_simulation\custom\profile.npy
-  #   grating: 
-  #     width: 10.e-6 # core
-  #     distance: 20.e-6 # core
-  #     depth: 0.15e-6 # core 
-  #     x: true
-  #     y: false
-  #     centred: true
-  #   truncation: 
-  #     height: 3.e-6 # core 
-  #     radius: 50.e-6 # core 
-  #     type: radial # radial, square
-  #     aperture: false
-    # aperture:
-    #   inner: 50.e-6 # nice 
-    #   outer: 100.e-6 # core 
-    #   type: radial   # radial, square
-    #   invert: false
+    grating: 
+      width: 10.e-6 # core
+      distance: 20.e-6 # core
+      depth: 0.15e-6 # core 
+      x: true
+      y: false
+      centred: true
+    truncation: 
+      height: 3.e-6 # core 
+      radius: 50.e-6 # core 
+      type: radial # radial, square
+      aperture: false
+    aperture:
+      inner: 50.e-6 # nice 
+      outer: 100.e-6 # core 
+      type: radial   # radial, square
+      invert: false
   # - name: lens_2
   #   medium: 2.348
   #   diameter: 300.e-6
