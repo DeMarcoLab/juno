@@ -5,7 +5,7 @@ from enum import Enum, auto
 import logging
 
 from lens_simulation.Medium import Medium
-from lens_simulation.Lens import Lens
+from lens_simulation.Lens import Lens, LensType
 from lens_simulation.structures import SimulationParameters
 from lens_simulation import validation
 from lens_simulation import utils
@@ -103,6 +103,7 @@ class Beam:
             height=100,                     # arbitrary non-zero
             exponent=2,                     # must be 2 for focusing
             medium=Medium(100),                  # arbitrary non-zero
+            lens_type=LensType.Cylindrical
         )
 
         lens.generate_profile(pixel_size=pixel_size)

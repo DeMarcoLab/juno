@@ -1,8 +1,8 @@
 sim_parameters:
-  A: 1
-  pixel_size: 1.e-6
-  sim_height: 500.e-6
-  sim_width: 500.e-6
+  A: 10000
+  pixel_size: 10.e-9
+  sim_height: 30.e-9
+  sim_width: 300.e-6
   sim_wavelength: 488.e-9 # nice
 options:
   log_dir: "log"
@@ -13,49 +13,50 @@ options:
 beam:
   # distance_mode: "direct"   # "Direct", "Width", "Focal"
   # spread: "plane"           # "Plane", "Converging", "Diverging"
-  shape: "circular"        # "Circular", "Rectangular"
-  width: 500.e-6 # nice
-  height: 500.e-6 # nice
+  shape: "rectangular"        # "Circular", "Rectangular"
+  width: 300.e-6 # nice
+  height: 30.e-9 # nice
   # position_x: 100.e-6 # core
   # position_y:  0.e-6 #core 
   # # theta: 45.0 # nice
   # # # numerical_aperture: null # nice
   # tilt_x: 45.0 # core
   # tilt_y: 45.0 # core
-  source_distance: 2.e-3
+  source_distance: 0.1e-3
   # # final_diameter: 10.0e-6 # core
   # # focal_multiple: null # core
-  n_steps: 10
+  n_steps: 2
   # step_size: 0.001
 lenses:
   - name: lens_1
     medium: 2.348 # nice
-    diameter: 500.e-6 # core
-    height: 10.e-6 # core
-    exponent: 2.0 # core
-    lens_type:  "Spherical"     # "Cylindrical" or "Spherical 
+    diameter: 300.e-6 # core
+    length: 30.e-9
+    height: 70.e-6 # core
+    exponent: 2.1 # core
+    lens_type:  "Cylindrical"     # "Cylindrical" or "Spherical 
     # escape_path: 0.1
-    inverted: false 
+    # inverted: false 
     # length: nu # core
     # custom: \\ad.monash.edu\home\User028\pcle0002\Documents\repos\lens_simulation\src\lens_simulation\custom\profile.npy
-    grating: 
-      width: 10.e-6 # core
-      distance: 20.e-6 # core
-      depth: 0.15e-6 # core 
-      x: true
-      y: false
-      centred: true
-    truncation: 
-      height: 3.e-6 # core 
-      radius: 50.e-6 # core 
-      type: radial # radial, square
-      aperture: false
-    aperture:
-      inner: 50.e-6 # nice 
-      outer: 100.e-6 # core 
-      type: radial   # radial, square
-      invert: false
-    test: hello
+    # grating: 
+    #   width: 10.e-6 # core
+    #   distance: 20.e-6 # core
+    #   depth: 0.15e-6 # core 
+    #   x: true
+    #   y: false
+    #   centred: true
+    # truncation: 
+    #   height: 3.e-6 # core 
+    #   radius: 50.e-6 # core 
+    #   type: radial # radial, square
+    #   aperture: false
+    # aperture:
+    #   inner: 50.e-6 # nice 
+    #   outer: 100.e-6 # core 
+    #   type: radial   # radial, square
+    #   invert: false
+    # test: hello
   # - name: lens_2
   #   medium: 2.348
   #   diameter: 300.e-6
@@ -74,13 +75,13 @@ stages:
   #     focal_distance_multiple: 2.0
   - lens: lens_1
     output: 1.33 # nice 
-    # step_size: 0.01e-3
-    n_steps: 25
-    start_distance: 0 # core 
-    finish_distance: 6.e-3 # core 
-    use_equivalent_focal_distance: true
-    focal_distance_start_multiple: 0.0 # core 
-    focal_distance_multiple: 1.0 # core 
+    step_size: 100.e-9
+    # n_steps: 50
+    start_distance: 0.16e-3 # core 
+    finish_distance: 0.2e-3 # core 
+    use_equivalent_focal_distance: false
+    focal_distance_start_multiple: 1.0 # core 
+    focal_distance_multiple: 2.0 # core 
   # - lens: lens_2
   #   output: 1.0
   #   # step_size: 0.1e-3

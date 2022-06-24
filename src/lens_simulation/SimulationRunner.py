@@ -48,6 +48,7 @@ class SimulationRunner:
 
         logging.info("----------- Simulation Summary -----------")
         logging.info(f"Pixel Size: {self.config['sim_parameters']['pixel_size']:.1e}m")
+        logging.info(f"Number of Pixels: {int(self.config['sim_parameters']['sim_width'] / self.config['sim_parameters']['pixel_size'])} px")
         logging.info(f"Simulation Wavelength: {self.config['sim_parameters']['sim_wavelength']}m")
         logging.info(f"Simulation Size: {self.config['sim_parameters']['sim_height']:.1e}m x {self.config['sim_parameters']['sim_width']:.1e}m")
         logging.info(f"No. Stages: {len(self.config['stages']) + 1}")

@@ -89,7 +89,7 @@ def crop_image(arr, width, height):
 def plot_image(arr: np.ndarray, title: str = "Image Title", save: bool = False, fname: str = None) -> plt.Figure:
     """Plot an image and optionally save."""
     fig = plt.figure()
-    plt.imshow(arr)
+    plt.imshow(arr, cmap="plasma", aspect="auto")
     plt.title(title)
     plt.colorbar()
     if save:
@@ -102,11 +102,6 @@ def save_figure(fig, fname: str = "img.png") -> None:
     os.makedirs(os.path.dirname(fname), exist_ok=True)
     fig.savefig(fname)
 
-
-def plot_interactive_simulation(arr: np.ndarray):
-
-    fig = px.imshow(arr)
-    return fig
 
 
 def plot_lens_profile_2D(lens: Lens, title="", facecolor="#ffffff", tickstyle="sci",
@@ -313,22 +308,22 @@ def plot_apeture_masks(lens: Lens) -> plt.Figure:
     fig, ax = plt.subplots(2, 3, figsize=(10, 7.5))
 
     plt.suptitle("Lens Aperture Masks")
-    ax[0, 0].imshow(lens.non_lens_mask, cmap="plasma")
+    ax[0, 0].imshow(lens.non_lens_mask, cmap="plasma", aspect="auto")
     ax[0, 0].set_title("non_lens_area")
 
-    ax[0, 1].imshow(lens.truncation_aperture_mask, cmap="plasma")
+    ax[0, 1].imshow(lens.truncation_aperture_mask, cmap="plasma", aspect="auto")
     ax[0, 1].set_title("truncation_aperture")
 
-    ax[1, 0].imshow(lens.custom_aperture_mask, cmap="plasma")
+    ax[1, 0].imshow(lens.custom_aperture_mask, cmap="plasma", aspect="auto")
     ax[1, 0].set_title("custom_aperture")
 
-    ax[1, 1].imshow(lens.loaded_aperture, cmap="plasma")
+    ax[1, 1].imshow(lens.loaded_aperture, cmap="plasma", aspect="auto")
     ax[1, 1].set_title("loaded_aperture")
 
-    ax[0, 2].imshow(lens.sim_aperture_mask, cmap="plasma")
+    ax[0, 2].imshow(lens.sim_aperture_mask, cmap="plasma", aspect="auto")
     ax[0, 2].set_title("sim_aperture")
 
-    ax[1, 2].imshow(lens.aperture, cmap="plasma")
+    ax[1, 2].imshow(lens.aperture, cmap="plasma", aspect="auto")
     ax[1, 2].set_title("full_aperture")
 
     return fig
@@ -342,13 +337,13 @@ def plot_lens_modifications(lens: Lens) -> plt.Figure:
     fig, ax = plt.subplots(2, 2, figsize=(7.5, 7.5))
 
     plt.suptitle("Lens Modifcations")
-    ax[0, 0].imshow(lens.grating_mask, cmap="plasma")
+    ax[0, 0].imshow(lens.grating_mask, cmap="plasma", aspect="auto")
     ax[0, 0].set_title("grating mask")
 
-    ax[0, 1].imshow(lens.escape_mask, cmap="plasma")
+    ax[0, 1].imshow(lens.escape_mask, cmap="plasma", aspect="auto")
     ax[0, 1].set_title("escape mask")
 
-    ax[1, 0].imshow(lens.truncation_mask, cmap="plasma")
+    ax[1, 0].imshow(lens.truncation_mask, cmap="plasma", aspect="auto")
     ax[1, 0].set_title("truncation mask")
 
     ax[1, 1].imshow(lens.profile, cmap="plasma")

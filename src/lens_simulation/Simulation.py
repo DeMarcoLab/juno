@@ -315,7 +315,7 @@ def generate_lenses(lenses: list, parameters: SimulationParameters):
                         pixel_size=parameters.pixel_size)
 
         # check lens fits in the simulation
-        if lens.diameter > parameters.sim_width or lens.diameter > parameters.sim_height:
+        if lens.diameter > parameters.sim_width and lens.diameter > parameters.sim_height:
             raise ValueError(
                 f"Lens diameter must be smaller than the simulation size: lens: {lens.diameter:.2e}m, sim: {parameters.sim_width:.2e}mx{parameters.sim_height:.2e}m"
             )
@@ -391,7 +391,7 @@ def propagate_wavefront(
     sim = zarr.open(fname, mode="w", 
                     shape=sim_shape, 
                     # chunks=(1000, 1000),  # note dont manaully set chunk size
-                    dtype=np.float16)
+                    dtype=np.float32)
 
     # propagate the wavefront over distance
     prop_progress_bar = tqdm(distances, leave=False)
