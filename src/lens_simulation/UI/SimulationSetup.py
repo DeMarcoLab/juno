@@ -338,13 +338,17 @@ class GUISimulationSetup(SimulationSetup.Ui_MainWindow, QtWidgets.QMainWindow):
 
         input_layout = QVBoxLayout()
 
-        # if self.input_widgets:
-            
-        #     try:
-        #         self.read_stage_input_values()
-        #         pprint(self.simulation_config["stages"])
-        #     except: 
-        #         print("unable to update stage config values")
+        stored_values = []
+        if self.input_widgets:
+
+            for wid in self.input_widgets:
+                  
+                sv = [w.text() for w in wid]
+
+                stored_values.append(sv)
+
+        
+        pprint(stored_values)
 
         self.input_widgets = []
 
@@ -365,10 +369,14 @@ class GUISimulationSetup(SimulationSetup.Ui_MainWindow, QtWidgets.QMainWindow):
             stageBox.setLayout(layout)
             input_layout.addWidget(stageBox)
 
-        # try:
-        #     load_stage_config_widgets(self.simulation_config, self.input_widgets)
-        # except: 
-        #     print("unable to reload stage config values")
+        if stored_values:
+            for i, wid in enumerate(self.input_widgets):
+                if i == len(stored_values):
+                    break
+                sv = stored_values[i]
+                for j, w in enumerate(wid):
+                    w.setText(sv[j])
+
 
         inputBox = QGroupBox(f"")
         inputBox.setLayout(input_layout)
