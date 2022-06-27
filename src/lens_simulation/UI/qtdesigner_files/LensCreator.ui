@@ -470,13 +470,13 @@
                     <item>
                      <widget class="QDoubleSpinBox" name="doubleSpinBox_PixelSize">
                       <property name="decimals">
-                       <number>2</number>
+                       <number>3</number>
                       </property>
                       <property name="minimum">
-                       <double>0.010000000000000</double>
+                       <double>0.001000000000000</double>
                       </property>
                       <property name="maximum">
-                       <double>999.990000000000009</double>
+                       <double>99999999.000000000000000</double>
                       </property>
                       <property name="stepType">
                        <enum>QAbstractSpinBox::AdaptiveDecimalStepType</enum>
@@ -525,11 +525,14 @@
                     </item>
                     <item>
                      <widget class="QDoubleSpinBox" name="doubleSpinBox_LensDiameter">
+                      <property name="decimals">
+                       <number>3</number>
+                      </property>
                       <property name="minimum">
-                       <double>0.100000000000000</double>
+                       <double>0.001000000000000</double>
                       </property>
                       <property name="maximum">
-                       <double>999.990000000000009</double>
+                       <double>9999999.000000000000000</double>
                       </property>
                       <property name="stepType">
                        <enum>QAbstractSpinBox::AdaptiveDecimalStepType</enum>
@@ -585,13 +588,13 @@
                        <bool>true</bool>
                       </property>
                       <property name="decimals">
-                       <number>2</number>
+                       <number>3</number>
                       </property>
                       <property name="minimum">
-                       <double>0.010000000000000</double>
+                       <double>0.001000000000000</double>
                       </property>
                       <property name="maximum">
-                       <double>999.990000000000009</double>
+                       <double>9999999.000000000000000</double>
                       </property>
                       <property name="singleStep">
                        <double>0.100000000000000</double>
@@ -643,8 +646,11 @@
                     </item>
                     <item>
                      <widget class="QDoubleSpinBox" name="doubleSpinBox_LensHeight">
+                      <property name="decimals">
+                       <number>3</number>
+                      </property>
                       <property name="maximum">
-                       <double>999.990000000000009</double>
+                       <double>999999.000000000000000</double>
                       </property>
                       <property name="stepType">
                        <enum>QAbstractSpinBox::AdaptiveDecimalStepType</enum>
@@ -955,7 +961,7 @@
                  <item>
                   <widget class="QFrame" name="frame_Title_Gratings">
                    <property name="enabled">
-                    <bool>true</bool>
+                    <bool>false</bool>
                    </property>
                    <property name="maximumSize">
                     <size>
@@ -982,7 +988,7 @@
                     <item>
                      <widget class="QLabel" name="label_PropertyName_Gratings">
                       <property name="enabled">
-                       <bool>true</bool>
+                       <bool>false</bool>
                       </property>
                       <property name="text">
                        <string>Property Name</string>
@@ -995,7 +1001,7 @@
                     <item>
                      <widget class="QLabel" name="label_PropertyValue_Gratings">
                       <property name="enabled">
-                       <bool>true</bool>
+                       <bool>false</bool>
                       </property>
                       <property name="text">
                        <string>Property Value</string>
@@ -1301,7 +1307,7 @@
                  <item>
                   <widget class="QFrame" name="frame_Title_Truncation">
                    <property name="enabled">
-                    <bool>true</bool>
+                    <bool>false</bool>
                    </property>
                    <property name="maximumSize">
                     <size>
@@ -1328,7 +1334,7 @@
                     <item>
                      <widget class="QLabel" name="label_PropertyName_Truncation">
                       <property name="enabled">
-                       <bool>true</bool>
+                       <bool>false</bool>
                       </property>
                       <property name="text">
                        <string>Property Name</string>
@@ -1341,7 +1347,7 @@
                     <item>
                      <widget class="QLabel" name="label_PropertyValue_Truncation">
                       <property name="enabled">
-                       <bool>true</bool>
+                       <bool>false</bool>
                       </property>
                       <property name="text">
                        <string>Property Value</string>
@@ -1510,7 +1516,7 @@
                  <item>
                   <widget class="QFrame" name="frame_Title_Aperture">
                    <property name="enabled">
-                    <bool>true</bool>
+                    <bool>false</bool>
                    </property>
                    <property name="maximumSize">
                     <size>
@@ -1537,7 +1543,7 @@
                     <item>
                      <widget class="QLabel" name="label_PropertyName_Aperture">
                       <property name="enabled">
-                       <bool>true</bool>
+                       <bool>false</bool>
                       </property>
                       <property name="text">
                        <string>Property Name</string>
@@ -1550,7 +1556,7 @@
                     <item>
                      <widget class="QLabel" name="label_PropertyValue_Aperture">
                       <property name="enabled">
-                       <bool>true</bool>
+                       <bool>false</bool>
                       </property>
                       <property name="text">
                        <string>Property Value</string>
