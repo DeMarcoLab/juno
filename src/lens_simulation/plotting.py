@@ -400,6 +400,58 @@ def plot_simulation_setup(config: dict) -> plt.Figure:
     # TODO: correct the propagation distances to mm
     return fig
 
+def plot_sim_propagation(path: Path, log: bool = False, transpose: bool = True) -> tuple:
+
+    metadata = utils.load_metadata(path)
+    n_stages = len(metadata["stages"]) + 1
+    sim_paths = [os.path.join(path, str(i), "sim.zarr") for i in range(n_stages)]
+
+    td, so = None, None
+
+    for sim_path in sim_paths:
+        sim = utils.load_simulation(sim_path)
+        top_down, side_on = create_sim_views(sim)
+        lens = np.ones(shape=(1, top_down.shape[1]))
+
+        if td is None:
+            td = top_down
+        else:
+            td = np.vstack([td, lens, top_down])
+
+        lens = np.ones(shape=(1, side_on.shape[1]))
+        if so is None:
+            so = side_on
+        else:
+            so = np.vstack([so, lens, side_on])
+
+    if log:
+        td = np.log(td)
+        so = np.log(so)
+
+    if transpose:
+        td = td.T
+        so = so.T
+        figsize = (15, 5)
+    else:
+        figsize = (5, 15)
+
+    td_fig = plt.figure(figsize=figsize)
+    plt.imshow(td, cmap="turbo", aspect="auto")
+    plt.colorbar()
+    plt.title("top_down")
+
+    so_fig = plt.figure(figsize=figsize)
+    plt.imshow(so, cmap="turbo", aspect="auto")
+    plt.colorbar()
+    plt.title("side on")
+
+    # TODO: propagation distances as extent
+
+    return td_fig, so_fig 
+
+
+
+
 def save_propagation_gif(path: str, vert: bool = False, hor: bool = False):
     """Save a gif of the propagation"""
 
