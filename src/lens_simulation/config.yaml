@@ -1,7 +1,7 @@
 sim_parameters:
   A: 10000
-  pixel_size: 10.e-9
-  sim_height: 30.e-9
+  pixel_size: 1.e-6
+  sim_height: 300.e-6
   sim_width: 300.e-6
   sim_wavelength: 488.e-9 # nice
 options:
@@ -15,7 +15,7 @@ beam:
   # spread: "plane"           # "Plane", "Converging", "Diverging"
   shape: "rectangular"        # "Circular", "Rectangular"
   width: 300.e-6 # nice
-  height: 30.e-9 # nice
+  height: 300.e-6 # nice
   # position_x: 100.e-6 # core
   # position_y:  0.e-6 #core 
   # # theta: 45.0 # nice
@@ -31,9 +31,9 @@ lenses:
   - name: lens_1
     medium: 2.348 # nice
     diameter: 300.e-6 # core
-    length: 30.e-9
-    height: 70.e-6 # core
-    exponent: 2.1 # core
+    # length: 30.e-9
+    height: 10.e-6 # core
+    exponent: 2.0 # core
     lens_type:  "Cylindrical"     # "Cylindrical" or "Spherical 
     # escape_path: 0.1
     # inverted: false 
@@ -75,13 +75,13 @@ stages:
   #     focal_distance_multiple: 2.0
   - lens: lens_1
     output: 1.33 # nice 
-    step_size: 100.e-9
-    # n_steps: 50
+    # step_size: 100.e-9
+    n_steps: 100
     start_distance: 0.16e-3 # core 
     finish_distance: 0.2e-3 # core 
-    use_equivalent_focal_distance: false
-    focal_distance_start_multiple: 1.0 # core 
-    focal_distance_multiple: 2.0 # core 
+    use_equivalent_focal_distance: true
+    focal_distance_start_multiple: 0 # core 
+    focal_distance_multiple: 1.0 # core 
   # - lens: lens_2
   #   output: 1.0
   #   # step_size: 0.1e-3

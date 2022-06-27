@@ -98,12 +98,17 @@ class Beam:
             raise ValueError(f"Beam position is outside simulation: position: x:{self.position[0]:.2e}m, y:{self.position[1]:.2e}m, sim_size: {sim_width:.2e}m")
 
         # Default beam specifications
+        if self.shape is BeamShape.Rectangular:
+            lens_type = LensType.Cylindrical
+        if self.shape is BeamShape.Circular:
+            lens_type = LensType.Spherical
+
         lens = Lens(
             diameter=max(self.width, self.height),
             height=100,                     # arbitrary non-zero
             exponent=2,                     # must be 2 for focusing
             medium=Medium(100),                  # arbitrary non-zero
-            lens_type=LensType.Cylindrical
+            lens_type=lens_type
         )
 
         lens.generate_profile(pixel_size=pixel_size)
@@ -178,10 +183,11 @@ class Beam:
                                                     mode="constant", constant_values=aperturing_value)
         # assign lens
         self.lens = lens
-        self.lens.non_lens_mask = (lens.profile == aperturing_value).astype(bool)
+        self.lens.aperture = (lens.profile == aperturing_value).astype(bool)
 
         # reset apertures back to zero height
-        self.lens.profile[self.lens.non_lens_mask] = 0
+        self.lens.profile[self.lens.aperture] = 0
+        # TODO: this should be applied with apply_apertures...
 
 
     def calculate_propagation_distance(self):

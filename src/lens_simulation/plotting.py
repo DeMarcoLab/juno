@@ -289,6 +289,8 @@ def save_result_plots(
     except Exception as e:
         logging.error(f"Error during plotting GIF: {e}")
 
+    plt.close(fig)
+
 def create_sim_views(sim: np.ndarray, px_h: int = None, px_v: int = None) -> tuple:
     """Create vertical and horizontal slices of the simulation"""
     if px_h is None:
@@ -346,7 +348,7 @@ def plot_lens_modifications(lens: Lens) -> plt.Figure:
     ax[1, 0].imshow(lens.truncation_mask, cmap="plasma", aspect="auto")
     ax[1, 0].set_title("truncation mask")
 
-    ax[1, 1].imshow(lens.profile, cmap="plasma")
+    ax[1, 1].imshow(lens.profile, cmap="plasma", aspect="auto")
     ax[1, 1].set_title("lens profile")
 
     return fig

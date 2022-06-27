@@ -332,8 +332,6 @@ def generate_lenses(lenses: list, parameters: SimulationParameters):
 
         simulation_lenses[lens_config.get("name")] = lens
 
-        # TODO: Why not pad to sim size here? have everything we need now
-
     return simulation_lenses
 
 
@@ -364,7 +362,6 @@ def propagate_wavefront(
     distances: np.ndarray = stage.distances
     amplitude: float = parameters.A if passed_wavefront is None else 1.0
     sim_profile: np.ndarray = lens.profile
-
 
     save_path = os.path.join(options.log_dir, str(stage._id))
 
@@ -501,7 +498,7 @@ def pad_simulation(lens: Lens, parameters: SimulationParameters) -> np.ndarray:
     # calculate the number of pixels in the simulation
     sim_n_pixels_height = utils._calculate_num_of_pixels(parameters.sim_height, parameters.pixel_size)
     sim_n_pixels_width = utils._calculate_num_of_pixels(parameters.sim_width, parameters.pixel_size)
-
+        
     # calculate aperture mask
     lens.sim_aperture_mask  = calculate_sim_aperture(lens, sim_n_pixels_height, sim_n_pixels_width)
 
@@ -526,6 +523,13 @@ def calculate_sim_aperture(lens, sim_h, sim_w) -> np.ndarray:
     y1 = sim_h//2 + lens_h//2
     x0 = sim_w//2 - lens_w//2
     x1 = sim_w//2 + lens_w//2
+
+    # TODO: fix better
+    # need to check this for 1d case
+    if y0 == 0 and y1 == 0:
+        y1 += 1
+    if x0 == 0 and x1 == 0:
+        x1 +=1 
 
     aperture_mask[y0:y1, x0:x1] = 0
 
