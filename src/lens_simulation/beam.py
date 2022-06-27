@@ -178,10 +178,12 @@ class Beam:
                                                     mode="constant", constant_values=aperturing_value)
         # assign lens
         self.lens = lens
-        self.lens.non_lens_mask = (lens.profile == aperturing_value).astype(bool)
+        self.lens.aperture = (lens.profile == aperturing_value).astype(bool)
 
         # reset apertures back to zero height
-        self.lens.profile[self.lens.non_lens_mask] = 0
+        self.lens.profile[self.lens.aperture] = 0
+
+        # self.lens.aperture = self.lens.non_lens_mask
 
 
     def calculate_propagation_distance(self):
