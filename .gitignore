@@ -27,6 +27,7 @@ scripts/*
 *.yaml
 !tests/*.yaml
 !*default.yaml
+!src/lens_simulation/example/*.yaml
 src/lens_simulation/tmp/*
 src/lens_simulation/data/*
 src/lens_simulation/out.prof
