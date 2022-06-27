@@ -11,8 +11,8 @@ from enum import Enum
 class Medium:
     def __init__(self, refractive_index: float = 1.0, wavelength: float = 488.e-9) -> None:
         self.refractive_index = refractive_index
-        self.wavelength: float = wavelength / refractive_index
-        self.wave_number: float = 2 * np.pi / wavelength
+        self.wavelength: float = wavelength / refractive_index # equivalent wavelength
+        self.wave_number: float = 2 * np.pi / self.wavelength
 
 
 @dataclass

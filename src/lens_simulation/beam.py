@@ -92,7 +92,7 @@ class Beam:
         if self.width > sim_width:
             raise ValueError(f"Beam width is larger than simulation width: beam={self.width:.2e}m, sim={sim_width:.2e}m")
         if self.height > sim_height:
-            raise ValueError(f"Beam height is larger than simulation height: beam={self.height:.2e}m, sim={sim_width:.2e}m")
+            raise ValueError(f"Beam height is larger than simulation height: beam={self.height:.2e}m, sim={sim_height:.2e}m")
 
         if self.position[0] > sim_width or self.position[1] > sim_width:
             raise ValueError(f"Beam position is outside simulation: position: x:{self.position[0]:.2e}m, y:{self.position[1]:.2e}m, sim_size: {sim_width:.2e}m")
