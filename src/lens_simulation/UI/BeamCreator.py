@@ -640,7 +640,7 @@ class GUIBeamCreator(BeamCreator.Ui_BeamCreator, QtWidgets.QMainWindow):
                                           sim_height=self.sim_dict["height"],
                                           sim_wavelength=self.sim_dict["wavelength"])
 
-        options = SimulationOptions(log_dir='', save=False, save_plot=False)
+        options = SimulationOptions(log_dir='', save_plot=False)
 
         self.result = propagate_wavefront(stage=stage, parameters=parameters, options=options)
         

@@ -18,9 +18,7 @@ class SimulationParameters:
 @dataclass
 class SimulationOptions:
     log_dir: Path
-    save: bool = True
     save_plot: bool = True
-    verbose: bool = False
     debug: bool = False
 
 @dataclass

@@ -215,9 +215,7 @@ def test_generate_simulation_options(config_with_sweep):
     options = Simulation.generate_simulation_options(config, "log")
 
     assert options.log_dir == "log"
-    assert options.save == config["options"]["save"]
     assert options.save_plot == config["options"]["save_plot"]
-    assert options.verbose == config["options"]["verbose"]
     assert options.debug == config["options"]["debug"]
 
 

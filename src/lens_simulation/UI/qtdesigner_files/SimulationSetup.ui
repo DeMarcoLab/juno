@@ -198,27 +198,10 @@
                </property>
               </widget>
              </item>
-             <item row="12" column="0">
-              <widget class="QCheckBox" name="checkBox_save_plot">
-               <property name="text">
-                <string>Save Plots</string>
-               </property>
-               <property name="checked">
-                <bool>true</bool>
-               </property>
-              </widget>
-             </item>
              <item row="6" column="1">
               <widget class="QLineEdit" name="lineEdit_sim_height">
                <property name="text">
                 <string>1000e-6</string>
-               </property>
-              </widget>
-             </item>
-             <item row="12" column="1">
-              <widget class="QCheckBox" name="checkBox_save_raw">
-               <property name="text">
-                <string>Save Raw Data</string>
                </property>
               </widget>
              </item>
@@ -291,6 +274,16 @@
                </property>
               </widget>
              </item>
+             <item row="13" column="1">
+              <widget class="QCheckBox" name="checkBox_save_plot">
+               <property name="text">
+                <string>Save Plots</string>
+               </property>
+               <property name="checked">
+                <bool>true</bool>
+               </property>
+              </widget>
+             </item>
             </layout>
            </widget>
           </item>
@@ -358,8 +351,6 @@
  <tabstops>
   <tabstop>pushButton_sim_beam</tabstop>
   <tabstop>lineEdit_log_dir</tabstop>
-  <tabstop>checkBox_save_plot</tabstop>
-  <tabstop>checkBox_save_raw</tabstop>
   <tabstop>spinBox_sim_num_stages</tabstop>
   <tabstop>scrollArea_stages</tabstop>
   <tabstop>pushButton_generate_simulation</tabstop>

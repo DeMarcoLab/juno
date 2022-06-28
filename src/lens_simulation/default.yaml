@@ -30,8 +30,6 @@ parameters:
   sim_wavelength: 488.e-9
 options:
   save_plot: true
-  save: false
-  verbose: false
   debug: false
 stage:
   n_steps: 10

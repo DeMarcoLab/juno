@@ -102,12 +102,10 @@ class GUISimulationSetup(SimulationSetup.Ui_MainWindow, QtWidgets.QMainWindow):
         }
 
         log_dir = str(self.lineEdit_log_dir.text())
-        save_raw = bool(self.checkBox_save_raw.isChecked())
         save_plot = bool(self.checkBox_save_plot.isChecked())
 
         self.simulation_config["options"] = {
             "log_dir": log_dir,
-            "save": save_raw,
             "save_plot": save_plot,
         }
 
@@ -173,7 +171,6 @@ class GUISimulationSetup(SimulationSetup.Ui_MainWindow, QtWidgets.QMainWindow):
             # set sim optiosn
             self.lineEdit_log_dir.setText(str(config["options"]["log_dir"]))
             self.checkBox_save_plot.setChecked(bool(config["options"]["save_plot"]))
-            self.checkBox_save_raw.setChecked(bool(config["options"]["save"]))
 
             # set beam
             self.pushButton_sim_beam.setText("beam")

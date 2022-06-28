@@ -116,9 +116,7 @@ def generate_simulation_options(config: dict, log_dir: str) -> SimulationOptions
 
     options = SimulationOptions(
             log_dir=log_dir,
-            save=config["options"]["save"],
             save_plot=config["options"]["save_plot"],
-            verbose=config["options"]["verbose"],
             debug=config["options"]["debug"],
         )
     return options
