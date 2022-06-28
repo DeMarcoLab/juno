@@ -72,6 +72,82 @@ def plot_simulation(
 
     return fig
 
+
+def threshold_image(arr: np.ndarray, threshold: float = 0.5) -> np.ndarray:
+    """Threshold the image above the proporation of the maximum value"""
+    threshold_value = threshold * np.max(arr)
+
+    mask = arr > threshold_value
+    image_threshold = arr * mask
+
+    return image_threshold
+
+
+def max_intensity_projection(sim: np.ndarray, axis: int = 0) -> np.ndarray:
+    """Maximum intensity projection of the simulation along the provided axis."""
+    if sim.ndim != 3:
+        raise ValueError(f"Maximum intesnity projection only works for 3D arrays. This array is {sim.ndim} dimensions.")
+
+    if axis not in [0, 1, 2]:
+        raise ValueError(f"Only axis [0, 1, 2] are supported. The axis {axis} is not supported.")
+
+    max_projection = np.max(sim, axis=axis)
+
+    return max_projection
+
+
+
+def slice_simulation_view(sim: np.ndarray, axis: int = 0, prop: float = 0.5) -> np.ndarray:
+    """Slice the simulation into a view along the provided axis."""
+    if sim.ndim != 3:
+        raise ValueError(f"Slice simulation view only works for 3D arrays. This array is {sim.ndim} dimensions.")
+
+    if axis not in [0, 1, 2]:
+        raise ValueError(f"Only axis [0, 1, 2] are supported. The axis {axis} is not supported.")
+
+    if prop < 0 or prop > 1.0:
+        raise ValueError(f"Proporation must be between 0 - 1.0. The proporation was {prop}. ")
+
+    px = int(prop * sim.shape[axis])
+
+    # got to be a better way...
+    if axis == 0:
+        sim_view = sim[px, :, :]
+
+    if axis == 1:
+        sim_view = sim[:, px, :]
+
+    if axis == 2:
+        sim_view = sim[:, :, px]
+
+    return sim_view
+    # TODO: update create_sim_views to use this function...
+
+
+
+def crop_image_v2(arr: np.ndarray, width: int = None, height: int = None, x: int = None, y: int = None):
+    """Crop the simulation image to the required dimensions."""
+
+    if arr.ndim != 2:
+        raise ValueError(f"Crop image v2 only supported 2D arrays. This array is {arr.ndim} dimensions.")
+
+    # default to centre of image
+    if x is None:
+        x = arr.shape[1] // 2
+    if y is None:
+        y = arr.shape[0] // 2
+
+    # make sure clip ends up within bounds
+    min_h = np.clip(y - height // 2, 0, arr.shape[0]) 
+    max_h = np.clip(y + height // 2, 0, arr.shape[0])
+    min_w = np.clip(x - width // 2, 0, arr.shape[1])
+    max_w = np.clip(x + width // 2, 0, arr.shape[1])
+
+    arr_resized = arr[min_h:max_h, min_w:max_w]
+
+    return arr_resized, (min_h, max_h, min_w, max_w)
+
+
 def crop_image(arr, width, height):
     """Crop the simulation image to the required dimensions."""
 
