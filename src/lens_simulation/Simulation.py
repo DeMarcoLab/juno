@@ -12,7 +12,7 @@ from pprint import pprint
 from scipy import fftpack
 from tqdm import tqdm
 
-from lens_simulation.Lens import Lens, generate_lens
+from lens_simulation.Lens import Lens, LensType, generate_lens
 from lens_simulation.Medium import Medium
 from lens_simulation.structures import (
     SimulationOptions,
@@ -192,8 +192,8 @@ def load_sim_stage_config(sim_config):
 
     stage_settings = StageSettings(
         lens = sim_config["lens"],
-        output = sim_config["output"], 
-        n_steps = sim_config["n_steps"], 
+        output = sim_config["output"],
+        n_steps = sim_config["n_steps"],
         step_size = sim_config["step_size"],
         start_distance = sim_config["start_distance"],
         finish_distance = sim_config["finish_distance"],
@@ -247,12 +247,12 @@ def generate_beam_simulation_stage(config: dict, parameters: SimulationParameter
         output=beam.output_medium,
         tilt={"x": beam.tilt[0], "y": beam.tilt[1]},
     )
-    
+
     # calculate propagation distances
-    beam_stage.distances = calculate_propagation_distances(                                    
+    beam_stage.distances = calculate_propagation_distances(
                                     start_distance=beam.start_distance,
                                     finish_distance=beam.finish_distance,
-                                    n_steps=beam.settings.n_steps, 
+                                    n_steps=beam.settings.n_steps,
                                     step_size=beam.settings.step_size)
     return beam_stage
 
@@ -271,7 +271,7 @@ def calculate_propagation_distances(start_distance: float, finish_distance: floa
 
     if start_distance >= finish_distance:
         raise ValueError(f"start_distance ({start_distance}) is greater than finish_distance ({finish_distance}).")
-        
+
     # calculate n_steps
     n_steps = calculate_num_steps_in_distance(start_distance, finish_distance, step_size, n_steps)
 
@@ -289,7 +289,7 @@ def calculate_num_steps_in_distance(start, finish, step_size, n_steps) -> int:
     if step_size not in [0, None]:
         if step_size > (finish - start):
             raise ValueError(f"The step_size ({step_size}) is greater than the distance range: {finish - start}m.")
-        
+
         n_steps = int(np.ceil((finish + 1e-12 - start) / step_size))
 
     if n_steps in [0, None]:
@@ -311,11 +311,19 @@ def generate_lenses(lenses: list, parameters: SimulationParameters):
                         medium=medium,
                         pixel_size=parameters.pixel_size)
 
-        # check lens fits in the simulation
-        if lens.diameter > parameters.sim_width and lens.diameter > parameters.sim_height:
-            raise ValueError(
-                f"Lens diameter must be smaller than the simulation size: lens: {lens.diameter:.2e}m, sim: {parameters.sim_width:.2e}mx{parameters.sim_height:.2e}m"
-            )
+        if lens.lens_type is LensType.Spherical:
+            # check lens fits in the simulation
+            if lens.diameter > parameters.sim_width or lens.diameter > parameters.sim_height:
+                raise ValueError(
+                    f"Lens diameter must be smaller than the simulation size: lens: {lens.diameter:.2e}m, sim: {parameters.sim_width:.2e}mx{parameters.sim_height:.2e}m"
+                )
+
+        if lens.lens_type is LensType.Cylindrical:
+            if lens.diameter > parameters.sim_width or lens.length > parameters.sim_height:
+                raise ValueError(
+                    f"Lens must be smaller than the simulation size: lens: {lens.diameter:.2e}mx{lens.length:.2e}m, sim: {parameters.sim_width:.2e}mx{parameters.sim_height:.2e}m"
+                )
+
 
         # check the escape path fits within then simulation
         if lens_config["escape_path"] is not None:
@@ -382,8 +390,8 @@ def propagate_wavefront(
     # pre-allocate sim
     fname = os.path.join(save_path, f"sim.zarr")
     sim_shape = (len(distances), sim_profile.shape[0], sim_profile.shape[1])
-    sim = zarr.open(fname, mode="w", 
-                    shape=sim_shape, 
+    sim = zarr.open(fname, mode="w",
+                    shape=sim_shape,
                     # chunks=(1000, 1000),  # note dont manaully set chunk size
                     dtype=np.float32)
 
@@ -495,7 +503,7 @@ def pad_simulation(lens: Lens, parameters: SimulationParameters) -> np.ndarray:
     # calculate the number of pixels in the simulation
     sim_n_pixels_height = utils._calculate_num_of_pixels(parameters.sim_height, parameters.pixel_size)
     sim_n_pixels_width = utils._calculate_num_of_pixels(parameters.sim_width, parameters.pixel_size)
-        
+
     # calculate aperture mask
     lens.sim_aperture_mask  = calculate_sim_aperture(lens, sim_n_pixels_height, sim_n_pixels_width)
 
@@ -526,7 +534,7 @@ def calculate_sim_aperture(lens, sim_h, sim_w) -> np.ndarray:
     if y0 == 0 and y1 == 0:
         y1 += 1
     if x0 == 0 and x1 == 0:
-        x1 +=1 
+        x1 +=1
 
     aperture_mask[y0:y1, x0:x1] = 0
 
