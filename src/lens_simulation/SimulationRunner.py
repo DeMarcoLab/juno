@@ -105,6 +105,28 @@ def sweep_config_keys(conf: dict, sweep_keys: list) -> list:
     return key_params
 
 
+def sweep_custom_config(path: Path) -> list:
+    """Generate a sweep for custom lens configs based on the following rules:
+        
+        Rules:
+            if None -> return None
+            if yaml -> return only file
+            if dir -> return all .yaml in folder
+
+        Custom configs must be .yaml files and conform to the standard lens config. 
+    """
+
+    if path is None:
+        custom_params = [None]
+    elif os.path.isfile(path):
+        custom_params = [path]
+    elif os.path.isdir(path):
+        custom_params = [fname for fname in glob.glob(os.path.join(path, "**/*.yaml"), recursive=True)]
+    else:
+        custom_params = [None]
+
+    return [custom_params] 
+
 def sweep_custom_profiles(path: Path) -> list:
     """Generate a sweep for custom profiles based on the following rules:
         
@@ -139,8 +161,9 @@ def generate_lens_parameter_combinations(config) -> list:
         tp = sweep_config_keys(lc["truncation"], constants.TRUNCATION_SWEEPABLE_KEYS)
         ap = sweep_config_keys(lc["aperture"], constants.APERTURE_SWEEPABLE_KEYS)
 
-        # custom profile sweeping...
-        cp = sweep_custom_profiles(lc[constants.CUSTOM_PROFILE_KEY])
+        # custom config sweeping...
+        # cp = sweep_custom_profiles(lc[constants.CUSTOM_PROFILE_KEY])
+        cp = sweep_custom_config(lc[constants.CUSTOM_CONFIG_KEY])
 
         lens_param = [*lp, *gp, *tp, *ap, *cp]
         parameters_combinations = list(itertools.product(*lens_param))
@@ -172,7 +195,7 @@ def get_lens_configurations(lpc: list, config: dict) -> list:
             simulation_lenses["aperture"]["inner"] = lpc[i][9]   
             simulation_lenses["aperture"]["outer"] = lpc[i][10]   
         
-        simulation_lenses["custom"] = lpc[i][11]
+        simulation_lenses["custom_config"] = lpc[i][11]
     
         lens_combination.append(simulation_lenses)
 
@@ -200,7 +223,7 @@ def get_beam_configurations(bpc: list, config: dict):
     simulation_beam["tilt_y"] = bpc[7]
     simulation_beam["source_distance"] = bpc[8]
     simulation_beam["final_diameter"] = bpc[9]
-    simulation_beam["focal_multipl"] = bpc[10]
+    simulation_beam["focal_multiple"] = bpc[10]
     
     return simulation_beam
 

@@ -67,6 +67,9 @@ def _validate_default_lens_config(lens_config: dict) -> dict:
     # validate sweepable parameters
     lens_config = _validate_sweepable_parameters(lens_config, constants.LENS_SWEEPABLE_KEYS)
 
+    if "custom_config" not in lens_config:
+        lens_config["custom_config"] = None
+
     # validate lens modifications
     lens_config = _validate_required_lens_modification_config(lens_config)
     lens_config = _validate_lens_modification_type(lens_config)

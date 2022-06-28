@@ -25,17 +25,6 @@ from lens_simulation.structures import (
 from lens_simulation import validation, plotting, utils
 from lens_simulation.beam import generate_beam
 
-# DONE:
-# sweepable parameters
-# database management
-# visualisation, analytics, comparison
-# initial beam definition (tilt, convergence, divergence)
-
-# TODO: tools (cleaning, sheet measurement, validation, lens creation)
-# TODO: total internal reflection check (exponential profile)
-# TODO: performance (cached results, gpu, parallelism)
-
-
 class Simulation:
     def __init__(self, config: dict) -> None:
 
@@ -63,6 +52,14 @@ class Simulation:
         return config
 
     def setup_simulation(self, config: dict):
+
+        # replace the existing config with a custom one if exists.
+        for i, lens_config in enumerate(config["lenses"]):
+            
+            if lens_config["custom_config"] is not None:
+                lens_config = utils.load_yaml_config(lens_config["custom_config"])
+                lens_config = validation._validate_default_lens_config(lens_config)
+                config["lenses"][i] = lens_config
 
         # generate all lenses for the simulations
         simulation_lenses = generate_lenses(config["lenses"], self.parameters)

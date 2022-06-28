@@ -39,6 +39,8 @@ lenses:
     # inverted: false 
     # length: nu # core
     # custom: \\ad.monash.edu\home\User028\pcle0002\Documents\repos\lens_simulation\src\lens_simulation\custom\profile.npy
+    # custom_config: C:\Users\pcle0002\Documents\repos\lens_simulation\src\lens_simulation\custom\custom_lens.yaml
+    custom_config: C:\Users\pcle0002\Documents\repos\lens_simulation\src\lens_simulation\custom
     # grating: 
     #   width: 10.e-6 # core
     #   distance: 20.e-6 # core
@@ -73,7 +75,7 @@ stages:
   #     use_equivalent_focal_distance: False
   #     focal_distance_start_multiple: 0.0
   #     focal_distance_multiple: 2.0
-  - lens: lens_1
+  - lens: lens_custom
     output: 1.33 # nice 
     # step_size: 100.e-9
     n_steps: 100
