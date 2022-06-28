@@ -6,8 +6,6 @@ sim_parameters:
   sim_wavelength: 488.e-9 # nice
 options:
   log_dir: "log"
-  # verbose: false
-  save: true
   # save_plot: true
   # debug: false
 beam:
