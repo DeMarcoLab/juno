@@ -23,7 +23,7 @@ class GratingSettings:
 
 @dataclass
 class TruncationSettings:
-    type: str 
+    type: str
     height: float = None
     radius: float = None
     aperture: bool = False
@@ -52,7 +52,7 @@ class LensSettings:
     inverted: bool = False
     grating: GratingSettings = None
     truncation: None  = None
-    aperture: None = None 
+    aperture: None = None
 
 class Lens:
     def __init__(
@@ -213,7 +213,7 @@ class Lens:
 
         # filter profile
         # profile = ndimage.gaussian_filter(profile, sigma=3)
-        
+
         self.coefficient = coefficient
 
         return profile
@@ -619,7 +619,7 @@ def load_lens_config(lens_config: dict):
             radius=lens_config["truncation"]["radius"],
             aperture=lens_config["truncation"]["aperture"]
         )
-    
+
     if lens_config["aperture"] is not None:
         aperture_settings = ApertureSettings(
             type=lens_config["aperture"]["type"],
@@ -725,8 +725,8 @@ def apply_modifications(lens: Lens, lens_config: dict) -> Lens:
 
 def load_aperture(fname):
     """Load the aperture for a custom lens if it exists."""
-    path = os.path.dirname(fname)
-    aperture_path = glob.glob(os.path.join(path, "*.aperture.npy"))
+    split_path = os.path.splitext(fname)
+    aperture_path = glob.glob(split_path[0] + "*.aperture.npy")
 
     loaded_aperture = None
     if aperture_path:
