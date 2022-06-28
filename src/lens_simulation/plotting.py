@@ -63,7 +63,7 @@ def plot_simulation(
         extent=[min_x, max_x, min_y, max_y],
         interpolation="spline36",
         aspect="auto",
-        cmap="jet",
+        cmap="turbo",
     )
     plt.title(f"Simulation Output ({height}x{width})")
     plt.ylabel("Distance (mm)")
