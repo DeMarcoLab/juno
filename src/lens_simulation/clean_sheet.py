@@ -40,10 +40,10 @@ top_half = single > center_max/2
 cleaned = top_half * single
 if plot_cleaned:
     plt.figure()
-    plt.imshow(single, aspect='auto', cmap='jet', extent=([-diameter/2, diameter/2, finish, start]))
+    plt.imshow(single, aspect='auto', cmap='turbo', extent=([-diameter/2, diameter/2, finish, start]))
 
     plt.figure()
-    plt.imshow(cleaned, aspect='auto', cmap='jet', extent=([-diameter/2, diameter/2, finish, start]))
+    plt.imshow(cleaned, aspect='auto', cmap='turbo', extent=([-diameter/2, diameter/2, finish, start]))
 
 # Threshold just the center cut
 center_top_half = np.flip(center_cut > center_max/2)

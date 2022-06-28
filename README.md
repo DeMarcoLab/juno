@@ -117,5 +117,17 @@ This is useful for running large parameter sweeps on HPC setups.
 
 
 
+### Technical Details
+
+
+ZARR
+
+
+
+
+
+
+
+
 ## Citation 
 TODO
