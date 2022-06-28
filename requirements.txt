@@ -11,3 +11,4 @@ streamlit
 pyyaml
 imageio
 zarr
+pyqt5
