@@ -643,7 +643,7 @@ class GUIBeamCreator(BeamCreator.Ui_BeamCreator, QtWidgets.QMainWindow):
         options = SimulationOptions(log_dir='', save=False, save_plot=False)
 
         self.result = propagate_wavefront(stage=stage, parameters=parameters, options=options)
-
+        
         self.update_image_frames()
 
     ### Window methods ###

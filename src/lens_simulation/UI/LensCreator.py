@@ -48,7 +48,7 @@ class GUILensCreator(LensCreator.Ui_LensCreator, QtWidgets.QMainWindow):
 
         self.setup_connections()
 
-        self.center_window()
+        # self.center_window()
         self.showNormal()
 
     ### Setup methods ###
