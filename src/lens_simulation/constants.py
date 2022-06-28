@@ -24,6 +24,7 @@ BEAM_SWEEPABLE_KEYS = [
 ]
 LENS_SWEEPABLE_KEYS = ["medium", "diameter", "height", "exponent"]
 CUSTOM_PROFILE_KEY = "custom"
+CUSTOM_CONFIG_KEY = "custom_config"
 GRATING_SWEEPABLE_KEYS = [
     "width",
     "distance",
