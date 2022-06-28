@@ -1,5 +1,5 @@
-# Lens Simulation
- A lens simulation package.
+# [PACKAGE_NAME]
+ [PACKAGE_NAME] is python package for designing lens by performing full wave simulations.  
 
 <figure>
   <img
@@ -11,14 +11,33 @@
 ## Getting Started
 
 
-### Install
+### Installation
+
+The best way to install is by creating an [Anaconda](https://docs.conda.io/projects/conda/en/latest/user-guide/getting-started.html) environment. First download and install anaconda. 
+
+On Windows - Open Anaconda Powershell Prompt:
+
+On Linux/Mac - Open Terminal:
+
+``` bash
+$ git clone https://github.com/DeMarcoLab/lens_simulation.git
+$ cd lens_simulation
+$ conda create --name lens_sim python=3.8 pip
+$ conda activate lens_sim
+$ pip install -r requirements.txt
+$ pip install -e .
 
 ```
-$ cd lens_simulation
-$ python3 -m pip install --upgrade build
-$ python3 -m build
-$ python3 -m pip install -e .
-```
+
+
+### User Interface
+
+
+
+
+
+
+
 
 ## Configuration
 
@@ -87,26 +106,6 @@ $ python run_simulation config.yaml
 ```
 
 Simulations results will be saved into the log/ directory. 
-
-# Profiling
-```bash
-$ pip install snakeviz
-
-$ python -m cProfile -o output.profile script.py
-
-$ snakeviz output.profile
-```
-
-
-# Coverage
-
-```bash
-
-$ pip install coverage
-$ coverage run -m pytest -vv
-$ coverage report -m 
-$ coverage html
-```
 
 
 

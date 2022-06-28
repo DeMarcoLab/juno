@@ -1,7 +1,7 @@
 import sys
 import threading
 from turtle import home
-from lens_simulation.UI import LensCreator
+from lens_simulation.ui import LensCreator
 from PyQt5 import QtCore, QtGui, QtWidgets
 
 def main():

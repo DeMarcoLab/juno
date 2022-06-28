@@ -79,10 +79,6 @@ def _validate_default_lens_config(lens_config: dict) -> dict:
     lens_config["truncation"] = _validate_sweepable_parameters(lens_config["truncation"], constants.TRUNCATION_SWEEPABLE_KEYS)
     lens_config["aperture"] = _validate_sweepable_parameters(lens_config["aperture"], constants.APERTURE_SWEEPABLE_KEYS)
 
-    # QUERY
-    # do we want to require height, diameter, exponent if the user loads a custom profile. What is required?
-    # is lens_type a required parameters? how much error checking on the lens_type, e.g. if not in LensType.name etc
-
     return lens_config
 
 
