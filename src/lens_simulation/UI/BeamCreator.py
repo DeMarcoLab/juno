@@ -135,8 +135,8 @@ class GUIBeamCreator(BeamCreator.Ui_BeamCreator, QtWidgets.QMainWindow):
         self.beam_dict["position_y"] = 0.0e-6
         self.beam_dict["theta"] = 1.0  # Degrees
         self.beam_dict["numerical_aperture"] = None
-        self.beam_dict["tilt_x"] = 45.0
-        self.beam_dict["tilt_y"] = 45.0
+        self.beam_dict["tilt_x"] = 0.0
+        self.beam_dict["tilt_y"] = 0.0
         self.beam_dict["source_distance"] = 25.0e-6
         self.beam_dict["final_diameter"] = None
         self.beam_dict["focal_multiple"] = None
@@ -643,7 +643,7 @@ class GUIBeamCreator(BeamCreator.Ui_BeamCreator, QtWidgets.QMainWindow):
         options = SimulationOptions(log_dir='', save_plot=False)
 
         self.result = propagate_wavefront(stage=stage, parameters=parameters, options=options)
-        
+
         self.update_image_frames()
 
     ### Window methods ###
