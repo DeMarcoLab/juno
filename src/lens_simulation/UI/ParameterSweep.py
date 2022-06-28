@@ -11,7 +11,7 @@ import yaml
 from lens_simulation import utils
 import matplotlib.pyplot as plt
 
-import lens_simulation.UI.qtdesigner_files.ParameterSweep as ParameterSweep
+import lens_simulation.ui.qtdesigner_files.ParameterSweep as ParameterSweep
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtWidgets import (
     QGroupBox,

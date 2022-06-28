@@ -3,14 +3,14 @@ from pprint import pprint
 import sys
 import traceback
 
-import lens_simulation.UI.qtdesigner_files.BeamCreator as BeamCreator
+import lens_simulation.ui.qtdesigner_files.BeamCreator as BeamCreator
 import numpy as np
 import yaml
 from lens_simulation import constants, plotting, utils
 from lens_simulation.Lens import Medium
 from lens_simulation.beam import generate_beam
 from lens_simulation.Simulation import SimulationStage, SimulationParameters, SimulationOptions, propagate_wavefront
-from lens_simulation.UI.utils import display_error_message
+from lens_simulation.ui.utils import display_error_message
 from matplotlib import pyplot as plt
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
 from PyQt5 import QtCore, QtGui, QtWidgets
@@ -161,7 +161,7 @@ class GUIBeamCreator(BeamCreator.Ui_BeamCreator, QtWidgets.QMainWindow):
         except Exception as e:
             display_error_message(traceback.format_exc())
 
-    ### UI <-> Config methods ###
+    ### ui <-> Config methods ###
 
     def update_config(self):
         self.update_config_general()
@@ -183,7 +183,7 @@ class GUIBeamCreator(BeamCreator.Ui_BeamCreator, QtWidgets.QMainWindow):
         self.update_image_frames()
 
     def update_UI_general(self):
-        # Config -> UI | General settings #
+        # Config -> ui | General settings #
         self.lineEdit_LensName.setText(self.beam_dict["name"])
         if self.beam_dict["n_steps"] != 0:
             self.doubleSpinBox_DistanceMethod.setDecimals(0)
@@ -206,7 +206,7 @@ class GUIBeamCreator(BeamCreator.Ui_BeamCreator, QtWidgets.QMainWindow):
         self.doubleSpinBox_OutputMedium.setValue(self.beam_dict["output_medium"])
 
     def update_config_general(self):
-        # UI -> config | General settings #
+        # ui -> config | General settings #
         self.beam_dict["name"] = self.lineEdit_LensName.text()
         if self.comboBox_DistanceMethod.currentText() == "# Steps":
             self.beam_dict["n_steps"] = round(self.doubleSpinBox_DistanceMethod.value())
@@ -232,13 +232,13 @@ class GUIBeamCreator(BeamCreator.Ui_BeamCreator, QtWidgets.QMainWindow):
         self.beam_dict["output_medium"] = self.doubleSpinBox_OutputMedium.value()
 
     def update_UI_beam_spread(self):
-        # Config -> UI | Beam Spread settings #
+        # Config -> ui | Beam Spread settings #
         self.comboBox_BeamSpread.setCurrentIndex(
             beam_spread_dict[self.beam_dict["spread"].title()]
         )
 
     def update_config_beam_spread(self):
-        # UI -> config | Beam Spread settings #
+        # ui -> config | Beam Spread settings #
         if self.comboBox_BeamSpread.currentText() == "Planar":
             self.beam_dict["spread"] = "plane"
         if self.comboBox_BeamSpread.currentText() == "Converging":
@@ -247,7 +247,7 @@ class GUIBeamCreator(BeamCreator.Ui_BeamCreator, QtWidgets.QMainWindow):
             self.beam_dict["spread"] = "diverging"
 
     def update_UI_beam_shape(self):
-        # Config -> UI | Beam Shape settings #
+        # Config -> ui | Beam Shape settings #
         self.comboBox_BeamShape.clear()
         if self.beam_dict["spread"].title() == "Plane":
             self.comboBox_BeamShape.addItem("Circular")
@@ -261,14 +261,14 @@ class GUIBeamCreator(BeamCreator.Ui_BeamCreator, QtWidgets.QMainWindow):
             self.comboBox_BeamShape.setCurrentIndex(0)
 
     def update_config_beam_shape(self):
-        # UI -> config | Beam Shape settings #
+        # ui -> config | Beam Shape settings #
         if self.comboBox_BeamSpread.currentText() != "Planar":
             self.beam_dict["shape"] = "circular"
         else:
             self.beam_dict["shape"] = self.comboBox_BeamShape.currentText()
 
     def update_UI_convergence_angle(self):
-        # Config -> UI | Angle settings #
+        # Config -> ui | Angle settings #
         if self.beam_dict["spread"].title() == "Plane":
             self.frame_BeamAngle.setEnabled(False)
         else:
@@ -283,7 +283,7 @@ class GUIBeamCreator(BeamCreator.Ui_BeamCreator, QtWidgets.QMainWindow):
         self.doubleSpinBox_BeamAngle.setValue(self.beam_dict["numerical_aperture"])
 
     def update_config_convergence_angle(self):
-        # UI -> config | Angle settings #
+        # ui -> config | Angle settings #
         if self.comboBox_BeamAngle.currentText() == "Numerical Aperture":
             self.beam_dict["theta"] = 0.0
             self.beam_dict["numerical_aperture"] = self.doubleSpinBox_BeamAngle.value()
@@ -293,7 +293,7 @@ class GUIBeamCreator(BeamCreator.Ui_BeamCreator, QtWidgets.QMainWindow):
         self.beam_dict["numerical_aperture"] = 0.0
 
     def update_UI_distance(self):
-        # Config -> UI | Distance settings #
+        # Config -> ui | Distance settings #
 
         self.comboBox_DistanceMode.clear()
         if self.beam_dict["spread"].title() == "Plane":
@@ -318,7 +318,7 @@ class GUIBeamCreator(BeamCreator.Ui_BeamCreator, QtWidgets.QMainWindow):
             self.doubleSpinBox_Distance.setValue(self.beam_dict["focal_multiple"])
 
     def update_config_distance(self):
-        # UI -> config | Distance settings #
+        # ui -> config | Distance settings #
         if self.comboBox_DistanceMode.currentText() == "Absolute Distance":
             self.beam_dict["distance_mode"] = "direct"
             self.beam_dict["source_distance"] = self.format_float(
@@ -334,23 +334,23 @@ class GUIBeamCreator(BeamCreator.Ui_BeamCreator, QtWidgets.QMainWindow):
             self.beam_dict["focal_multiple"] = self.doubleSpinBox_Distance.value()
 
     def update_UI_tilt(self):
-        # Config -> UI | Tilt settings #
+        # Config -> ui | Tilt settings #
         self.doubleSpinBox_BeamTiltX.setValue(self.beam_dict["tilt_x"])
         self.doubleSpinBox_BeamTiltY.setValue(self.beam_dict["tilt_y"])
 
     def update_config_tilt(self):
-        # UI -> config | Tilt settings #
+        # ui -> config | Tilt settings #
         self.beam_dict["tilt_x"] = self.doubleSpinBox_BeamTiltX.value()
         self.beam_dict["tilt_y"] = self.doubleSpinBox_BeamTiltY.value()
 
     def update_UI_sim(self):
-        # Config -> UI | Simulation settings #
+        # Config -> ui | Simulation settings #
         self.doubleSpinBox_PixelSize.setValue(self.sim_dict["pixel_size"] / self.units)
         self.doubleSpinBox_SimWidth.setValue(self.sim_dict["width"] / self.units)
         self.doubleSpinBox_SimHeight.setValue(self.sim_dict["height"] / self.units)
 
     def update_config_sim(self):
-        # UI -> config | Simulation settings #
+        # ui -> config | Simulation settings #
         self.sim_dict["pixel_size"] = self.format_float(
             self.doubleSpinBox_PixelSize.value() * self.units
         )

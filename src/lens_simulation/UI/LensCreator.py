@@ -2,12 +2,12 @@ import os
 import sys
 import traceback
 
-import lens_simulation.UI.qtdesigner_files.LensCreator as LensCreator
+import lens_simulation.ui.qtdesigner_files.LensCreator as LensCreator
 import numpy as np
 import yaml
 from lens_simulation import constants, plotting, utils
 from lens_simulation.Lens import GratingSettings, LensType, Medium, generate_lens
-from lens_simulation.UI.utils import display_error_message
+from lens_simulation.ui.utils import display_error_message
 from matplotlib import pyplot as plt
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
 from PyQt5 import QtCore, QtGui, QtWidgets
@@ -117,7 +117,7 @@ class GUILensCreator(LensCreator.Ui_LensCreator, QtWidgets.QMainWindow):
 
         self.update_image_frames()
 
-    ### UI <-> Config methods ###
+    ### ui <-> Config methods ###
 
     def update_lens_dict(self):
         """Helper function to update full config"""
@@ -127,7 +127,7 @@ class GUILensCreator(LensCreator.Ui_LensCreator, QtWidgets.QMainWindow):
         self.update_config_aperture()
 
     def update_UI(self):
-        """Helper function to update full UI"""
+        """Helper function to update full ui"""
         self.update_UI_general()
         self.update_UI_grating()
         self.update_UI_truncation()
@@ -149,7 +149,7 @@ class GUILensCreator(LensCreator.Ui_LensCreator, QtWidgets.QMainWindow):
         )
 
     def update_UI_general(self):
-        # Config -> UI | General settings #
+        # Config -> ui | General settings #
         self.lineEdit_LensName.setText(self.lens_dict["name"])
         self.doubleSpinBox_LensMedium.setValue(self.lens_dict["medium"])
         self.doubleSpinBox_LensExponent.setValue(self.lens_dict["exponent"])
@@ -192,7 +192,7 @@ class GUILensCreator(LensCreator.Ui_LensCreator, QtWidgets.QMainWindow):
         self.frame_LensEscapePath.setEnabled(self.lens_dict["custom"] is None)
 
     def update_config_general(self):
-        # UI -> Config | General settings #
+        # ui -> Config | General settings #
         self.lens_dict["name"] = self.lineEdit_LensName.text()
         self.lens_dict["medium"] = self.doubleSpinBox_LensMedium.value()
         self.lens_dict["exponent"] = self.doubleSpinBox_LensExponent.value()
@@ -217,7 +217,7 @@ class GUILensCreator(LensCreator.Ui_LensCreator, QtWidgets.QMainWindow):
         )
 
     def update_UI_grating(self):
-        # Config -> UI | Grating settings #
+        # Config -> ui | Grating settings #
         if "grating" not in self.lens_dict:
             self.lens_dict["grating"] = None
 
@@ -249,7 +249,7 @@ class GUILensCreator(LensCreator.Ui_LensCreator, QtWidgets.QMainWindow):
         self.checkBox_GratingCentred.setChecked(self.lens_dict["grating"]["centred"])
 
     def update_config_grating(self):
-        # UI -> Config | Grating Settings #
+        # ui -> Config | Grating Settings #
         if not self.groupBox_Gratings.isChecked():
             self.lens_dict["grating"] = None
             return
@@ -268,7 +268,7 @@ class GUILensCreator(LensCreator.Ui_LensCreator, QtWidgets.QMainWindow):
         self.lens_dict["grating"]["centred"] = self.checkBox_GratingCentred.isChecked()
 
     def update_UI_truncation(self):
-        # Config -> UI | Truncation Settings #
+        # Config -> ui | Truncation Settings #
         if "truncation" not in self.lens_dict:
             self.lens_dict["truncation"] = None
 
@@ -294,7 +294,7 @@ class GUILensCreator(LensCreator.Ui_LensCreator, QtWidgets.QMainWindow):
         )
 
     def update_config_truncation(self):
-        # UI -> Config | Truncation Settings #
+        # ui -> Config | Truncation Settings #
         if not self.groupBox_Truncation.isChecked():
             self.lens_dict["truncation"] = None
             return
@@ -314,7 +314,7 @@ class GUILensCreator(LensCreator.Ui_LensCreator, QtWidgets.QMainWindow):
             self.lens_dict["truncation"]["type"] = "value"
 
     def update_UI_aperture(self):
-        # Config -> UI | Aperture settings #
+        # Config -> ui | Aperture settings #
         if "aperture" not in self.lens_dict:
             self.lens_dict["aperture"] = None
 
@@ -342,7 +342,7 @@ class GUILensCreator(LensCreator.Ui_LensCreator, QtWidgets.QMainWindow):
         )
 
     def update_config_aperture(self):
-        # UI -> Config | Aperture Settings #
+        # ui -> Config | Aperture Settings #
         if not self.groupBox_Aperture.isChecked():
             self.lens_dict["aperture"] = None
             return

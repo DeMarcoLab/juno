@@ -1,6 +1,6 @@
 import sys
 
-import lens_simulation.UI.qtdesigner_files.SimulationRun as SimulationRun 
+import lens_simulation.ui.qtdesigner_files.SimulationRun as SimulationRun 
 from PyQt5 import QtCore, QtGui, QtWidgets
 from lens_simulation.SimulationRunner import SimulationRunner
 from lens_simulation.Simulation import Simulation

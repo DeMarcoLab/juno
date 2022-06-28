@@ -11,8 +11,8 @@ import yaml
 from lens_simulation import utils, plotting
 import matplotlib.pyplot as plt
 
-import lens_simulation.UI.qtdesigner_files.SimulationSetup as SimulationSetup
-from lens_simulation.UI.ParameterSweep import GUIParameterSweep
+import lens_simulation.ui.qtdesigner_files.SimulationSetup as SimulationSetup
+from lens_simulation.ui.ParameterSweep import GUIParameterSweep
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtWidgets import (
     QGroupBox,
@@ -160,7 +160,7 @@ class GUISimulationSetup(SimulationSetup.Ui_MainWindow, QtWidgets.QMainWindow):
             print("loaded config")
             # TODO: how to handle partial configs??? throw error?
 
-            # load config values into UI....
+            # load config values into ui....
             self.simulation_config = config
 
             # set sim parameters

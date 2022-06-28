@@ -9,8 +9,8 @@ import lens_simulation
 import os
 
 from lens_simulation import utils
-from lens_simulation.UI.utils import display_error_message
-import lens_simulation.UI.qtdesigner_files.VisualiseResults as VisualiseResults
+from lens_simulation.ui.utils import display_error_message
+import lens_simulation.ui.qtdesigner_files.VisualiseResults as VisualiseResults
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtWidgets import QGroupBox, QGridLayout, QLabel, QVBoxLayout, QPushButton, QLineEdit, QComboBox
 from PyQt5.QtGui import QImage, QPixmap, QMovie

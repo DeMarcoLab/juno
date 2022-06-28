@@ -1,10 +1,10 @@
 import sys
-import  lens_simulation.UI.qtdesigner_files.LensSimulation as LensSimulation 
-from lens_simulation.UI.LensCreator import GUILensCreator
-from lens_simulation.UI.SimulationSetup import GUISimulationSetup
-from lens_simulation.UI.VisualiseResults import GUIVisualiseResults
-from lens_simulation.UI.BeamCreator import GUIBeamCreator
-from lens_simulation.UI.SimulationRun import GUISimulationRun
+import  lens_simulation.ui.qtdesigner_files.LensSimulation as LensSimulation 
+from lens_simulation.ui.LensCreator import GUILensCreator
+from lens_simulation.ui.SimulationSetup import GUISimulationSetup
+from lens_simulation.ui.VisualiseResults import GUIVisualiseResults
+from lens_simulation.ui.BeamCreator import GUIBeamCreator
+from lens_simulation.ui.SimulationRun import GUISimulationRun
 
 from PyQt5 import QtCore, QtGui, QtWidgets
 
