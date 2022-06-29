@@ -93,7 +93,7 @@ For stage 2:
 - Set the step_size to 0 (the simulation defaults to n_steps)
 - Press 'Use focal distance'
 - Set the start distance to 0
-- Set the finish distance to 1
+- Set the finish distance to 1e-6
     - The simulation will set the propagation finish distance to an equivalent focal distance of a focusing lens of the same height and diameter 
 
 - Now that both stages have been defined, press 'Generate' to generate the simulation configuration.
