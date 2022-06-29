@@ -1,0 +1,14 @@
+numpy
+scipy
+pandas
+petname
+flake8
+pytest
+matplotlib
+tqdm
+black
+streamlit
+pyyaml
+imageio
+zarr
+pyqt5
