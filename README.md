@@ -29,6 +29,10 @@ $ pip install -e .
 
 ```
 
+### Tutorial
+For a tutorial walkthrough for using the package please see [Tutorial.md](TUTORIAL.md)
+
+
 ### User Interface
 
 To run the user interface:
