@@ -1,4 +1,5 @@
 from dataclasses import dataclass, field
+from multiprocessing.sharedctypes import Value
 import numpy as np
 from enum import Enum, auto
 
@@ -208,7 +209,7 @@ class Beam:
             finish_distance = self.source_distance
 
         elif self.distance_mode is DistanceMode.Focal:
-            finish_distance = self.focal_distance
+            finish_distance = self.focal_distance * self.settings.focal_multiple
 
         # if you want the beam to converge/diverge to a specific width
         elif self.distance_mode is DistanceMode.Diameter:
@@ -264,6 +265,9 @@ def validate_beam_configuration(settings: BeamSettings):
     if settings.distance_mode == DistanceMode.Focal:
         if settings.beam_spread not in [BeamSpread.Converging, BeamSpread.Diverging]:
             raise ValueError(f"BeamSpread must be Converging, or Diverging for {settings.distance_mode} (currently {settings.beam_spread})")
+
+        if settings.focal_multiple is None:
+            settings.focal_multiple = 1.0 # set default to 1.0
 
     if settings.distance_mode == DistanceMode.Diameter:
         if settings.final_diameter is None:
