@@ -11,12 +11,15 @@ import os
 from lens_simulation import utils
 from lens_simulation.ui.utils import display_error_message
 import lens_simulation.ui.qtdesigner_files.VisualiseResults as VisualiseResults
+from lens_simulation import plotting
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtWidgets import QGroupBox, QGridLayout, QLabel, QVBoxLayout, QPushButton, QLineEdit, QComboBox
 from PyQt5.QtGui import QImage, QPixmap, QMovie
 import numpy as np
 
-
+import napari
+import numpy as np
+from lens_simulation import utils, plotting
 
 class MODIFIER(Enum):
     EQUAL_TO = auto()
@@ -54,6 +57,10 @@ class GUIVisualiseResults(VisualiseResults.Ui_MainWindow, QtWidgets.QMainWindow)
         self.spinBox_num_filters.valueChanged.connect(self.update_filter_display)
 
 
+        self.pushButton_open_napari.clicked.connect(self.open_sim_in_napari)
+        self.pushButton_open_napari.setVisible(False)
+        self.comboBox_napari_sim.setVisible(False)
+
     def load_simulation(self):
         try:
             # select directory
@@ -88,11 +95,10 @@ class GUIVisualiseResults(VisualiseResults.Ui_MainWindow, QtWidgets.QMainWindow)
         self.df = utils.load_run_simulation_data(self.directory)
 
         sim_paths = [os.path.join(self.directory, path) for path in self.df["petname"].unique()]
-        stages = list(self.df["stage"].unique())
 
         self.update_filter_display()
 
-        self.update_simulation_display(sim_paths, stages)
+        self.update_simulation_display(sim_paths)
 
     def update_column_data(self):
 
@@ -112,7 +118,10 @@ class GUIVisualiseResults(VisualiseResults.Ui_MainWindow, QtWidgets.QMainWindow)
 
                 if col_type in [np.float64, np.int64]:
                     min_val, max_val = self.df[col_name].min(), self.df[col_name].max()
-                    label_value.setText(f"min: {min_val}, max: {max_val}")
+                    if col_type == np.float64:
+                        label_value.setText(f"min: {min_val:.2e}, max: {max_val:.2e}")
+                    else:
+                        label_value.setText(f"min: {min_val}, max: {max_val}")
                 else:
                     unique_vals = list(self.df[col_name].unique())
                     label_value.setText(f"values: {unique_vals}")
@@ -147,7 +156,7 @@ class GUIVisualiseResults(VisualiseResults.Ui_MainWindow, QtWidgets.QMainWindow)
         stages = list(df_filter["stage"].unique())
 
         self.label_num_filtered_simulations.setText(f"Filtered to {len(df_filter)} simulation stages.")
-        self.update_simulation_display(sim_paths, stages)
+        self.update_simulation_display(sim_paths)
 
     def update_filter_display(self):
 
@@ -169,19 +178,73 @@ class GUIVisualiseResults(VisualiseResults.Ui_MainWindow, QtWidgets.QMainWindow)
         self.scroll_area_filter.update()
 
 
-    def update_simulation_display(self, sim_paths: list, stages: list):
+    def update_simulation_display(self, sim_paths: list):
+
+        # update available sims for napari
+        self.pushButton_open_napari.setVisible(True)
+        self.comboBox_napari_sim.setVisible(True)
+        self.comboBox_napari_sim.clear()
+        self.comboBox_napari_sim.addItems([os.path.basename(path) for path in sim_paths])
 
         print("updating simulation display")
-        # TODO: add option to show beams by adding stage 0 to stages...
-        if self.checkBox_show_beam.isChecked():
-            stages.insert(0, 0)
 
-        runGridLayout = draw_run_layout(sim_paths, stages)
+        LOGARITHMIC_PLOTS = False
+        if self.checkBox_log_plots.isChecked():
+            LOGARITHMIC_PLOTS = True
+
+        runGridLayout = draw_run_layout(sim_paths, logarithmic=LOGARITHMIC_PLOTS)
         runBox = QGroupBox(f"")
         runBox.setLayout(runGridLayout)
 
         self.scroll_area.setWidget(runBox)
         self.scroll_area.update()
+
+    def open_sim_in_napari(self):
+
+        sim_name = self.comboBox_napari_sim.currentText()
+
+        print(f"Opening sim: {sim_name} in napari")
+
+        path = os.path.join(self.directory, sim_name)
+        full_sim = plotting.load_full_sim_propagation_v2(path)
+        # self.napari_viewer = napari.view_image(full_sim, colormap="turbo")
+
+
+        import napari
+
+        import skimage.filters
+        from napari.layers import Image
+        from napari.types import ImageData
+
+        from magicgui import magicgui
+
+        # create a viewer and add some images
+        self.viewer = napari.Viewer()
+        self.viewer.add_image(full_sim, name="simulation", colormap="turbo")
+
+        # turn the gaussian blur function into a magicgui
+        # for details on why the `-> ImageData` return annotation works:
+        # https://napari.org/guides/magicgui.html#return-annotations
+        @magicgui(
+            # tells magicgui to call the function whenever a parameter changes
+            auto_call=True,
+            # `widget_type` to override the default (spinbox) "float" widget
+            prop={"widget_type": "FloatSlider", "max": 1.0},
+            axis={"choices": [0, 1, 2]},
+            layout="horizontal",
+        )
+        def slice_image(layer: Image, prop: float = 0.5, axis: int = 0) -> ImageData:
+            """Slice the volume along the selected axis"""
+            if layer:
+                return plotting.slice_simulation_view(layer.data, axis=axis, prop=prop)
+
+        # Add it to the napari viewer
+        self.viewer.window.add_dock_widget(slice_image, area="bottom")
+
+        napari.run()
+
+
+
 
 
 def get_column_value_by_type(lineEdit: QLineEdit, type) -> Union[str, int, float]:
@@ -225,7 +288,7 @@ def filter_dataframe_by_modifier(df, filter_col, value, modifier):
 
     return df_filter
 
-def draw_image_on_label(fname: str, shape: tuple = (300, 300)) -> QLabel:
+def draw_image_on_label(fname: str, shape: tuple = (250, 250)) -> QLabel:
     """Load a image / gif from file, and set it on a label"""
     label = QLabel()
     if "gif" in fname:
@@ -237,56 +300,47 @@ def draw_image_on_label(fname: str, shape: tuple = (300, 300)) -> QLabel:
             movie.start()
 
     else:
-        label.setPixmap(QPixmap(fname).scaled(*shape))
+        label.setPixmap(QPixmap(fname))#.scaled(*shape))
 
     label.setStyleSheet("border-radius: 5px")
 
     return label
 
-def generate_stage_grid_layout(stage_no, fnames) -> QGridLayout:
-    stage_grid_layout = QGridLayout()
 
-    # stage title
-    stage_label = QLabel()
-    stage_label.setText(f"Stage {stage_no}")
-    stage_grid_layout.addWidget(stage_label, 0, 0)
-
-    for i, fname in enumerate(fnames):
-
-        label = draw_image_on_label(fname)
-
-        stage_grid_layout.addWidget(label, 1, i)
-
-    return stage_grid_layout
-
-
-def draw_sim_grid_layout(path, stages):
-    simGridLayout = QVBoxLayout()
+def draw_sim_grid_layout(path, logarithmic: bool = False):
+    simGridLayout = QGridLayout()
     label_sim_title = QLabel()
     label_sim_title.setStyleSheet("font-size: 14px; font-weight: bold")
     label_sim_title.setText(os.path.basename(path))
-    simGridLayout.addWidget(label_sim_title)
+    simGridLayout.addWidget(label_sim_title, 0, 0)
 
-    # loop through each stage, load images
-    for stage_no in stages:
-        sim_directory = os.path.join(path, str(stage_no))
+    # need to regenerate plot to get log correctly
 
-        profile_fname = os.path.join(sim_directory, "lens_profile.png")
-        slices_fname = os.path.join(sim_directory, "lens_slices.png")
-        topdown_fname = os.path.join(sim_directory, "topdown.png")
-        sideon_fname = os.path.join(sim_directory, "sideon.png")
-        propagation_fname = os.path.join(sim_directory, "propagation.gif")
-        fnames = [profile_fname, slices_fname, topdown_fname, sideon_fname, propagation_fname]
+    # TODO: 
+    # add side on toggle, 
+    # add button for napari...
+    # add data table
 
-        stage_grid_layout = generate_stage_grid_layout(stage_no, fnames)
+    # if not os.path.exists(os.path.join(path, "topdown.png")):
+    view_fig = plotting.plot_sim_propagation_v2(path, axis=1, prop=0.5, log=logarithmic)
+    plotting.save_figure(view_fig, os.path.join(path, "view.png"))
 
-        horizontalGroupBox = QGroupBox(f"")
-        horizontalGroupBox.setLayout(stage_grid_layout)
-        simGridLayout.addWidget(horizontalGroupBox)
+    if not os.path.exists(os.path.join(path, "propagation.gif")):
+        plotting.save_propagation_gif_full(path)
+        
+    fnames = [
+            os.path.join(path, "view.png"), 
+            os.path.join(path, "propagation.gif")]
+
+    # draw figures
+    for i, fname in enumerate(fnames):
+        label = draw_image_on_label(fname)
+        simGridLayout.addWidget(label, 1, i)
+
     return simGridLayout
 
 
-def draw_run_layout(sim_directories, stages, nlim=None):
+def draw_run_layout(sim_directories, logarithmic: bool = False, nlim: int = None):
     runGridLayout = QVBoxLayout()
 
     # limit the number of simulations shown
@@ -295,7 +349,7 @@ def draw_run_layout(sim_directories, stages, nlim=None):
 
     for sim_path in sim_directories[:nlim]:
 
-        simGridLayout = draw_sim_grid_layout(sim_path, stages)
+        simGridLayout = draw_sim_grid_layout(sim_path, logarithmic=logarithmic)
 
         simBox = QGroupBox(f"")
         simBox.setLayout(simGridLayout)

@@ -60,13 +60,6 @@ class GUILensSimulation(LensSimulation.Ui_MainWindow, QtWidgets.QMainWindow):
         print("launch view results")
         self.view_results = GUIVisualiseResults()
 
-        import napari
-        import numpy as np
-        from lens_simulation import utils, plotting
-        path = r"C:\Users\pcle0002\Documents\repos\lens_simulation\src\lens_simulation\log\freely-strong-sheep\ideal-possum"
-        full_sim = plotting.load_full_sim_propagation_v2(path)
-        view = napari.view_image(full_sim)
-
 def main():
     """Launch the main application window. """
     application = QtWidgets.QApplication([])

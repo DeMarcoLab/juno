@@ -130,7 +130,7 @@ def slice_simulation_view(sim: np.ndarray, axis: int = 0, prop: float = 0.5) -> 
     if prop < 0 or prop > 1.0:
         raise ValueError(f"Proporation must be between 0 - 1.0. The proporation was {prop}. ")
 
-    px = int(prop * sim.shape[axis])
+    px = int(prop * sim.shape[axis]) - 1
 
     # got to be a better way...
     if axis == 0:
@@ -522,7 +522,7 @@ def plot_simulation_setup(config: dict) -> plt.Figure:
 
 
 def load_full_sim_propagation_v2(path):
-
+    # TODO: move to utils..
     metadata = utils.load_metadata(path)
     n_stages = len(metadata["stages"]) + 1
     sim_paths = [os.path.join(path, str(i), "sim.zarr") for i in range(n_stages)]
@@ -565,6 +565,34 @@ def load_full_sim_propagation(path):
 
     return td, so
 
+def plot_sim_propagation_v2(path: Path, axis:int = 1, prop: float = 0.5, log: bool = False, transpose: bool = True) -> tuple:
+
+    full_sim = load_full_sim_propagation_v2(path)
+    view = slice_simulation_view(full_sim, axis=axis, prop=prop)
+    
+    if log:
+        view = np.log(view + 1e-12)
+
+    if transpose:
+        view = view.T
+        figsize = (6, 3)
+    else:
+        figsize = (3, 6)
+
+    view_fig = plt.figure(figsize=figsize)
+    plt.imshow(view, cmap="turbo", aspect="auto")
+    plt.colorbar()
+    if axis == 1:
+        plt.title("Top Down View")
+    if axis == 2:
+        plt.title("Side On View")
+
+    # TODO: propagation distances as extent
+
+    return view_fig
+
+
+
 def plot_sim_propagation(path: Path, log: bool = False, transpose: bool = True) -> tuple:
 
     # td, so, = load_full_sim_propagation(path) #TODO: convert to use v2 and just slice the middle
@@ -574,15 +602,15 @@ def plot_sim_propagation(path: Path, log: bool = False, transpose: bool = True) 
     so = slice_simulation_view(full_sim, axis=2, prop=0.5)
     
     if log:
-        td = np.log(td)
-        so = np.log(so)
+        td = np.log(td + 1e-12)
+        so = np.log(so + 1e-12)
 
     if transpose:
         td = td.T
         so = so.T
-        figsize = (15, 5)
+        figsize = (9, 3)
     else:
-        figsize = (5, 15)
+        figsize = (3, 9)
 
     td_fig = plt.figure(figsize=figsize)
     plt.imshow(td, cmap="turbo", aspect="auto")
@@ -598,7 +626,12 @@ def plot_sim_propagation(path: Path, log: bool = False, transpose: bool = True) 
 
     return td_fig, so_fig 
 
+def save_propagation_gif_full(path: str):
 
+    sim = load_full_sim_propagation_v2(path)
+
+    save_path = os.path.join(path, "propagation.gif")
+    imageio.mimsave(save_path, sim, duration=0.2)
 
 
 def save_propagation_gif(path: str, vert: bool = False, hor: bool = False):
