@@ -73,6 +73,28 @@ def plot_simulation(
     return fig
 
 
+def cross_section_image(arr: np.ndarray, axis: int = 0, prop: float = 0.5) -> np.ndarray:
+
+    if arr.ndim != 2:
+        raise ValueError(f"Only two-dimensional arrays are supported. The current array is {arr.ndim} dimensions.")
+
+    if axis not in [0, 1]:
+        raise ValueError(f"Only axis [0, 1] are supported. The axis {axis} is not supported.")
+
+    if prop < 0 or prop > 1.0:
+        raise ValueError(f"Proporation must be between 0 - 1.0. The proporation was {prop}. ")
+
+    # get centre pixel
+    centre_px = arr.shape[axis] // 2
+
+    if axis == 0:
+        cross_section = arr[centre_px, :]
+    if axis == 1:
+        cross_section = arr[:, centre_px]
+
+    return cross_section
+
+
 def threshold_image(arr: np.ndarray, threshold: float = 0.5) -> np.ndarray:
     """Threshold the image above the proporation of the maximum value"""
     threshold_value = threshold * np.max(arr)
@@ -124,6 +146,28 @@ def slice_simulation_view(sim: np.ndarray, axis: int = 0, prop: float = 0.5) -> 
     # TODO: update create_sim_views to use this function...
 
 
+
+def crop_image_v3(arr: np.ndarray, width: float = 0.5, height: float = 0.5, x: float = 0.5, y: float = 0.5):
+    """Crop the image proportionally based on the shape."""
+
+    if arr.ndim != 2:
+        raise ValueError(f"Crop image v2 only supported 2D arrays. This array is {arr.ndim} dimensions.")
+
+    # default to centre of image
+    x_px = int(arr.shape[1] * x)
+    y_px = int(arr.shape[0] * y)
+    w_px = int(arr.shape[1] * width)
+    h_px = int(arr.shape[0] * height)
+
+    # make sure clip ends up within bounds (must be difference of 1)
+    min_h = np.clip(int(y_px - h_px // 2), 0, arr.shape[0] - 1) 
+    max_h = np.clip(int(y_px + h_px // 2), 1, arr.shape[0])
+    min_w = np.clip(int(x_px - w_px // 2), 0, arr.shape[1] - 1)
+    max_w = np.clip(int(x_px + w_px // 2), 1, arr.shape[1])
+
+    arr_resized = arr[min_h:max_h, min_w:max_w]
+
+    return arr_resized, (min_h, max_h, min_w, max_w)
 
 def crop_image_v2(arr: np.ndarray, width: int = None, height: int = None, x: int = None, y: int = None):
     """Crop the simulation image to the required dimensions."""
@@ -476,19 +520,38 @@ def plot_simulation_setup(config: dict) -> plt.Figure:
     # TODO: correct the propagation distances to mm
     return fig
 
-def plot_sim_propagation(path: Path, log: bool = False, transpose: bool = True) -> tuple:
+
+def load_full_sim_propagation_v2(path):
 
     metadata = utils.load_metadata(path)
     n_stages = len(metadata["stages"]) + 1
     sim_paths = [os.path.join(path, str(i), "sim.zarr") for i in range(n_stages)]
 
-    td, so = None, None
+    full_sim = None
+
+    for sim_path in sim_paths:
+        sim = utils.load_simulation(sim_path)
+
+        if full_sim is None:
+            full_sim = sim
+        else:
+            full_sim = np.vstack([full_sim, sim])
+
+    return full_sim
+
+def load_full_sim_propagation(path):
+
+    metadata = utils.load_metadata(path)
+    n_stages = len(metadata["stages"]) + 1
+    sim_paths = [os.path.join(path, str(i), "sim.zarr") for i in range(n_stages)]
+
+    td, so, full = None, None, None
 
     for sim_path in sim_paths:
         sim = utils.load_simulation(sim_path)
         top_down, side_on = create_sim_views(sim)
-        lens = np.ones(shape=(1, top_down.shape[1]))
 
+        lens = np.ones(shape=(1, top_down.shape[1]))
         if td is None:
             td = top_down
         else:
@@ -500,6 +563,16 @@ def plot_sim_propagation(path: Path, log: bool = False, transpose: bool = True) 
         else:
             so = np.vstack([so, lens, side_on])
 
+    return td, so
+
+def plot_sim_propagation(path: Path, log: bool = False, transpose: bool = True) -> tuple:
+
+    # td, so, = load_full_sim_propagation(path) #TODO: convert to use v2 and just slice the middle
+
+    full_sim = load_full_sim_propagation_v2(path)
+    td = slice_simulation_view(full_sim, axis=1, prop=0.5)
+    so = slice_simulation_view(full_sim, axis=2, prop=0.5)
+    
     if log:
         td = np.log(td)
         so = np.log(so)
