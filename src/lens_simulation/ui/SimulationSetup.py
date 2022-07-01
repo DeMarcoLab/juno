@@ -123,7 +123,9 @@ class GUISimulationSetup(SimulationSetup.Ui_MainWindow, QtWidgets.QMainWindow):
     def setup_parameter_sweep(self):
         # param sweep ui
         print("setup parameter sweep")
+        self.statusBar.showMessage("Setup Parameter Sweep")
         self.param_sweep_ui = GUIParameterSweep(self.simulation_config, parent_gui=self)
+        self.statusBar.clearMessage()
 
     def save_simulation_config(self):
         
@@ -156,7 +158,7 @@ class GUISimulationSetup(SimulationSetup.Ui_MainWindow, QtWidgets.QMainWindow):
             self.statusBar.showMessage(f"Simulation config loaded from {sim_config_filename}")
 
             print("loaded config")
-            # TODO: how to handle partial configs??? throw error?
+            # TODO: how to handle partial configs??? throw error? this will fail if sim isnt valid...
 
             # load config values into ui....
             self.simulation_config = config
@@ -182,36 +184,37 @@ class GUISimulationSetup(SimulationSetup.Ui_MainWindow, QtWidgets.QMainWindow):
             load_stage_config_widgets(config, self.input_widgets)
             self.SIMULATION_CONFIG_LOADED = True
 
+    def update_status(self, msg= "Generating Simulation Configuration..."):
+        """update status within button press..."""
+        self.statusBar.showMessage(msg)
+        self.statusBar.repaint()
+
     def generate_simulation_config(self):
-        print("generating simulation config")
-
         # TODO: need to check if things are loaded...
-
+        
+        self.update_status(msg="Generating Simulation Configuration...")
         try:
+
             self.update_simulation_config()
             self.read_stage_input_values()
 
-            print("-" * 50)
-            pprint(self.simulation_config)
-            print("-" * 50)
-
-
             validation._validate_simulation_config(self.simulation_config)
-            print("Configuration is valid.")
+            self.update_status(msg=f"Valid Simulation Configuration. Plotting Setup...")
             self.draw_simulation_stage_display()
 
             self.pushButton_setup_parameter_sweep.setEnabled(True)
             self.pushButton_save_sim_config.setEnabled(True)
 
+            self.update_status(msg=f"Generate Simulation Configuration Finished.")
+
         except Exception as e:
+            self.statusBar.showMessage(f"Invalid Simulation Configuration...")
             display_error_message(f"Invalid simulation config. \n{e}")
             self.pushButton_setup_parameter_sweep.setEnabled(False)
             self.pushButton_save_sim_config.setEnabled(False)
+            self.statusBar.clearMessage()
 
-        # checks
-        # beam selected
-        # lenses selected
-        # required fields...?
+
 
     def draw_simulation_stage_display(self):
 
@@ -594,7 +597,9 @@ def load_stage_config_widgets(config, all_widgets):
             widgets[12].setText(str(stage_config["focal_distance_start_multiple"]))
             widgets[14].setText(str(stage_config["focal_distance_multiple"]))
 
-
+def update_status(statusBar, msg):
+    statusBar.clearMessage()
+    statusBar.showMessage(msg)
 
 def display_error_message(message, title="Error Message"):
     """PyQt dialog box displaying an error message."""

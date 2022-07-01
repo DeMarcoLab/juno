@@ -475,7 +475,7 @@ def plot_lens_modifications(lens: Lens) -> plt.Figure:
 
 
 def plot_simulation_setup(config: dict) -> plt.Figure:
-
+    # TODO: redo this function to use zarr
     arr = None
     sim_height = config["sim_parameters"]["sim_height"]
     pixel_size = config["sim_parameters"]["pixel_size"]
@@ -505,13 +505,13 @@ def plot_simulation_setup(config: dict) -> plt.Figure:
         lens = np.ones(shape=(sim_n_pixels_h, lens_n_pixels_z)) * lens_medium
 
         if arr is None:
-            arr = arr = np.hstack([lens, output])
+            arr = np.hstack([lens, output])
         else:
             arr = np.hstack([arr, lens, output])
 
     # create plot
-    fig = plt.figure()
-    plt.imshow(arr, cmap="plasma")
+    fig = plt.figure(figsize=(10, 2))
+    plt.imshow(arr, aspect="auto", cmap="turbo")
     clb = plt.colorbar()
     clb.ax.set_title("Medium")
     plt.title("Simulation Stages")
