@@ -31,8 +31,7 @@ def load_sim(path):
     
     return utils.load_simulation(path)
 # load sim
-path = r"C:\Users\pcle0002\Documents\repos\lens_simulation\src\lens_simulation\log\newly-proven-shrew\guided-ray\1\sim.zarr"
-# sim = utils.load_simulation(path)
+path = st.text_input("Simulation path (.zarr)")
 sim = load_sim(path)
 
 # slice view
