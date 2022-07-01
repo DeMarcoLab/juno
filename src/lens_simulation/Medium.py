@@ -1,9 +1,8 @@
 from dataclasses import dataclass
-import numpy as np
-
-from scipy import ndimage
 from enum import Enum
 
+import numpy as np
+from scipy import ndimage
 
 
 # TODO: comparison not working for dataclass?

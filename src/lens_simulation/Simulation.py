@@ -1,29 +1,24 @@
 import os
-from pathlib import Path
-from turtle import distance
 import uuid
-import petname
-import numpy as np
-import matplotlib.pyplot as plt
-
-import zarr
-
+from pathlib import Path
 from pprint import pprint
+from turtle import distance
+
+import matplotlib.pyplot as plt
+import numpy as np
+import petname
+import zarr
 from scipy import fftpack
 from tqdm import tqdm
 
+from lens_simulation import plotting, utils, validation
+from lens_simulation.beam import generate_beam
 from lens_simulation.Lens import Lens, LensType, generate_lens
 from lens_simulation.Medium import Medium
-from lens_simulation.structures import (
-    SimulationOptions,
-    SimulationParameters,
-    SimulationStage,
-    SimulationResult,
-    StageSettings
-)
+from lens_simulation.structures import (SimulationOptions,
+                                        SimulationParameters, SimulationResult,
+                                        SimulationStage, StageSettings)
 
-from lens_simulation import validation, plotting, utils
-from lens_simulation.beam import generate_beam
 
 class Simulation:
     def __init__(self, config: dict) -> None:
@@ -667,8 +662,8 @@ def invert_lens_and_output_medium(stage: SimulationStage, previous_stage: Simula
 
 def test_escape_path_fits_inside_simulation(lens: Lens, parameters, ep: float):
     from lens_simulation import utils
-    from lens_simulation.structures import SimulationParameters
     from lens_simulation.Lens import calculate_escape_path_dimensions
+    from lens_simulation.structures import SimulationParameters
 
     n_pixels_sim_height = utils._calculate_num_of_pixels(
         parameters.sim_height, parameters.pixel_size

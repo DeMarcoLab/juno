@@ -1,14 +1,14 @@
-from dataclasses import dataclass
-import os
 import glob
-import numpy as np
-
-from pathlib import Path
-from scipy import ndimage
+import os
+from dataclasses import dataclass
 from enum import Enum
+from pathlib import Path
 
-from lens_simulation.Medium import Medium
+import numpy as np
+from scipy import ndimage
+
 from lens_simulation import validation
+from lens_simulation.Medium import Medium
 
 
 @dataclass

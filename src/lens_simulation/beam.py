@@ -1,15 +1,14 @@
-from dataclasses import dataclass, field
-from multiprocessing.sharedctypes import Value
-import numpy as np
-from enum import Enum, auto
-
 import logging
+from dataclasses import dataclass, field
+from enum import Enum, auto
+from multiprocessing.sharedctypes import Value
 
-from lens_simulation.Medium import Medium
+import numpy as np
+
+from lens_simulation import utils, validation
 from lens_simulation.Lens import Lens, LensType
+from lens_simulation.Medium import Medium
 from lens_simulation.structures import SimulationParameters
-from lens_simulation import validation
-from lens_simulation import utils
 
 
 class BeamSpread(Enum):

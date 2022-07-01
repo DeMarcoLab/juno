@@ -1,49 +1,25 @@
+import glob
+import os
 import sys
 import traceback
-
 from enum import Enum, auto
-import glob
-import lens_simulation
-import os
-import yaml
-
-
-from lens_simulation import utils, plotting
-import matplotlib.pyplot as plt
-
-import lens_simulation.ui.qtdesigner_files.SimulationSetup as SimulationSetup
-from lens_simulation.ui.ParameterSweep import GUIParameterSweep
-from PyQt5 import QtCore, QtGui, QtWidgets
-from PyQt5.QtWidgets import (
-    QGroupBox,
-    QGridLayout,
-    QLabel,
-    QVBoxLayout,
-    QPushButton,
-    QLineEdit,
-    QComboBox,
-    QDoubleSpinBox,
-    QSpinBox,
-    QCheckBox,
-    QFileDialog,
-)
-from PyQt5.QtGui import QImage, QPixmap, QMovie
-import numpy as np
-
 from pathlib import Path
 from pprint import pprint
 
-from lens_simulation import validation
-
-from lens_simulation.constants import (
-    MICRON_TO_METRE,
-    METRE_TO_MICRON,
-    NANO_TO_METRE,
-    METRE_TO_NANO,
-)
-
+import lens_simulation
+import lens_simulation.ui.qtdesigner_files.SimulationSetup as SimulationSetup
+import matplotlib.pyplot as plt
+import numpy as np
+import yaml
+from lens_simulation import plotting, utils, validation
 from lens_simulation.beam import generate_beam
 from lens_simulation.Simulation import generate_simulation_parameters
+from lens_simulation.ui.ParameterSweep import GUIParameterSweep
+from PyQt5 import QtCore, QtGui, QtWidgets
+from PyQt5.QtGui import QPixmap
+from PyQt5.QtWidgets import (QCheckBox, QFileDialog, QGridLayout, QGroupBox,
+                             QLabel, QLineEdit, QPushButton, QVBoxLayout)
+
 
 class GUISimulationSetup(SimulationSetup.Ui_MainWindow, QtWidgets.QMainWindow):
     def __init__(self, parent_gui=None):
