@@ -32,3 +32,5 @@ src/lens_simulation/tmp/*
 src/lens_simulation/data/*
 src/lens_simulation/out.prof
 */sim.zarr/*
+
+src/lens_simulation/example/tutorial_simulation_results/*

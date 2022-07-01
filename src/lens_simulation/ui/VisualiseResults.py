@@ -21,6 +21,8 @@ from PyQt5.QtWidgets import (QComboBox, QGridLayout, QGroupBox, QLabel,
 import pandas as pd
 from PyQt5.QtCore import QAbstractTableModel, Qt
 
+import matplotlib.pyplot as plt
+
 class MODIFIER(Enum):
     EQUAL_TO = auto()
     LESS_THAN = auto()
@@ -60,6 +62,8 @@ class GUIVisualiseResults(VisualiseResults.Ui_MainWindow, QtWidgets.QMainWindow)
         self.pushButton_open_napari.clicked.connect(self.open_sim_in_napari)
         self.pushButton_open_napari.setVisible(False)
         self.comboBox_napari_sim.setVisible(False)
+        self.lineEdit_show_columns.setVisible(False)
+        self.lineEdit_show_columns.setText("stage, lens, height, exponent")
 
     def load_simulation(self):
         try:
@@ -94,11 +98,9 @@ class GUIVisualiseResults(VisualiseResults.Ui_MainWindow, QtWidgets.QMainWindow)
         # load simulation data
         self.df = utils.load_run_simulation_data(self.directory)
 
-        sim_paths = [os.path.join(self.directory, path) for path in self.df["petname"].unique()]
-
         self.update_filter_display()
 
-        self.update_simulation_display(sim_paths, df=self.df)
+        self.update_simulation_display(df=self.df)
 
     def update_column_data(self):
 
@@ -152,11 +154,8 @@ class GUIVisualiseResults(VisualiseResults.Ui_MainWindow, QtWidgets.QMainWindow)
             print(f"Filtered to {len(df_filter)} simulation stages.")
             print(col_name, col_type, modifier, value)
 
-        sim_paths = [os.path.join(self.directory, path) for path in df_filter["petname"].unique()]
-        stages = list(df_filter["stage"].unique())
-
         self.label_num_filtered_simulations.setText(f"Filtered to {len(df_filter)} simulation stages.")
-        self.update_simulation_display(sim_paths, df_filter)
+        self.update_simulation_display(df_filter)
 
     def update_filter_display(self):
 
@@ -178,21 +177,30 @@ class GUIVisualiseResults(VisualiseResults.Ui_MainWindow, QtWidgets.QMainWindow)
         self.scroll_area_filter.update()
 
 
-    def update_simulation_display(self, sim_paths: list, df: pd.DataFrame):
+    def update_simulation_display(self, df: pd.DataFrame):
+        
+        # filter columns
+        cols_text = self.lineEdit_show_columns.text().split(", ")
+
+        df["path"] = df["log_dir"] + "/" + df["petname"]
+        filter_cols = [col for col in df.columns if col in cols_text] + ["petname", "path"]
+        df = df[filter_cols]       
 
         # update available sims for napari
         self.pushButton_open_napari.setVisible(True)
         self.comboBox_napari_sim.setVisible(True)
+        self.lineEdit_show_columns.setVisible(True)
         self.comboBox_napari_sim.clear()
-        self.comboBox_napari_sim.addItems([os.path.basename(path) for path in sim_paths])
+        self.comboBox_napari_sim.addItems([os.path.basename(path) for path in df["petname"].unique()])
 
         print("updating simulation display")
+        print(df)
 
         LOGARITHMIC_PLOTS = False
         if self.checkBox_log_plots.isChecked():
             LOGARITHMIC_PLOTS = True
 
-        runGridLayout = draw_run_layout(sim_paths, logarithmic=LOGARITHMIC_PLOTS, df=df)
+        runGridLayout = draw_run_layout(df=df, logarithmic=LOGARITHMIC_PLOTS)
         runBox = QGroupBox(f"")
         runBox.setLayout(runGridLayout)
 
@@ -307,28 +315,13 @@ def draw_sim_grid_layout(path, logarithmic: bool = False, df: pd.DataFrame = Non
     label_sim_title.setText(os.path.basename(path))
     simGridLayout.addWidget(label_sim_title, 0, 0)
 
-    # need to regenerate plot to get log correctly
 
     # TODO: 
     # add side on toggle, 
-    # add data table
-    # add beam back into stage filter...
     # filter to rows of table clicked...
-
     # data table
-    df_sim = df[df["petname"] == os.path.basename(path)]
 
-    show_cols =["finish_distance","focal_distance_multiple","focal_distance_start_multiple","lens","output"
-    ,"start_distance","step_size",]#"use_equivalent_focal_distance","lens_inverted","stage","aperture","custom",
-    # "custom_config","diameter","escape_path","exponent","grating","height","inverted","length","lens_type","medium",
-    # "truncation","grating_width","grating_distance","grating_depth","grating_x","grating_y","grating_centred",
-    # "truncation_height","truncation_radius","truncation_type","truncation_aperture","aperture_inner","aperture_outer",
-    # "aperture_type","aperture_invert","petname","beam_height","beam_numerical_aperture","beam_position_x","beam_position_y",
-    # "beam_source_distance","beam_theta","beam_tilt_x","beam_tilt_y",
-    # "beam_width","beam_distance_mode","beam_spread","beam_shape","beam_final_diameter","beam_output_medium","beam_focal_multiple"]
-
-    df_sim = df_sim[show_cols]
-    model = pandasModel(df_sim)
+    model = pandasModel(df)
     view = QTableView()
     view.setModel(model)
 
@@ -338,16 +331,21 @@ def draw_sim_grid_layout(path, logarithmic: bool = False, df: pd.DataFrame = Non
     simGridLayout.addWidget(view, 1, 0)
 
 
-    # if not os.path.exists(os.path.join(path, "topdown.png")):
-    view_fig = plotting.plot_sim_propagation_v2(path, axis=1, prop=0.5, log=logarithmic)
-    plotting.save_figure(view_fig, os.path.join(path, "view.png"))
+    # plotting figures
+    # need to regenerate plot to get log correctly
+    log_prefix = "log_" if logarithmic is True else ""
+    view_fname = os.path.join(path, f"{log_prefix}view.png")
+    gif_fname = os.path.join(path, "propagation.gif")
+    
+    if not os.path.exists(view_fname):
+        view_fig = plotting.plot_sim_propagation_v2(path, axis=1, prop=0.5, log=logarithmic)
+        plotting.save_figure(view_fig, view_fname)
+        plt.close(view_fig)
 
-    if not os.path.exists(os.path.join(path, "propagation.gif")):
+    if not os.path.exists(gif_fname):
         plotting.save_propagation_gif_full(path)
         
-    fnames = [
-            os.path.join(path, "view.png"), 
-            os.path.join(path, "propagation.gif")]
+    fnames = [view_fname, gif_fname]
 
     # draw figures
     for i, fname in enumerate(fnames, 1):
@@ -358,8 +356,11 @@ def draw_sim_grid_layout(path, logarithmic: bool = False, df: pd.DataFrame = Non
     return simGridLayout
 
 
-def draw_run_layout(sim_directories, logarithmic: bool = False, nlim: int = None, df=None):
+def draw_run_layout(df: pd.DataFrame, logarithmic: bool = False, nlim: int = None):
     runGridLayout = QVBoxLayout()
+    
+    sim_directories = df["path"].unique()
+    df = df.drop(columns=["path"])
 
     # limit the number of simulations shown
     if nlim is None:
@@ -367,7 +368,9 @@ def draw_run_layout(sim_directories, logarithmic: bool = False, nlim: int = None
 
     for sim_path in sim_directories[:nlim]:
 
-        simGridLayout = draw_sim_grid_layout(sim_path, logarithmic=logarithmic, df=df)
+        df_sim = df[df["petname"] == os.path.basename(sim_path)]
+        df_sim = df_sim.drop(columns=["petname"])
+        simGridLayout = draw_sim_grid_layout(sim_path, logarithmic=logarithmic, df=df_sim)
 
         simBox = QGroupBox(f"")
         simBox.setLayout(simGridLayout)

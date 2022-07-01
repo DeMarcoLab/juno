@@ -49,7 +49,7 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>1630</width>
+             <width>1603</width>
              <height>959</height>
             </rect>
            </property>
@@ -74,93 +74,6 @@
         <enum>QFrame::Raised</enum>
        </property>
        <layout class="QGridLayout" name="gridLayout_2">
-        <item row="5" column="0">
-         <widget class="QFrame" name="frame_filter">
-          <property name="frameShape">
-           <enum>QFrame::StyledPanel</enum>
-          </property>
-          <property name="frameShadow">
-           <enum>QFrame::Raised</enum>
-          </property>
-          <layout class="QGridLayout" name="gridLayout_4">
-           <item row="2" column="0" colspan="3">
-            <widget class="QScrollArea" name="scroll_area_filter">
-             <property name="maximumSize">
-              <size>
-               <width>400</width>
-               <height>400</height>
-              </size>
-             </property>
-             <property name="widgetResizable">
-              <bool>true</bool>
-             </property>
-             <widget class="QWidget" name="scrollAreaWidgetContents_2">
-              <property name="geometry">
-               <rect>
-                <x>0</x>
-                <y>0</y>
-                <width>231</width>
-                <height>237</height>
-               </rect>
-              </property>
-             </widget>
-            </widget>
-           </item>
-           <item row="3" column="0" colspan="3">
-            <widget class="QPushButton" name="pushButton_filter_data">
-             <property name="text">
-              <string>Filter Data</string>
-             </property>
-            </widget>
-           </item>
-           <item row="4" column="0" colspan="3">
-            <widget class="QPushButton" name="pushButton_reset_data">
-             <property name="text">
-              <string>Reset Data</string>
-             </property>
-            </widget>
-           </item>
-           <item row="5" column="0" colspan="3">
-            <widget class="QLabel" name="label_num_filtered_simulations">
-             <property name="text">
-              <string>TextLabel</string>
-             </property>
-            </widget>
-           </item>
-           <item row="1" column="0">
-            <widget class="QCheckBox" name="checkBox_show_beam">
-             <property name="text">
-              <string>Show Beam</string>
-             </property>
-            </widget>
-           </item>
-           <item row="0" column="2">
-            <widget class="QSpinBox" name="spinBox_num_filters">
-             <property name="minimum">
-              <number>1</number>
-             </property>
-             <property name="maximum">
-              <number>10</number>
-             </property>
-            </widget>
-           </item>
-           <item row="1" column="2">
-            <widget class="QCheckBox" name="checkBox_log_plots">
-             <property name="text">
-              <string>Logarithmic Plots</string>
-             </property>
-            </widget>
-           </item>
-           <item row="0" column="0">
-            <widget class="QLabel" name="label">
-             <property name="text">
-              <string>Number of filters</string>
-             </property>
-            </widget>
-           </item>
-          </layout>
-         </widget>
-        </item>
         <item row="0" column="0">
          <widget class="QLabel" name="label_title">
           <property name="font">
@@ -186,7 +99,7 @@
           <property name="sizeHint" stdset="0">
            <size>
             <width>20</width>
-            <height>40</height>
+            <height>30</height>
            </size>
           </property>
          </spacer>
@@ -231,6 +144,96 @@
           <property name="text">
            <string>Open in Napari</string>
           </property>
+         </widget>
+        </item>
+        <item row="5" column="0">
+         <widget class="QFrame" name="frame_filter">
+          <property name="frameShape">
+           <enum>QFrame::StyledPanel</enum>
+          </property>
+          <property name="frameShadow">
+           <enum>QFrame::Raised</enum>
+          </property>
+          <layout class="QGridLayout" name="gridLayout_4">
+           <item row="6" column="0" colspan="3">
+            <widget class="QPushButton" name="pushButton_reset_data">
+             <property name="text">
+              <string>Reset Data</string>
+             </property>
+            </widget>
+           </item>
+           <item row="7" column="0" colspan="3">
+            <widget class="QLabel" name="label_num_filtered_simulations">
+             <property name="text">
+              <string>TextLabel</string>
+             </property>
+            </widget>
+           </item>
+           <item row="3" column="2">
+            <widget class="QLineEdit" name="lineEdit_show_columns"/>
+           </item>
+           <item row="2" column="0" colspan="3">
+            <widget class="QScrollArea" name="scroll_area_filter">
+             <property name="maximumSize">
+              <size>
+               <width>400</width>
+               <height>400</height>
+              </size>
+             </property>
+             <property name="widgetResizable">
+              <bool>true</bool>
+             </property>
+             <widget class="QWidget" name="scrollAreaWidgetContents_2">
+              <property name="geometry">
+               <rect>
+                <x>0</x>
+                <y>0</y>
+                <width>258</width>
+                <height>211</height>
+               </rect>
+              </property>
+             </widget>
+            </widget>
+           </item>
+           <item row="3" column="0">
+            <widget class="QLabel" name="label_show_columns">
+             <property name="text">
+              <string>Show columns</string>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="2">
+            <widget class="QSpinBox" name="spinBox_num_filters">
+             <property name="minimum">
+              <number>1</number>
+             </property>
+             <property name="maximum">
+              <number>10</number>
+             </property>
+            </widget>
+           </item>
+           <item row="5" column="0" colspan="3">
+            <widget class="QPushButton" name="pushButton_filter_data">
+             <property name="text">
+              <string>Filter Data</string>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="0">
+            <widget class="QLabel" name="label">
+             <property name="text">
+              <string>Number of filters</string>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="0">
+            <widget class="QCheckBox" name="checkBox_log_plots">
+             <property name="text">
+              <string>Logarithmic Plots</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
          </widget>
         </item>
        </layout>
