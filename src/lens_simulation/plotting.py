@@ -655,3 +655,14 @@ def save_propagation_gif(path: str, vert: bool = False, hor: bool = False):
     if hor:
         horizontal_save_path = os.path.join(os.path.dirname(path), "horizontal.gif")
         imageio.mimsave(horizontal_save_path, np.swapaxes(sim, 0, 2), duration=0.2)
+
+
+def view_propagation_in_time(arr):
+    """show the propagation over time"""
+    for i in range(1, arr.shape[0]):
+        
+        mask = np.zeros_like(arr) 
+
+        mask[:i, :] = 1.0
+
+        view = arr * mask

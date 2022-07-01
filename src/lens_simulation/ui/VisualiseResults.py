@@ -1,25 +1,25 @@
 
+import glob
+import os
 import sys
 import traceback
-
 from enum import Enum, auto
-import glob
 from typing import Union
+
 import lens_simulation
-import os
-
-from lens_simulation import utils
-from lens_simulation.ui.utils import display_error_message
 import lens_simulation.ui.qtdesigner_files.VisualiseResults as VisualiseResults
-from lens_simulation import plotting
-from PyQt5 import QtCore, QtGui, QtWidgets
-from PyQt5.QtWidgets import QGroupBox, QGridLayout, QLabel, QVBoxLayout, QPushButton, QLineEdit, QComboBox
-from PyQt5.QtGui import QImage, QPixmap, QMovie
-import numpy as np
-
 import napari
 import numpy as np
-from lens_simulation import utils, plotting
+from lens_simulation import plotting, utils
+from lens_simulation.ui.utils import display_error_message
+from PyQt5 import QtCore, QtGui, QtWidgets
+from PyQt5.QtGui import QImage, QMovie, QPixmap
+from PyQt5.QtWidgets import (QComboBox, QGridLayout, QGroupBox, QLabel,
+                             QLineEdit, QPushButton, QTableWidget,
+                             QTableWidgetItem, QVBoxLayout, QHeaderView, QTableView)
+
+import pandas as pd
+from PyQt5.QtCore import QAbstractTableModel, Qt
 
 class MODIFIER(Enum):
     EQUAL_TO = auto()
@@ -98,7 +98,7 @@ class GUIVisualiseResults(VisualiseResults.Ui_MainWindow, QtWidgets.QMainWindow)
 
         self.update_filter_display()
 
-        self.update_simulation_display(sim_paths)
+        self.update_simulation_display(sim_paths, df=self.df)
 
     def update_column_data(self):
 
@@ -156,7 +156,7 @@ class GUIVisualiseResults(VisualiseResults.Ui_MainWindow, QtWidgets.QMainWindow)
         stages = list(df_filter["stage"].unique())
 
         self.label_num_filtered_simulations.setText(f"Filtered to {len(df_filter)} simulation stages.")
-        self.update_simulation_display(sim_paths)
+        self.update_simulation_display(sim_paths, df_filter)
 
     def update_filter_display(self):
 
@@ -178,7 +178,7 @@ class GUIVisualiseResults(VisualiseResults.Ui_MainWindow, QtWidgets.QMainWindow)
         self.scroll_area_filter.update()
 
 
-    def update_simulation_display(self, sim_paths: list):
+    def update_simulation_display(self, sim_paths: list, df: pd.DataFrame):
 
         # update available sims for napari
         self.pushButton_open_napari.setVisible(True)
@@ -192,7 +192,7 @@ class GUIVisualiseResults(VisualiseResults.Ui_MainWindow, QtWidgets.QMainWindow)
         if self.checkBox_log_plots.isChecked():
             LOGARITHMIC_PLOTS = True
 
-        runGridLayout = draw_run_layout(sim_paths, logarithmic=LOGARITHMIC_PLOTS)
+        runGridLayout = draw_run_layout(sim_paths, logarithmic=LOGARITHMIC_PLOTS, df=df)
         runBox = QGroupBox(f"")
         runBox.setLayout(runGridLayout)
 
@@ -211,12 +211,9 @@ class GUIVisualiseResults(VisualiseResults.Ui_MainWindow, QtWidgets.QMainWindow)
 
 
         import napari
-
-        import skimage.filters
+        from magicgui import magicgui
         from napari.layers import Image
         from napari.types import ImageData
-
-        from magicgui import magicgui
 
         # create a viewer and add some images
         self.viewer = napari.Viewer()
@@ -242,10 +239,6 @@ class GUIVisualiseResults(VisualiseResults.Ui_MainWindow, QtWidgets.QMainWindow)
         self.viewer.window.add_dock_widget(slice_image, area="bottom")
 
         napari.run()
-
-
-
-
 
 def get_column_value_by_type(lineEdit: QLineEdit, type) -> Union[str, int, float]:
 
@@ -307,7 +300,7 @@ def draw_image_on_label(fname: str, shape: tuple = (250, 250)) -> QLabel:
     return label
 
 
-def draw_sim_grid_layout(path, logarithmic: bool = False):
+def draw_sim_grid_layout(path, logarithmic: bool = False, df: pd.DataFrame = None):
     simGridLayout = QGridLayout()
     label_sim_title = QLabel()
     label_sim_title.setStyleSheet("font-size: 14px; font-weight: bold")
@@ -318,8 +311,32 @@ def draw_sim_grid_layout(path, logarithmic: bool = False):
 
     # TODO: 
     # add side on toggle, 
-    # add button for napari...
     # add data table
+    # add beam back into stage filter...
+    # filter to rows of table clicked...
+
+    # data table
+    df_sim = df[df["petname"] == os.path.basename(path)]
+
+    show_cols =["finish_distance","focal_distance_multiple","focal_distance_start_multiple","lens","output"
+    ,"start_distance","step_size",]#"use_equivalent_focal_distance","lens_inverted","stage","aperture","custom",
+    # "custom_config","diameter","escape_path","exponent","grating","height","inverted","length","lens_type","medium",
+    # "truncation","grating_width","grating_distance","grating_depth","grating_x","grating_y","grating_centred",
+    # "truncation_height","truncation_radius","truncation_type","truncation_aperture","aperture_inner","aperture_outer",
+    # "aperture_type","aperture_invert","petname","beam_height","beam_numerical_aperture","beam_position_x","beam_position_y",
+    # "beam_source_distance","beam_theta","beam_tilt_x","beam_tilt_y",
+    # "beam_width","beam_distance_mode","beam_spread","beam_shape","beam_final_diameter","beam_output_medium","beam_focal_multiple"]
+
+    df_sim = df_sim[show_cols]
+    model = pandasModel(df_sim)
+    view = QTableView()
+    view.setModel(model)
+
+    view.horizontalHeader().setStretchLastSection(True)
+    view.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+
+    simGridLayout.addWidget(view, 1, 0)
+
 
     # if not os.path.exists(os.path.join(path, "topdown.png")):
     view_fig = plotting.plot_sim_propagation_v2(path, axis=1, prop=0.5, log=logarithmic)
@@ -333,14 +350,15 @@ def draw_sim_grid_layout(path, logarithmic: bool = False):
             os.path.join(path, "propagation.gif")]
 
     # draw figures
-    for i, fname in enumerate(fnames):
+    for i, fname in enumerate(fnames, 1):
         label = draw_image_on_label(fname)
         simGridLayout.addWidget(label, 1, i)
+
 
     return simGridLayout
 
 
-def draw_run_layout(sim_directories, logarithmic: bool = False, nlim: int = None):
+def draw_run_layout(sim_directories, logarithmic: bool = False, nlim: int = None, df=None):
     runGridLayout = QVBoxLayout()
 
     # limit the number of simulations shown
@@ -349,7 +367,7 @@ def draw_run_layout(sim_directories, logarithmic: bool = False, nlim: int = None
 
     for sim_path in sim_directories[:nlim]:
 
-        simGridLayout = draw_sim_grid_layout(sim_path, logarithmic=logarithmic)
+        simGridLayout = draw_sim_grid_layout(sim_path, logarithmic=logarithmic, df=df)
 
         simBox = QGroupBox(f"")
         simBox.setLayout(simGridLayout)
@@ -388,6 +406,33 @@ def draw_filter_layout(n_filters = 5):
 
 
     return filterLayout, filter_widgets
+
+
+
+# ref https://learndataanalysis.org/display-pandas-dataframe-with-pyqt5-qtableview-widget/
+class pandasModel(QAbstractTableModel):
+
+    def __init__(self, data):
+        QAbstractTableModel.__init__(self)
+        self._data = data
+
+    def rowCount(self, parent=None):
+        return self._data.shape[0]
+
+    def columnCount(self, parnet=None):
+        return self._data.shape[1]
+
+    def data(self, index, role=Qt.DisplayRole):
+        if index.isValid():
+            if role == Qt.DisplayRole:
+                return str(self._data.iloc[index.row(), index.column()])
+        return None
+
+    def headerData(self, col, orientation, role):
+        if orientation == Qt.Horizontal and role == Qt.DisplayRole:
+            return self._data.columns[col]
+        return None
+
 
 
 
