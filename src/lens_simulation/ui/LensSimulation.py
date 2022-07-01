@@ -6,11 +6,7 @@ from lens_simulation.ui.VisualiseResults import GUIVisualiseResults
 from lens_simulation.ui.BeamCreator import GUIBeamCreator
 from lens_simulation.ui.SimulationRun import GUISimulationRun
 
-from PyQt5 import QtCore, QtGui, QtWidgets
-
-
-
-
+from PyQt5 import QtWidgets
 
 class GUILensSimulation(LensSimulation.Ui_MainWindow, QtWidgets.QMainWindow):
     def __init__(self, parent_gui=None):
@@ -63,21 +59,6 @@ class GUILensSimulation(LensSimulation.Ui_MainWindow, QtWidgets.QMainWindow):
 
         print("launch view results")
         self.view_results = GUIVisualiseResults()
-
-
-
-
-def display_error_message(message, title="Error Message"):
-    """PyQt dialog box displaying an error message."""
-    # logging.debug('display_error_message')
-    # logging.exception(message)
-    error_dialog = QtWidgets.QErrorMessage()
-    error_dialog.setWindowTitle(title)
-    error_dialog.showMessage(message)
-    error_dialog.showNormal()
-    error_dialog.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
-    error_dialog.exec_()
-
 
 def main():
     """Launch the main application window. """

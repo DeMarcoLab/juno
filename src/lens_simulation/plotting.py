@@ -73,6 +73,28 @@ def plot_simulation(
     return fig
 
 
+def cross_section_image(arr: np.ndarray, axis: int = 0, prop: float = 0.5) -> np.ndarray:
+
+    if arr.ndim != 2:
+        raise ValueError(f"Only two-dimensional arrays are supported. The current array is {arr.ndim} dimensions.")
+
+    if axis not in [0, 1]:
+        raise ValueError(f"Only axis [0, 1] are supported. The axis {axis} is not supported.")
+
+    if prop < 0 or prop > 1.0:
+        raise ValueError(f"Proporation must be between 0 - 1.0. The proporation was {prop}. ")
+
+    # get centre pixel
+    centre_px = arr.shape[axis] // 2
+
+    if axis == 0:
+        cross_section = arr[centre_px, :]
+    if axis == 1:
+        cross_section = arr[:, centre_px]
+
+    return cross_section
+
+
 def threshold_image(arr: np.ndarray, threshold: float = 0.5) -> np.ndarray:
     """Threshold the image above the proporation of the maximum value"""
     threshold_value = threshold * np.max(arr)
@@ -108,7 +130,7 @@ def slice_simulation_view(sim: np.ndarray, axis: int = 0, prop: float = 0.5) -> 
     if prop < 0 or prop > 1.0:
         raise ValueError(f"Proporation must be between 0 - 1.0. The proporation was {prop}. ")
 
-    px = int(prop * sim.shape[axis])
+    px = int(prop * sim.shape[axis]) - 1
 
     # got to be a better way...
     if axis == 0:
@@ -124,6 +146,28 @@ def slice_simulation_view(sim: np.ndarray, axis: int = 0, prop: float = 0.5) -> 
     # TODO: update create_sim_views to use this function...
 
 
+
+def crop_image_v3(arr: np.ndarray, width: float = 0.5, height: float = 0.5, x: float = 0.5, y: float = 0.5):
+    """Crop the image proportionally based on the shape."""
+
+    if arr.ndim != 2:
+        raise ValueError(f"Crop image v2 only supported 2D arrays. This array is {arr.ndim} dimensions.")
+
+    # default to centre of image
+    x_px = int(arr.shape[1] * x)
+    y_px = int(arr.shape[0] * y)
+    w_px = int(arr.shape[1] * width)
+    h_px = int(arr.shape[0] * height)
+
+    # make sure clip ends up within bounds (must be difference of 1)
+    min_h = np.clip(int(y_px - h_px // 2), 0, arr.shape[0] - 1) 
+    max_h = np.clip(int(y_px + h_px // 2), 1, arr.shape[0])
+    min_w = np.clip(int(x_px - w_px // 2), 0, arr.shape[1] - 1)
+    max_w = np.clip(int(x_px + w_px // 2), 1, arr.shape[1])
+
+    arr_resized = arr[min_h:max_h, min_w:max_w]
+
+    return arr_resized, (min_h, max_h, min_w, max_w)
 
 def crop_image_v2(arr: np.ndarray, width: int = None, height: int = None, x: int = None, y: int = None):
     """Crop the simulation image to the required dimensions."""
@@ -431,7 +475,7 @@ def plot_lens_modifications(lens: Lens) -> plt.Figure:
 
 
 def plot_simulation_setup(config: dict) -> plt.Figure:
-
+    # TODO: redo this function to use zarr
     arr = None
     sim_height = config["sim_parameters"]["sim_height"]
     pixel_size = config["sim_parameters"]["pixel_size"]
@@ -461,13 +505,13 @@ def plot_simulation_setup(config: dict) -> plt.Figure:
         lens = np.ones(shape=(sim_n_pixels_h, lens_n_pixels_z)) * lens_medium
 
         if arr is None:
-            arr = arr = np.hstack([lens, output])
+            arr = np.hstack([lens, output])
         else:
             arr = np.hstack([arr, lens, output])
 
     # create plot
-    fig = plt.figure()
-    plt.imshow(arr, cmap="plasma")
+    fig = plt.figure(figsize=(10, 2))
+    plt.imshow(arr, aspect="auto", cmap="turbo")
     clb = plt.colorbar()
     clb.ax.set_title("Medium")
     plt.title("Simulation Stages")
@@ -476,19 +520,38 @@ def plot_simulation_setup(config: dict) -> plt.Figure:
     # TODO: correct the propagation distances to mm
     return fig
 
-def plot_sim_propagation(path: Path, log: bool = False, transpose: bool = True) -> tuple:
+
+def load_full_sim_propagation_v2(path):
+    # TODO: move to utils..
+    metadata = utils.load_metadata(path)
+    n_stages = len(metadata["stages"]) + 1
+    sim_paths = [os.path.join(path, str(i), "sim.zarr") for i in range(n_stages)]
+
+    full_sim = None
+
+    for sim_path in sim_paths:
+        sim = utils.load_simulation(sim_path)
+
+        if full_sim is None:
+            full_sim = sim
+        else:
+            full_sim = np.vstack([full_sim, sim])
+
+    return full_sim
+
+def load_full_sim_propagation(path):
 
     metadata = utils.load_metadata(path)
     n_stages = len(metadata["stages"]) + 1
     sim_paths = [os.path.join(path, str(i), "sim.zarr") for i in range(n_stages)]
 
-    td, so = None, None
+    td, so, full = None, None, None
 
     for sim_path in sim_paths:
         sim = utils.load_simulation(sim_path)
         top_down, side_on = create_sim_views(sim)
-        lens = np.ones(shape=(1, top_down.shape[1]))
 
+        lens = np.ones(shape=(1, top_down.shape[1]))
         if td is None:
             td = top_down
         else:
@@ -500,16 +563,54 @@ def plot_sim_propagation(path: Path, log: bool = False, transpose: bool = True) 
         else:
             so = np.vstack([so, lens, side_on])
 
+    return td, so
+
+def plot_sim_propagation_v2(path: Path, axis:int = 1, prop: float = 0.5, log: bool = False, transpose: bool = True) -> tuple:
+
+    full_sim = load_full_sim_propagation_v2(path)
+    view = slice_simulation_view(full_sim, axis=axis, prop=prop)
+    
     if log:
-        td = np.log(td)
-        so = np.log(so)
+        view = np.log(view + 1e-12)
+
+    if transpose:
+        view = view.T
+        figsize = (6, 3)
+    else:
+        figsize = (3, 6)
+
+    view_fig = plt.figure(figsize=figsize)
+    plt.imshow(view, cmap="turbo", aspect="auto")
+    plt.colorbar()
+    if axis == 1:
+        plt.title("Top Down View")
+    if axis == 2:
+        plt.title("Side On View")
+
+    # TODO: propagation distances as extent
+
+    return view_fig
+
+
+
+def plot_sim_propagation(path: Path, log: bool = False, transpose: bool = True) -> tuple:
+
+    # td, so, = load_full_sim_propagation(path) #TODO: convert to use v2 and just slice the middle
+
+    full_sim = load_full_sim_propagation_v2(path)
+    td = slice_simulation_view(full_sim, axis=1, prop=0.5)
+    so = slice_simulation_view(full_sim, axis=2, prop=0.5)
+    
+    if log:
+        td = np.log(td + 1e-12)
+        so = np.log(so + 1e-12)
 
     if transpose:
         td = td.T
         so = so.T
-        figsize = (15, 5)
+        figsize = (9, 3)
     else:
-        figsize = (5, 15)
+        figsize = (3, 9)
 
     td_fig = plt.figure(figsize=figsize)
     plt.imshow(td, cmap="turbo", aspect="auto")
@@ -525,7 +626,12 @@ def plot_sim_propagation(path: Path, log: bool = False, transpose: bool = True) 
 
     return td_fig, so_fig 
 
+def save_propagation_gif_full(path: str):
 
+    sim = load_full_sim_propagation_v2(path)
+
+    save_path = os.path.join(path, "propagation.gif")
+    imageio.mimsave(save_path, sim, duration=0.2)
 
 
 def save_propagation_gif(path: str, vert: bool = False, hor: bool = False):
@@ -549,3 +655,14 @@ def save_propagation_gif(path: str, vert: bool = False, hor: bool = False):
     if hor:
         horizontal_save_path = os.path.join(os.path.dirname(path), "horizontal.gif")
         imageio.mimsave(horizontal_save_path, np.swapaxes(sim, 0, 2), duration=0.2)
+
+
+def view_propagation_in_time(arr):
+    """show the propagation over time"""
+    for i in range(1, arr.shape[0]):
+        
+        mask = np.zeros_like(arr) 
+
+        mask[:i, :] = 1.0
+
+        view = arr * mask
