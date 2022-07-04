@@ -75,32 +75,53 @@ class Simulation:
         petname = config["petname"]
         sim_id = config["sim_id"]
 
-        passed_wavefront = None
         progress_bar = tqdm(sim_stages, leave=False)
         for stage in progress_bar:
 
             progress_bar.set_description(
                 f"Sim: {petname} ({str(sim_id)[-10:]}) - Propagating Wavefront"
             )
-            result = propagate_wavefront(
-                stage=stage,
-                parameters=parameters,
-                options=options,
-                passed_wavefront=passed_wavefront,
+
+            # set the initial propagation (TODO: insert customisability)
+            if stage._id == 0:
+                propagation = np.ones_like(stage.lens.profile)
+                
+            previous_wavefront = propagation
+
+            # calculate stage phase profile
+            phase = calculate_stage_phase(stage, parameters)
+
+            # electric field (wavefront)
+            amplitude: float = parameters.A if stage._id == 0 else 1.0
+            wavefront = calculate_wavefront_v2(
+                phase=phase,
+                previous_wavefront=previous_wavefront,
+                A=amplitude,
+                aperture=stage.lens.aperture,
             )
+
+            ## propagate wavefront
+            result = propagate_wavefront_v2(wavefront=wavefront, 
+                                stage=stage, 
+                                parameters=parameters, 
+                                options=options)
+            
+            # pass the wavefront to the next stage
+            propagation = result.propagation
 
             # save path
             save_path = os.path.join(options.log_dir, str(stage._id))
 
             if options.save_plot:
+
+                # additional plotting items
+                result.phase = phase
+
                 progress_bar.set_description(
                     f"Sim: {petname} ({str(sim_id)[-10:]}) - Plotting Simulation"
                 )
 
                 plotting.save_result_plots(result, stage, parameters, save_path)
-
-            # pass the wavefront to the next stage
-            passed_wavefront = result.propagation
 
         # save final sim configruation
         config["finished"] = utils.current_timestamp()
@@ -331,6 +352,79 @@ def generate_lenses(lenses: list, parameters: SimulationParameters):
         simulation_lenses[lens_config.get("name")] = lens
 
     return simulation_lenses
+
+
+def propagate_wavefront_v2(
+    wavefront: np.ndarray,
+    stage: SimulationStage,
+    parameters: SimulationParameters,
+    options: SimulationOptions,
+) -> SimulationResult:
+    """Propagate the light wavefront using the supplied settings and parameters.
+
+    Args:
+        wavefront (np.ndarray): the initial wavefront to propagate from.
+        sim_stage (SimulationStage): the setup of the simulation stage, lens -> output
+        parameters (SimulationParameters): the global simulation parameters (shared for all stages)
+        options (SimulationOptions): global simulation options
+
+    Returns:
+        SimulationResult: results of the wave propagation (including intermediates if debugging)
+    """
+    output_medium: Medium = stage.output
+    distances: np.ndarray = stage.distances
+
+    save_path = os.path.join(options.log_dir, str(stage._id))
+
+    # fourier transform of wavefront
+    fft_wavefront = fftpack.fft2(wavefront)
+    
+    # generate frequency array
+    freq_arr = generate_sq_freq_arr(wavefront, pixel_size=parameters.pixel_size)
+
+    # pre-allocate sim
+    fname = os.path.join(save_path, f"sim.zarr")
+    sim_shape = (len(distances), wavefront.shape[0], wavefront.shape[1])
+    sim = zarr.open(fname, mode="w",
+                    shape=sim_shape,
+                    # chunks=(1000, 1000),  # note dont manaully set chunk size
+                    dtype=np.float32)
+
+    # propagate the wavefront over distance
+    prop_progress_bar = tqdm(distances, leave=False)
+    for i, distance in enumerate(prop_progress_bar):
+        prop_progress_bar.set_description(
+            f"Propagating Wavefront at Distance {distance:.4f} / {distances[-1]:.4f}m"
+        )
+
+        rounded_output, propagation = propagate_over_distance(
+            fft_wavefront, distance, freq_arr, output_medium.wave_number
+        )
+
+        sim[i, :, :] = rounded_output # NOTE: rounded output must fit in RAM, next target
+
+    # return results
+    result = SimulationResult(
+        propagation=propagation,
+        sim=sim,
+        lens=stage.lens,
+        freq_arr=freq_arr,
+        delta=None,
+        phase=None,
+    )
+
+    return result
+
+def calculate_stage_phase(stage: SimulationStage, parameters: SimulationParameters) -> np.ndarray:
+    """Calculate the phase profile for the simulation stage."""
+
+    # delta (optical path distance)
+    delta = calculate_tilted_delta_profile(stage.lens.profile, stage.lens, stage.output, stage.tilt)
+
+    # phase
+    phase = calculate_phase_profile(delta=delta, wavelength=parameters.sim_wavelength)
+
+    return phase
 
 
 
@@ -581,6 +675,26 @@ def calculate_phase_profile(delta: np.ndarray, wavelength: float) -> np.ndarray:
 
     return phase
 
+def calculate_wavefront_v2(
+    phase: np.ndarray,
+    previous_wavefront: np.ndarray,
+    A: float,
+    aperture: np.ndarray = None,
+) -> np.ndarray:
+    """Calculate the wavefront of light. (Electric Field)"""
+
+    # only amplifiy the first stage propagation
+    wavefront = A * np.exp(1j * phase) * previous_wavefront
+
+    # padded area should be 0+0j
+    wavefront[phase == 0] = 0 + 0j
+    # TODO ^ can remove this now that apertures work properly?
+
+    # mask out apertured area
+    if aperture is not None:
+        wavefront[aperture] = 0 + 0j
+
+    return wavefront
 
 def calculate_wavefront(
     phase: np.ndarray,
@@ -592,7 +706,7 @@ def calculate_wavefront(
 
     # only amplifiy the first stage propagation
     if passed_wavefront is not None:
-        assert A == 1, "Amplitude should be 1.0. Only amplify the first stage."
+        # assert A == 1, "Amplitude should be 1.0. Only amplify the first stage."
         wavefront = A * np.exp(1j * phase) * passed_wavefront
     else:
         wavefront = A * np.exp(1j * phase)
