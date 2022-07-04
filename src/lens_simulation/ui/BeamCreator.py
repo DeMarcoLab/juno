@@ -9,7 +9,7 @@ import yaml
 from lens_simulation import constants, plotting, utils
 from lens_simulation.Lens import Medium
 from lens_simulation.beam import generate_beam
-from lens_simulation.Simulation import SimulationStage, SimulationParameters, SimulationOptions, propagate_wavefront
+from lens_simulation.Simulation import SimulationStage, SimulationParameters, SimulationOptions, propagate_wavefront_v2, calculate_stage_phase, calculate_wavefront_v2 
 from lens_simulation.ui.utils import display_error_message
 from matplotlib import pyplot as plt
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
@@ -642,7 +642,27 @@ class GUIBeamCreator(BeamCreator.Ui_BeamCreator, QtWidgets.QMainWindow):
 
         options = SimulationOptions(log_dir='', save_plot=False)
 
-        self.result = propagate_wavefront(stage=stage, parameters=parameters, options=options)
+        # set the initial propagation 
+        propagation = np.ones_like(stage.lens.profile)
+        previous_wavefront = propagation
+
+        # calculate stage phase profile
+        phase = calculate_stage_phase(stage, parameters)
+
+        # electric field (wavefront)
+        amplitude: float = parameters.A
+        wavefront = calculate_wavefront_v2(
+            phase=phase,
+            previous_wavefront=previous_wavefront,
+            A=amplitude,
+            aperture=stage.lens.aperture,
+        )
+
+        ## propagate wavefront
+        self.result = propagate_wavefront_v2(wavefront=wavefront, 
+                            stage=stage, 
+                            parameters=parameters, 
+                            options=options)
 
         self.update_image_frames()
 
