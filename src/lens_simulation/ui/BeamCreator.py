@@ -622,11 +622,8 @@ class GUIBeamCreator(BeamCreator.Ui_BeamCreator, QtWidgets.QMainWindow):
     def calculate_final_profile(self):
 
         from lens_simulation.Simulation import calculate_propagation_distances
-        distances = calculate_propagation_distances(
-            self.beam.calculate_propagation_distance()[0],
-            self.beam.calculate_propagation_distance()[1],
-            n_steps=2
-        )
+        start_distance, finish_distance = self.beam.calculate_propagation_distance()
+        distances = calculate_propagation_distances(start_distance, finish_distance, n_steps=2)
 
         stage = SimulationStage(lens=self.beam.lens,
                                 output=Medium(self.beam_dict["output_medium"]),
