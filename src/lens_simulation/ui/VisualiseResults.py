@@ -374,6 +374,7 @@ def draw_run_layout(df: pd.DataFrame, logarithmic: bool = False, nlim: int = Non
 
         simBox = QGroupBox(f"")
         simBox.setLayout(simGridLayout)
+        simBox.setMaximumHeight(400)
         runGridLayout.addWidget(simBox)
 
     return runGridLayout
