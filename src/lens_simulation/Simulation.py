@@ -2,7 +2,6 @@ import os
 import uuid
 from pathlib import Path
 from pprint import pprint
-from turtle import distance
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -82,10 +81,10 @@ class Simulation:
                 f"Sim: {petname} ({str(sim_id)[-10:]}) - Propagating Wavefront"
             )
 
-            # set the initial propagation (TODO: insert customisability)
-            if stage._id == 0:
-                propagation = np.ones_like(stage.lens.profile)
-                
+
+            if stage.wavefront is not None:
+                propagation = stage.wavefront
+
             previous_wavefront = propagation
 
             # calculate stage phase profile
@@ -268,6 +267,10 @@ def generate_beam_simulation_stage(config: dict, parameters: SimulationParameter
                                     finish_distance=beam.finish_distance,
                                     n_steps=beam.settings.n_steps,
                                     step_size=beam.settings.step_size)
+
+    # create beam initial wavefront
+    beam_stage.wavefront = beam.wavefront
+
     return beam_stage
 
 
@@ -425,88 +428,6 @@ def calculate_stage_phase(stage: SimulationStage, parameters: SimulationParamete
     phase = calculate_phase_profile(delta=delta, wavelength=parameters.sim_wavelength)
 
     return phase
-
-
-
-def propagate_wavefront(
-    stage: SimulationStage,
-    parameters: SimulationParameters,
-    options: SimulationOptions,
-    passed_wavefront: np.ndarray = None,
-) -> SimulationResult:
-    """Propagate the light wavefront using the supplied settings and parameters.
-
-    Args:
-        sim_stage (SimulationStage): the setup of the simulation stage, lens -> output
-        parameters (SimulationParameters): the global simulation parameters (shared for all stages)
-        options (SimulationOptions): global simulation options
-        passed_wavefront (np.ndarray, optional): the previous wavefront to propagate from. Defaults to None.
-
-    Raises:
-        ValueError: lens is larger than the simulation width
-
-    Returns:
-        SimulationResult: results of the wave propagation (including intermediates if debugging)
-    """
-
-    lens: Lens = stage.lens
-    output_medium: Medium = stage.output
-    distances: np.ndarray = stage.distances
-    amplitude: float = parameters.A if passed_wavefront is None else 1.0
-    sim_profile: np.ndarray = lens.profile
-
-    save_path = os.path.join(options.log_dir, str(stage._id))
-
-    # generate frequency array
-    freq_arr = generate_sq_freq_arr(sim_profile, pixel_size=parameters.pixel_size)
-
-    delta = calculate_tilted_delta_profile(sim_profile, lens, output_medium, stage.tilt)
-
-    phase = calculate_phase_profile(delta=delta, wavelength=parameters.sim_wavelength)
-
-    wavefront = calculate_wavefront(
-        phase=phase,
-        passed_wavefront=passed_wavefront,
-        A=amplitude,
-        aperture=lens.aperture,
-    )
-
-    # fourier transform of wavefront
-    fft_wavefront = fftpack.fft2(wavefront)
-
-    # pre-allocate sim
-    fname = os.path.join(save_path, f"sim.zarr")
-    sim_shape = (len(distances), sim_profile.shape[0], sim_profile.shape[1])
-    sim = zarr.open(fname, mode="w",
-                    shape=sim_shape,
-                    # chunks=(1000, 1000),  # note dont manaully set chunk size
-                    dtype=np.float32)
-
-    # propagate the wavefront over distance
-    prop_progress_bar = tqdm(distances, leave=False)
-    for i, distance in enumerate(prop_progress_bar):
-        prop_progress_bar.set_description(
-            f"Propagating Wavefront at Distance {distance:.4f} / {distances[-1]:.4f}m"
-        )
-
-        rounded_output, propagation = propagate_over_distance(
-            fft_wavefront, distance, freq_arr, output_medium.wave_number
-        )
-
-        sim[i, :, :] = rounded_output # NOTE: rounded output must fit in RAM, next target
-
-    # return results
-    result = SimulationResult(
-        propagation=propagation,
-        sim=sim,
-        lens=lens,
-        freq_arr=freq_arr,
-        delta=delta,
-        phase=phase,
-    )
-
-    return result
-
 
 def generate_squared_frequency_array(n_pixels: int, pixel_size: float) -> np.ndarray:
     """Generates the squared frequency array used in the fresnel diffraction integral
@@ -695,33 +616,6 @@ def calculate_wavefront_v2(
         wavefront[aperture] = 0 + 0j
 
     return wavefront
-
-def calculate_wavefront(
-    phase: np.ndarray,
-    passed_wavefront: np.ndarray,
-    A: float,
-    aperture: np.ndarray = None,
-) -> np.ndarray:
-    """Calculate the wavefront of light"""
-
-    # only amplifiy the first stage propagation
-    if passed_wavefront is not None:
-        # assert A == 1, "Amplitude should be 1.0. Only amplify the first stage."
-        wavefront = A * np.exp(1j * phase) * passed_wavefront
-    else:
-        wavefront = A * np.exp(1j * phase)
-
-    # padded area should be 0+0j
-    if passed_wavefront is not None:
-        wavefront[phase == 0] = 0 + 0j
-        # TODO ^ can remove this now that apertures work properly?
-
-    # mask out apertured area
-    if aperture is not None:
-        wavefront[aperture] = 0 + 0j
-
-    return wavefront
-
 
 def propagate_over_distance(
     fft_wavefront, distance, freq_arr, wave_number

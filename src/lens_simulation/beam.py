@@ -1,3 +1,4 @@
+from ast import operator
 import logging
 from dataclasses import dataclass, field
 from enum import Enum, auto
@@ -25,6 +26,11 @@ class BeamShape(Enum):
     Circular = auto()
     Rectangular = auto()
 
+
+class BeamOperator(Enum):
+    Plane = auto()
+    Gaussian = auto()
+
 ############
 # Bsp/ DM:      Direct      Diameter       Focal
 # Plane:          Y                       N
@@ -51,7 +57,11 @@ class BeamSettings:
     n_steps: int = 10
     step_size: float = None
     output_medium: float = 1.0
-
+    operator: BeamOperator = BeamOperator.Plane
+    gaussian_wx: float = None
+    gaussian_wy: float = None
+    gaussian_z0: float = None
+    gaussian_z: float = None
 
 
 class Beam:
@@ -222,6 +232,70 @@ class Beam:
 
         return start_distance, finish_distance
 
+    def generate_wavefront(self, parameters: SimulationParameters) -> np.ndarray:
+        """Generate the initial wavefront."""
+
+        if self.settings.operator is BeamOperator.Gaussian:
+
+            z0 = self.settings.gaussian_z0
+            r0 = (0, 0)
+            w0 = self.settings.gaussian_wx
+            self.wavefront = create_gaussian(r0, w0, z0, parameters=parameters, theta=0, phi=0)
+
+        else: 
+            self.wavefront = np.ones_like(self.lens.profile)
+
+        return self.wavefront
+
+
+def create_gaussian(r0: tuple, w0: float, z0: float, parameters:SimulationParameters, theta:float = 0, phi: float = 0) -> np.ndarray:
+
+    wavelength, A = parameters.sim_wavelength, parameters.A
+
+    px_x = utils._calculate_num_of_pixels(parameters.sim_width,parameters.pixel_size, odd=True)
+    px_y = utils._calculate_num_of_pixels(parameters.sim_height,parameters.pixel_size, odd=True)
+
+    x = np.linspace(-parameters.sim_width / 2, parameters.sim_width / 2, px_x)
+    y = np.linspace(-parameters.sim_height / 2, parameters.sim_height / 2, px_y)
+    X, Y = np.meshgrid(x, y)
+
+    if isinstance(w0, (float, int, complex)):
+        w0 = (w0, w0)
+
+    w0x, w0y = w0
+    w0 = np.sqrt(w0x * w0y)
+    x0, y0 = r0
+    k = 2 * np.pi / wavelength
+
+    # only for x axis.
+    z_rayleigh = k * w0x**2 / 2
+
+    phaseGouy = np.arctan2(z0, z_rayleigh)
+
+    wx = w0x * np.sqrt(1 + (z0 / z_rayleigh)**2)
+    wy = w0y * np.sqrt(1 + (z0 / z_rayleigh)**2)
+    w = np.sqrt(wx * wy)
+
+    if z0 == 0:
+        R = 1e10
+    else:
+        R = z0 * (1 + (z_rayleigh / z0)**2)
+
+    amplitude = A * w0 / w * np.exp(-(x0-X)**2 / (wx**2) -
+                                    (y0-Y)**2 / (wy**2))
+
+    phase1 = np.exp(1.j * k * (X * np.sin(theta) * np.cos(phi) +
+                            Y * np.cos(theta) * np.sin(phi))) 
+
+    # ??
+    phase2 = np.exp(-1j * (k * z0 - phaseGouy + k * (X**2 + Y**2) /
+                        (2 * R)))
+    phase2 = np.exp(-1j * (k * z0 - phaseGouy + k * ((x0-X)**2 + (y0-Y)**2) /
+                        (2 * R)))
+    wavefront = amplitude * phase1 * phase2
+
+    return wavefront 
+
 
 def validate_beam_configuration(settings: BeamSettings):
     """Validate the user has passed the correct parameters for the given configuration"""
@@ -320,7 +394,12 @@ def load_beam_config(config: dict) -> BeamSettings:
         focal_multiple=config["focal_multiple"],
         n_steps=config["n_steps"],
         step_size=config["step_size"],
-        output_medium=config["output_medium"]
+        output_medium=config["output_medium"],
+        operator=BeamOperator[config["operator"]],
+        gaussian_wx=config["gaussian_wx"],
+        gaussian_wy=config["gaussian_wy"],
+        gaussian_z0=config["gaussian_z0"],
+        gaussian_z=config["gaussian_z"],
     )
 
     return beam_settings
@@ -343,5 +422,8 @@ def generate_beam(config: dict, parameters: SimulationParameters):
 
     # generate profile
     beam.generate_profile(sim_parameters=parameters)
+
+    # generate wavefront
+    beam.generate_wavefront(parameters=parameters)
 
     return beam

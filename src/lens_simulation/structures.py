@@ -29,6 +29,7 @@ class SimulationStage:
     lens_inverted: bool = False
     _id: int = 0
     tilt: dict = None
+    wavefront: np.ndarray = None
 
 @dataclass
 class SimulationRun:

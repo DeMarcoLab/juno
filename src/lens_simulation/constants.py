@@ -21,6 +21,7 @@ BEAM_SWEEPABLE_KEYS = [
     "source_distance",
     "final_diameter",
     "focal_multiple",
+    "gaussian_wx", "gaussian_wy", "gaussian_z0", "gaussian_z"
 ]
 LENS_SWEEPABLE_KEYS = ["medium", "diameter", "height", "exponent"]
 CUSTOM_PROFILE_KEY = "custom"
