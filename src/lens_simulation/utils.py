@@ -31,14 +31,15 @@ from pathlib import Path
 
 #################### DATA / IO ####################
 def load_simulation(path):
-
+    """Load a simulation using zarr"""
     sim = zarr.open(path, mode="r")
 
     return sim
 
-def load_simulation_np(filename):
-    sim = np.load(filename)
-    return sim
+def load_np_arr(fname: str) -> np.ndarray:
+    """Load a numpy array from disk"""
+    arr = np.load(fname)
+    return arr
 
 def save_metadata(config: dict, log_dir: str) -> None:
     

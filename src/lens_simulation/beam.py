@@ -26,10 +26,10 @@ class BeamShape(Enum):
     Circular = auto()
     Rectangular = auto()
 
-
 class BeamOperator(Enum):
     Plane = auto()
     Gaussian = auto()
+    Custom = auto()
 
 ############
 # Bsp/ DM:      Direct      Diameter       Focal
@@ -62,6 +62,7 @@ class BeamSettings:
     gaussian_wy: float = None
     gaussian_z0: float = None
     gaussian_z: float = None
+    data: str = None # path to custom array
 
 
 class Beam:
@@ -241,8 +242,13 @@ class Beam:
             r0 = (0, 0)
             w0 = self.settings.gaussian_wx
             self.wavefront = create_gaussian(r0, w0, z0, parameters=parameters, theta=0, phi=0)
+        
+        if self.settings.operator is BeamOperator.Custom:
 
-        else: 
+            fname = self.settings.data
+            self.wavefront = utils.load_np_arr(fname) 
+
+        if self.settings.operator is BeamOperator.Plane: 
             self.wavefront = np.ones_like(self.lens.profile)
 
         return self.wavefront
@@ -400,6 +406,7 @@ def load_beam_config(config: dict) -> BeamSettings:
         gaussian_wy=config["gaussian_wy"],
         gaussian_z0=config["gaussian_z0"],
         gaussian_z=config["gaussian_z"],
+        data=config["data"]
     )
 
     return beam_settings
