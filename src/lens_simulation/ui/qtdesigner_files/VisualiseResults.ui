@@ -74,17 +74,38 @@
         <enum>QFrame::Raised</enum>
        </property>
        <layout class="QGridLayout" name="gridLayout_2">
-        <item row="0" column="0">
-         <widget class="QLabel" name="label_title">
+        <item row="4" column="0">
+         <widget class="QLabel" name="label_filter_title">
           <property name="font">
            <font>
-            <pointsize>20</pointsize>
+            <pointsize>12</pointsize>
             <weight>75</weight>
             <bold>true</bold>
            </font>
           </property>
           <property name="text">
-           <string>Simulation Results</string>
+           <string>Filter Results</string>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="0">
+         <widget class="QPushButton" name="pushButton_load_simulation">
+          <property name="text">
+           <string>Load Simulation</string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="0">
+         <widget class="QLabel" name="label_sim_run_name">
+          <property name="text">
+           <string>No simulation loaded.</string>
+          </property>
+         </widget>
+        </item>
+        <item row="9" column="0">
+         <widget class="QPushButton" name="pushButton_open_napari">
+          <property name="text">
+           <string>View in Napari</string>
           </property>
          </widget>
         </item>
@@ -103,48 +124,6 @@
            </size>
           </property>
          </spacer>
-        </item>
-        <item row="1" column="0">
-         <widget class="QLabel" name="label_sim_run_name">
-          <property name="text">
-           <string>No simulation loaded.</string>
-          </property>
-         </widget>
-        </item>
-        <item row="4" column="0">
-         <widget class="QLabel" name="label_filter_title">
-          <property name="font">
-           <font>
-            <pointsize>12</pointsize>
-            <weight>75</weight>
-            <bold>true</bold>
-           </font>
-          </property>
-          <property name="text">
-           <string>Filter Results</string>
-          </property>
-         </widget>
-        </item>
-        <item row="3" column="0">
-         <widget class="QLabel" name="label_sim_no_loaded">
-          <property name="text">
-           <string/>
-          </property>
-         </widget>
-        </item>
-        <item row="2" column="0">
-         <widget class="QPushButton" name="pushButton_load_simulation">
-          <property name="text">
-           <string>Load Simulation</string>
-          </property>
-         </widget>
-        </item>
-        <item row="9" column="0">
-         <widget class="QPushButton" name="pushButton_open_napari">
-          <property name="text">
-           <string>Open in Napari</string>
-          </property>
-         </widget>
         </item>
         <item row="5" column="0">
          <widget class="QFrame" name="frame_filter">
@@ -189,7 +168,7 @@
                 <x>0</x>
                 <y>0</y>
                 <width>258</width>
-                <height>211</height>
+                <height>196</height>
                </rect>
               </property>
              </widget>
@@ -234,6 +213,34 @@
             </widget>
            </item>
           </layout>
+         </widget>
+        </item>
+        <item row="3" column="0">
+         <widget class="QLabel" name="label_sim_no_loaded">
+          <property name="text">
+           <string/>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="0">
+         <widget class="QLabel" name="label_title">
+          <property name="font">
+           <font>
+            <pointsize>20</pointsize>
+            <weight>75</weight>
+            <bold>true</bold>
+           </font>
+          </property>
+          <property name="text">
+           <string>Simulation Results</string>
+          </property>
+         </widget>
+        </item>
+        <item row="10" column="0">
+         <widget class="QPushButton" name="pushButton_view_all_in_napari">
+          <property name="text">
+           <string>View All in Napari</string>
+          </property>
          </widget>
         </item>
        </layout>

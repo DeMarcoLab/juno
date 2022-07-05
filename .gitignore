@@ -34,3 +34,7 @@ src/lens_simulation/out.prof
 */sim.zarr/*
 
 src/lens_simulation/example/tutorial_simulation_results/*
+src/lens_simulation/custom/charizard.png
+src/lens_simulation/custom/star.png
+src/lens_simulation/example/sim_charizard_2d.yaml
+src/lens_simulation/example/sim_telescope_2d_charizard.yaml

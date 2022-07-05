@@ -8,6 +8,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import zarr
 from PIL import Image, ImageDraw
+import dask.array as da
 
 from lens_simulation import utils
 from lens_simulation.Lens import Lens
@@ -506,6 +507,49 @@ def plot_simulation_setup(config: dict) -> plt.Figure:
     plt.ylabel("Simulation Height (px)")
     # TODO: correct the propagation distances to mm
     return fig
+
+
+def check_simulations_are_stackable(paths):
+
+    # check if simulations have the same dimensions
+
+    shapes = []
+    for p in paths:
+        sim = load_full_sim_propagation_v3(p)
+        shapes.append(sim.shape)
+    
+    return np.allclose(shapes, shapes[0])
+
+
+def load_multi_simulations(paths: list):
+    """Load multiple simulations and stack them ontop of each other"""
+    data = []
+    stackable = check_simulations_are_stackable(paths)
+    for p in paths:
+        sim = load_full_sim_propagation_v3(p)
+        data.append(sim)
+
+    mega = da.hstack(data)
+
+    return mega
+
+
+
+def load_full_sim_propagation_v3(path):
+    """Dask version"""
+    metadata = utils.load_metadata(path)
+    n_stages = len(metadata["stages"]) + 1
+    sim_paths = [os.path.join(path, str(i), "sim.zarr") for i in range(n_stages)]
+    
+    import dask.array as da
+
+    data = []
+    for sim_path in sim_paths:
+        data.append(da.from_zarr(sim_path))
+    
+    sim = da.vstack(data)
+
+    return sim
 
 
 def load_full_sim_propagation_v2(path):
