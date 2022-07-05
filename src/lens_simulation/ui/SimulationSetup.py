@@ -77,10 +77,13 @@ class GUISimulationSetup(SimulationSetup.Ui_MainWindow, QtWidgets.QMainWindow):
             "sim_wavelength": sim_wavelength,
         }
 
+        sim_name = str(self.lineEdit_sim_name.text())
+        sim_name = None if sim_name == "" else sim_name
         log_dir = str(self.lineEdit_log_dir.text())
         save_plot = bool(self.checkBox_save_plot.isChecked())
 
         self.simulation_config["options"] = {
+            "name": sim_name,
             "log_dir": log_dir,
             "save_plot": save_plot,
         }

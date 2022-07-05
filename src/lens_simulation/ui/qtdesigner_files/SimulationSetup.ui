@@ -155,7 +155,7 @@
                   <x>0</x>
                   <y>0</y>
                   <width>233</width>
-                  <height>354</height>
+                  <height>328</height>
                  </rect>
                 </property>
                </widget>
@@ -283,6 +283,16 @@
                 <bool>true</bool>
                </property>
               </widget>
+             </item>
+             <item row="12" column="0">
+              <widget class="QLabel" name="label_sim_name">
+               <property name="text">
+                <string>Simulation Name</string>
+               </property>
+              </widget>
+             </item>
+             <item row="12" column="1">
+              <widget class="QLineEdit" name="lineEdit_sim_name"/>
              </item>
             </layout>
            </widget>

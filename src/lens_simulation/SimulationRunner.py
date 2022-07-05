@@ -17,25 +17,43 @@ class SimulationRunner:
 
     def __init__(self, config_filename: str) -> None:
         
-        self.run_id = uuid.uuid4()
-        self.petname = petname.generate(3)
-
+        # load config
         self.config = utils.load_config(config_filename)
-
-        # create logging directory
-        self.data_path: Path = os.path.join(os.path.dirname(__file__), # TODO: might need to change this path?
-                self.config["options"]["log_dir"], str(self.petname))
-        os.makedirs(self.data_path, exist_ok=True)
-
+    
         # update metadata
-        self.config["run_id"] = self.run_id
+        self.config["run_id"] =  uuid.uuid4()
         self.config["started"] = utils.current_timestamp()
 
+        # setup logging
+        self.data_path = self.create_logging_directory()
         logfile = utils.configure_logging(self.data_path)
+
+    def create_logging_directory(self):
+        
+        # create name
+        self.petname = self.config["options"]["name"] if self.config["options"]["name"] is not None else petname.generate(3)
+        tmp_petname = self.petname
+
+        # create logging directory
+        self.data_path: Path = os.path.join(self.config["options"]["log_dir"], str(self.petname))
+        
+        counter = 1
+        while os.path.exists(self.data_path):
+            logging.info(f"A simulation of the name {os.path.basename(self.data_path)} already exists. Incrementing name...")
+            tmp_petname = self.petname + f"_{counter:02d}" 
+            self.data_path: Path = os.path.join(self.config["options"]["log_dir"], str(tmp_petname))
+            counter+=1
+
+        self.petname = tmp_petname
+        os.makedirs(self.data_path, exist_ok=True)
+        logging.info(f"A simulation run {self.petname} has been created at {self.data_path}.")
+
+        return self.data_path
+
 
     def setup_simulation(self):
 
-        info = {"run_id": self.run_id, "run_petname": self.petname, "log_dir": self.data_path}
+        info = {"run_id": self.config["run_id"], "run_petname": self.petname, "log_dir": self.data_path}
         self.simulation_configurations = generate_simulation_parameter_sweep(self.config, info)
         logging.info(f"Generated {len(self.simulation_configurations)} simulation configurations.")
 

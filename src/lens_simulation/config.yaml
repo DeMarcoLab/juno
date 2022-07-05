@@ -5,6 +5,7 @@ sim_parameters:
   sim_width: 300.e-6
   sim_wavelength: 488.e-9 # nice
 options:
+  name: humbly-sure-turkey
   log_dir: "log"
   # save_plot: true
   # debug: false
@@ -38,14 +39,14 @@ lenses:
     # length: nu # core
     # custom: \\ad.monash.edu\home\User028\pcle0002\Documents\repos\lens_simulation\src\lens_simulation\custom\profile.npy
     # custom_config: C:\Users\pcle0002\Documents\repos\lens_simulation\src\lens_simulation\custom\custom_lens.yaml
-    custom_config: C:\Users\pcle0002\Documents\repos\lens_simulation\src\lens_simulation\custom
-    grating: 
-      width: 10.e-6 # core
-      distance: 20.e-6 # core
-      depth: 0.15e-6 # core 
-      x: true
-      y: false
-      centred: true
+    # custom_config: C:\Users\pcle0002\Documents\repos\lens_simulation\src\lens_simulation\custom
+    # grating: 
+    #   width: 10.e-6 # core
+    #   distance: 20.e-6 # core
+    #   depth: 0.15e-6 # core 
+    #   x: true
+    #   y: false
+    #   centred: true
     # truncation: 
     #   height: 3.e-6 # core 
     #   radius: 50.e-6 # core 

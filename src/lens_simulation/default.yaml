@@ -35,6 +35,7 @@ parameters:
   sim_height: 500.e-6
   sim_wavelength: 488.e-9
 options:
+  name: null
   save_plot: true
   debug: false
 stage:
