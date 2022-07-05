@@ -23,6 +23,13 @@ from PyQt5.QtCore import QAbstractTableModel, Qt
 
 import matplotlib.pyplot as plt
 
+
+import napari
+from magicgui import magicgui
+from napari.layers import Image
+from napari.types import ImageData
+
+
 class MODIFIER(Enum):
     EQUAL_TO = auto()
     LESS_THAN = auto()
@@ -64,6 +71,8 @@ class GUIVisualiseResults(VisualiseResults.Ui_MainWindow, QtWidgets.QMainWindow)
         self.comboBox_napari_sim.setVisible(False)
         self.lineEdit_show_columns.setVisible(False)
         self.lineEdit_show_columns.setText("stage, lens, height, exponent")
+        self.pushButton_view_all_in_napari.clicked.connect(self.view_all_in_napari)
+        self.pushButton_view_all_in_napari.setVisible(False)
 
     def load_simulation(self):
         try:
@@ -193,6 +202,13 @@ class GUIVisualiseResults(VisualiseResults.Ui_MainWindow, QtWidgets.QMainWindow)
         self.comboBox_napari_sim.clear()
         self.comboBox_napari_sim.addItems([os.path.basename(path) for path in df["petname"].unique()])
 
+        self.paths = [path for path in df["path"].unique()]
+        print(self.paths)
+        stackable = plotting.check_simulations_are_stackable(self.paths)
+        print("Stackable: ", stackable)
+        if stackable:
+            self.pushButton_view_all_in_napari.setVisible(True)
+
         print("updating simulation display")
         print(df)
 
@@ -215,38 +231,41 @@ class GUIVisualiseResults(VisualiseResults.Ui_MainWindow, QtWidgets.QMainWindow)
 
         path = os.path.join(self.directory, sim_name)
         full_sim = plotting.load_full_sim_propagation_v2(path)
-        # self.napari_viewer = napari.view_image(full_sim, colormap="turbo")
+
+        self.view_in_napari(full_sim, widget=True)
 
 
-        import napari
-        from magicgui import magicgui
-        from napari.layers import Image
-        from napari.types import ImageData
+    def view_in_napari(self, arr, widget:bool = False):
 
         # create a viewer and add some images
         self.viewer = napari.Viewer()
-        self.viewer.add_image(full_sim, name="simulation", colormap="turbo")
+        self.viewer.add_image(arr, name="simulation", colormap="turbo")
+        
+        if widget:
+        
+            # https://napari.org/guides/magicgui.html#return-annotations
+            @magicgui(
+                auto_call=True,
+                prop={"widget_type": "FloatSlider", "max": 1.0},
+                axis={"choices": [0, 1, 2]},
+                layout="horizontal",
+            )
+            def slice_image(layer: Image, prop: float = 0.5, axis: int = 0) -> ImageData:
+                """Slice the volume along the selected axis"""
+                if layer:
+                    return plotting.slice_simulation_view(layer.data, axis=axis, prop=prop)
 
-        # turn the gaussian blur function into a magicgui
-        # for details on why the `-> ImageData` return annotation works:
-        # https://napari.org/guides/magicgui.html#return-annotations
-        @magicgui(
-            # tells magicgui to call the function whenever a parameter changes
-            auto_call=True,
-            # `widget_type` to override the default (spinbox) "float" widget
-            prop={"widget_type": "FloatSlider", "max": 1.0},
-            axis={"choices": [0, 1, 2]},
-            layout="horizontal",
-        )
-        def slice_image(layer: Image, prop: float = 0.5, axis: int = 0) -> ImageData:
-            """Slice the volume along the selected axis"""
-            if layer:
-                return plotting.slice_simulation_view(layer.data, axis=axis, prop=prop)
-
-        # Add it to the napari viewer
-        self.viewer.window.add_dock_widget(slice_image, area="bottom")
+            # Add it to the napari viewer
+            self.viewer.window.add_dock_widget(slice_image, area="bottom")
 
         napari.run()
+
+    def view_all_in_napari(self):
+        # open all simulations stacked in napari
+        mega = plotting.load_multi_simulations(self.paths)
+        self.view_in_napari(mega, widget=False)
+
+
 
 def get_column_value_by_type(lineEdit: QLineEdit, type) -> Union[str, int, float]:
 
@@ -374,6 +393,7 @@ def draw_run_layout(df: pd.DataFrame, logarithmic: bool = False, nlim: int = Non
 
         simBox = QGroupBox(f"")
         simBox.setLayout(simGridLayout)
+        simBox.setMaximumHeight(400)
         runGridLayout.addWidget(simBox)
 
     return runGridLayout

@@ -13,6 +13,12 @@ beam:
   tilt_y: 0.0
   final_diameter: null
   output_medium: 1.0
+  operator: Plane
+  gaussian_wx: 40.e-3
+  gaussian_wy: 40.e-3
+  gaussian_z0: -400.e-3
+  gaussian_z: 1.0
+  data: null 
 lens:
   custom: null
   length: null

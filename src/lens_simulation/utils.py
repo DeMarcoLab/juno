@@ -1,4 +1,3 @@
-import matplotlib.pyplot as plt
 import numpy as np
 
 import logging
@@ -12,33 +11,22 @@ import yaml
 import petname
 
 import zarr
-from lens_simulation.Lens import Lens
 from lens_simulation import validation
 
 from pathlib import Path
 
 
-
-# TODO: visualisation
-# visualisation between lens and sim data is inconsistent,
-# light comes from bottom for lens profile, and top for sim result.
-# need to make it more consistent, and file a way to tile the results into the sim setup for visualisation
-
-# initial beam -> lens -> sim -> lens -> sim
-
-
-
-
 #################### DATA / IO ####################
 def load_simulation(path):
-
+    """Load a simulation using zarr"""
     sim = zarr.open(path, mode="r")
 
     return sim
 
-def load_simulation_np(filename):
-    sim = np.load(filename)
-    return sim
+def load_np_arr(fname: str) -> np.ndarray:
+    """Load a numpy array from disk"""
+    arr = np.load(fname)
+    return arr
 
 def save_metadata(config: dict, log_dir: str) -> None:
     

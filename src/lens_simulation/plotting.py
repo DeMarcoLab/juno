@@ -8,6 +8,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import zarr
 from PIL import Image, ImageDraw
+import dask.array as da
 
 from lens_simulation import utils
 from lens_simulation.Lens import Lens
@@ -143,7 +144,6 @@ def slice_simulation_view(sim: np.ndarray, axis: int = 0, prop: float = 0.5) -> 
         sim_view = sim[:, :, px]
 
     return sim_view
-    # TODO: update create_sim_views to use this function...
 
 
 
@@ -324,11 +324,12 @@ def save_result_plots(
     """
 
     sim = result.sim
-    top_down, side_on = create_sim_views(sim)
+    top_down = slice_simulation_view(sim, axis=1, prop=0.5)
+    side_on = slice_simulation_view(sim, axis=2, prop=0.5)
 
     # save top-down
     fig = plot_simulation(
-        arr=top_down,
+        arr=top_down.T,
         pixel_size_x=parameters.pixel_size,
         start_distance=stage.distances[0],
         finish_distance=stage.distances[-1],
@@ -338,7 +339,7 @@ def save_result_plots(
     plt.close(fig)
 
     fig = plot_simulation(
-        np.log(top_down + 10e-12),
+        np.log(top_down + 10e-12).T,
         pixel_size_x=parameters.pixel_size,
         start_distance=stage.distances[0],
         finish_distance=stage.distances[-1],
@@ -348,7 +349,7 @@ def save_result_plots(
     plt.close(fig)
 
     fig = plot_simulation(
-        arr=side_on,
+        arr=side_on.T,
         pixel_size_x=parameters.pixel_size,
         start_distance=stage.distances[0],
         finish_distance=stage.distances[-1],
@@ -410,20 +411,7 @@ def save_result_plots(
         logging.error(f"Error during plotting GIF: {e}")
 
     plt.close(fig)
-
-def create_sim_views(sim: np.ndarray, px_h: int = None, px_v: int = None) -> tuple:
-    """Create vertical and horizontal slices of the simulation"""
-    if px_h is None:
-        px_h = sim.shape[1] // 2
-    if px_v is None:
-        px_v = sim.shape[2] // 2
-
-    # calculate views
-    top_down = sim[:, px_h, :]
-    side_on = sim[:, :, px_v]
-
-    return top_down, side_on
-
+    plt.close()
 
 def plot_apeture_masks(lens: Lens) -> plt.Figure:
 
@@ -521,6 +509,49 @@ def plot_simulation_setup(config: dict) -> plt.Figure:
     return fig
 
 
+def check_simulations_are_stackable(paths):
+
+    # check if simulations have the same dimensions
+
+    shapes = []
+    for p in paths:
+        sim = load_full_sim_propagation_v3(p)
+        shapes.append(sim.shape)
+    
+    return np.allclose(shapes, shapes[0])
+
+
+def load_multi_simulations(paths: list):
+    """Load multiple simulations and stack them ontop of each other"""
+    data = []
+    stackable = check_simulations_are_stackable(paths)
+    for p in paths:
+        sim = load_full_sim_propagation_v3(p)
+        data.append(sim)
+
+    mega = da.hstack(data)
+
+    return mega
+
+
+
+def load_full_sim_propagation_v3(path):
+    """Dask version"""
+    metadata = utils.load_metadata(path)
+    n_stages = len(metadata["stages"]) + 1
+    sim_paths = [os.path.join(path, str(i), "sim.zarr") for i in range(n_stages)]
+    
+    import dask.array as da
+
+    data = []
+    for sim_path in sim_paths:
+        data.append(da.from_zarr(sim_path))
+    
+    sim = da.vstack(data)
+
+    return sim
+
+
 def load_full_sim_propagation_v2(path):
     # TODO: move to utils..
     metadata = utils.load_metadata(path)
@@ -538,32 +569,6 @@ def load_full_sim_propagation_v2(path):
             full_sim = np.vstack([full_sim, sim])
 
     return full_sim
-
-def load_full_sim_propagation(path):
-
-    metadata = utils.load_metadata(path)
-    n_stages = len(metadata["stages"]) + 1
-    sim_paths = [os.path.join(path, str(i), "sim.zarr") for i in range(n_stages)]
-
-    td, so, full = None, None, None
-
-    for sim_path in sim_paths:
-        sim = utils.load_simulation(sim_path)
-        top_down, side_on = create_sim_views(sim)
-
-        lens = np.ones(shape=(1, top_down.shape[1]))
-        if td is None:
-            td = top_down
-        else:
-            td = np.vstack([td, lens, top_down])
-
-        lens = np.ones(shape=(1, side_on.shape[1]))
-        if so is None:
-            so = side_on
-        else:
-            so = np.vstack([so, lens, side_on])
-
-    return td, so
 
 def plot_sim_propagation_v2(path: Path, axis:int = 1, prop: float = 0.5, log: bool = False, transpose: bool = True) -> tuple:
 
@@ -594,8 +599,6 @@ def plot_sim_propagation_v2(path: Path, axis:int = 1, prop: float = 0.5, log: bo
 
 
 def plot_sim_propagation(path: Path, log: bool = False, transpose: bool = True) -> tuple:
-
-    # td, so, = load_full_sim_propagation(path) #TODO: convert to use v2 and just slice the middle
 
     full_sim = load_full_sim_propagation_v2(path)
     td = slice_simulation_view(full_sim, axis=1, prop=0.5)
