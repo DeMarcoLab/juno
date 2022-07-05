@@ -1,4 +1,3 @@
-import matplotlib.pyplot as plt
 import numpy as np
 
 import logging
@@ -12,21 +11,9 @@ import yaml
 import petname
 
 import zarr
-from lens_simulation.Lens import Lens
 from lens_simulation import validation
 
 from pathlib import Path
-
-
-
-# TODO: visualisation
-# visualisation between lens and sim data is inconsistent,
-# light comes from bottom for lens profile, and top for sim result.
-# need to make it more consistent, and file a way to tile the results into the sim setup for visualisation
-
-# initial beam -> lens -> sim -> lens -> sim
-
-
 
 
 #################### DATA / IO ####################
