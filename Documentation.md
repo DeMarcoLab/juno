@@ -50,14 +50,19 @@ This interface allows you to create, save and load lens profiles. Standard profi
 <figure>
   <img
   src="doc/img/tutorial_lens.png"
-  alt="Simulation Structure Definitions">
-  <figcaption style="text-align:center">Simulation Structure Definitions</figcaption>
+  alt="Lens Creator">
+  <figcaption style="text-align:center">Lens Creator</figcaption>
 </figure>
 
 ### Beam Creator
 This interface allows you to create and save the initial beam setup. A beam defines the initial propagation into the simulation and can be modified in a number of ways, including size, shape, spread, distance, tilt and other properties.
 
-IMAGE / GIF
+<figure>
+  <img
+  src="doc/img/tutorial_beam.png"
+  alt="Beam Creator">
+  <figcaption style="text-align:center">Beam Creator</figcaption>
+</figure>
 
 ### Simulation Setup
 This interface allows you to create, save and load a simulation configuration. The configuration defines your simulation setup and includes:
@@ -68,25 +73,46 @@ This interface allows you to create, save and load a simulation configuration. T
 
 This interface also allows you to setup parameter sweeps for most numerical parameters in the simulation. This allows you to run a large number of simulation combinations easily.
 
-TODO: IMAGE / GIF
+<figure>
+  <img
+  src="doc/img/tutorial_sim_setup_3.png"
+  alt="Simulation Setup">
+  <figcaption style="text-align:center">Simulation Setup</figcaption>
+</figure>
 
 
 ### Run Simulation
 This interface allows you to load a simulation config and run the simulations. A progress bar will display the overall progress of the simulations.
 
-TODO: IMAGE / GIF
+<figure>
+  <img
+  src="doc/img/tutorial_sim_run.png"
+  alt="Run Simulation UI">
+  <figcaption style="text-align:center">Run Simulation UI</figcaption>
+</figure>
 
 
 ### Visualise Results
 This interface allows you to load multiple simulations, filter the results, and visualise the propagation. 
 
+<figure>
+  <img
+  src="doc/img/tutorial_sim_visualisation_3.png"
+  alt="Simulation Visualisation UI">
+  <figcaption style="text-align:center">Simulation Visualisation UI</figcaption>
+</figure>
+
 The interface also provides functionality to load the full simulation propagation in napari for interactive exploration. For simulations of the same shape, you can explore these all at once by pressing the view all button. 
 
-TODO: IMAGE / GIF
+<figure>
+  <img
+  src="doc/img/tutorial_sim_vis_napari.png"
+  alt="Simulation Visualisation Napari">
+  <figcaption style="text-align:center">Simulation Visualisation Napari</figcaption>
+</figure>
 
 
-
-## Additional Notes and Gotchas
+## Additional Notes
 
 ### "Double Sided Lens"
 If you define a simulation stage that contains a lens and output with the same medium, the simulation will assume you want to create a double sided lens. This will try to invert the lens profile and medium at the inlet, by constructing the inverted profile from the previous output's medium instead. 
