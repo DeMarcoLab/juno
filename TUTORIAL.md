@@ -5,7 +5,7 @@ The following is a step by step guide on how to design, create, simulate and vis
 We are going to be creating a two-lens telescope using two focusing lenses of diameter 300um and 200um respectively.
 <figure>
   <img
-  src="/doc/img/tutorial_telescope.PNG"
+  src="/doc/img/tutorial_telescope.png"
   alt="Tutorial Telescope">
   <figcaption style="text-align:center">Tutorial telescope</figcaption>
 </figure>
@@ -28,7 +28,7 @@ The LensCreator should now look like this:
 
 <figure>
   <img
-  src="doc/img/tutorial_lens.PNG"
+  src="doc/img/tutorial_lens.png"
   alt="Tutorial Lens">
   <figcaption style="text-align:center">Lens Creator for Lens 1</figcaption>
 </figure>
@@ -57,7 +57,7 @@ Next we will create the beam.  We will be using a planar, circular beam with a d
 The BeamCreator interface should now look like this:
 <figure>
   <img
-  src="doc/img/tutorial_beam.PNG"
+  src="doc/img/tutorial_beam.png"
   alt="Tutorial Beam">
   <figcaption style="text-align:center">Beam Creator for tutorial</figcaption>
 </figure>
@@ -102,19 +102,19 @@ For stage 2:
 The Simulation Setup interface should now look like this:
 <figure>
   <img
-  src="doc/img/tutorial_sim_setup_1.PNG"
+  src="doc/img/tutorial_sim_setup_1.png"
   alt="Tutorial Simulation">
   <figcaption style="text-align:center">Simulation Setup for tutorial</figcaption>
 </figure>
 <figure>
   <img
-  src="doc/img/tutorial_sim_setup_2.PNG"
+  src="doc/img/tutorial_sim_setup_2.png"
   alt="Tutorial Simulation">
   <figcaption style="text-align:center">Simulation Setup for tutorial</figcaption>
 </figure>
 <figure>
   <img
-  src="doc/img/tutorial_sim_setup_3.PNG"
+  src="doc/img/tutorial_sim_setup_3.png"
   alt="Tutorial Simulation">
   <figcaption style="text-align:center">Simulation Setup for tutorial</figcaption>
 </figure>
@@ -132,7 +132,7 @@ While we have pre-calculated the finishing distance to match the focal distance 
 The Simulation Parameter Sweep interface should look like this:
 <figure>
   <img
-  src="doc/img/tutorial_sim_sweep.PNG"
+  src="doc/img/tutorial_sim_sweep.png"
   alt="Tutorial Simulation Sweep">
   <figcaption style="text-align:center">Parameter Sweeping for tutorial</figcaption>
 </figure>
@@ -153,7 +153,7 @@ You can now close the SimulationSetup interface.
 
 <figure>
   <img
-  src="doc/img/tutorial_sim_run.PNG"
+  src="doc/img/tutorial_sim_run.png"
   alt="Tutorial Run Simulation">
   <figcaption style="text-align:center">Simulation running for tutorial</figcaption>
 </figure>
