@@ -599,39 +599,6 @@ def plot_sim_propagation_v2(path: Path, axis:int = 1, prop: float = 0.5, log: bo
 
     return view_fig
 
-
-
-def plot_sim_propagation(path: Path, log: bool = False, transpose: bool = True) -> tuple:
-
-    full_sim = load_full_sim_propagation_v2(path)
-    td = slice_simulation_view(full_sim, axis=1, prop=0.5)
-    so = slice_simulation_view(full_sim, axis=2, prop=0.5)
-    
-    if log:
-        td = np.log(td + 1e-12)
-        so = np.log(so + 1e-12)
-
-    if transpose:
-        td = td.T
-        so = so.T
-        figsize = (9, 3)
-    else:
-        figsize = (3, 9)
-
-    td_fig = plt.figure(figsize=figsize)
-    plt.imshow(td, cmap="turbo", aspect="auto")
-    plt.colorbar()
-    plt.title("top_down")
-
-    so_fig = plt.figure(figsize=figsize)
-    plt.imshow(so, cmap="turbo", aspect="auto")
-    plt.colorbar()
-    plt.title("side on")
-
-    # TODO: propagation distances as extent
-
-    return td_fig, so_fig 
-
 def save_propagation_gif_full(path: str):
 
     sim = load_full_sim_propagation_v2(path)

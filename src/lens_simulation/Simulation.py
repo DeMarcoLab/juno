@@ -357,6 +357,71 @@ def generate_lenses(lenses: list, parameters: SimulationParameters):
     return simulation_lenses
 
 
+def propagate_wavefront_v3(
+    wavefront: np.ndarray,
+    stage: SimulationStage,
+    parameters: SimulationParameters,
+    options: SimulationOptions,
+) -> SimulationResult:
+    """Propagate the light wavefront using the supplied settings and parameters. Vectorised version.
+
+    Args:
+        wavefront (np.ndarray): the initial wavefront to propagate from.
+        sim_stage (SimulationStage): the setup of the simulation stage, lens -> output
+        parameters (SimulationParameters): the global simulation parameters (shared for all stages)
+        options (SimulationOptions): global simulation options
+
+    Returns:
+        SimulationResult: results of the wave propagation (including intermediates if debugging)
+    """
+    output_medium: Medium = stage.output
+    distances: np.ndarray = stage.distances
+
+    save_path = os.path.join(options.log_dir, str(stage._id))
+
+    # fourier transform of wavefront
+    fft_wavefront = fftpack.fft2(wavefront)
+    
+    # generate frequency array
+    freq_arr = generate_sq_freq_arr(wavefront, pixel_size=parameters.pixel_size)
+
+    # pre-allocate sim
+    fname = os.path.join(save_path, f"sim.zarr")
+    sim_shape = (distances.shape[0], wavefront.shape[0], wavefront.shape[1])
+    sim = zarr.open(fname, mode="w",
+                    shape=sim_shape,
+                    dtype=np.float32)
+
+    wave_number = output_medium.wave_number
+
+    # vector part, broadcast
+    # (10,)  -> (10, 251, 251)
+    d_vec = np.broadcast_to(distances[:, np.newaxis, np.newaxis], (distances.shape[0], *freq_arr.shape))
+
+    prop1 = np.exp(1j * wave_number * d_vec)
+    prop2 = np.exp((-1j * 2 * np.pi ** 2 * d_vec * freq_arr ) / wave_number)
+    prop = prop1 * prop2
+
+    propagation = fftpack.ifft2(prop * fft_wavefront)
+
+    output = np.sqrt(propagation.real ** 2 + propagation.imag ** 2) ** 2
+
+    sim[:] = np.round(output.astype(np.float32), 10)
+    propagation = propagation[-1, :, :]
+
+    # return results
+    result = SimulationResult(
+        propagation=propagation,
+        sim=sim,
+        lens=stage.lens,
+        freq_arr=freq_arr,
+        delta=None,
+        phase=None,
+    )
+
+    return result
+
+
 def propagate_wavefront_v2(
     wavefront: np.ndarray,
     stage: SimulationStage,
