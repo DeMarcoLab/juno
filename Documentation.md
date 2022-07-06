@@ -159,6 +159,25 @@ To load a custom profile:
     - add the "custom" key and provide a path to the lens profile .npy file.
     - (optional) add a custom aperture to the same directory as the lens profile, and rename it to {profile_name}.aperture.npy. This aperture will be loaded and applied to your custom lens profile.
 
+For example, your config and file system should look like:
+
+
+```bash
+
+path/to/custom/lens/
+    profile.npy
+
+```
+
+```yaml
+
+lenses:
+- name: custom_lens:
+    ...
+    custom: path/to/custom/lens/profile.npy
+...
+```
+
 It is your responsibility to check that loaded profiles match the simulation dimensions.
 
 ### Beam Creation
