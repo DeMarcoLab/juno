@@ -78,3 +78,6 @@ ZARR
 
 ## Citation
 TODO
+
+## Tests
+[![Python package](https://github.com/DeMarcoLab/lens_simulation/actions/workflows/python-package.yml/badge.svg)](https://github.com/DeMarcoLab/lens_simulation/actions/workflows/python-package.yml)
