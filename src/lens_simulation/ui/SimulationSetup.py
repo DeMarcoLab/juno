@@ -222,17 +222,8 @@ class GUISimulationSetup(SimulationSetup.Ui_MainWindow, QtWidgets.QMainWindow):
             n_steps_text = widgets[6].text()
             step_size_text = widgets[8].text()
             
-            if n_steps_text == "":
-                n_steps = 0
-                print("null n_steps")
-            else:
-                n_steps = int(n_steps_text)
-
-            if step_size_text == "":            
-                step_size = 0
-                print("null_step_size")
-            else:
-                step_size = float(step_size_text)
+            n_steps = 0 if n_steps_text == "" else int(n_steps_text)
+            step_size = 0 if step_size_text == "" else float(step_size_text)
 
             if n_steps == 0 and step_size == 0:
                 raise ValueError(f"Both n_steps and step_size cannot be zero. Please set at least one.")
