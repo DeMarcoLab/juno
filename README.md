@@ -59,19 +59,8 @@ $ python run_simulation.py config.yaml
 This is useful for running large parameter sweeps on HPC setups.
 
 
-
-## Technical Details
-
-TODO
-
-ZARR
-
-
-## Simulation Structure
-
-
-
-
+### Documentation
+For more detailed documentation please see [Documentation.md](Documentation.md)
 
 
 
