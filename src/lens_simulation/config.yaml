@@ -5,7 +5,7 @@ sim_parameters:
   sim_width: 300.e-6
   sim_wavelength: 488.e-9 # nice
 options:
-  name: humbly-sure-turkey
+  name: example-sim
   log_dir: "log"
   # save_plot: true
   # debug: false
