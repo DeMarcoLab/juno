@@ -15,6 +15,9 @@ from lens_simulation.Lens import Lens
 from lens_simulation.structures import (SimulationParameters, SimulationResult,
                                         SimulationStage)
 
+import napari
+
+
 #################### PLOTTING ####################
 
 def plot_simulation(
@@ -669,3 +672,29 @@ def view_propagation_in_time(arr):
         mask[:i, :] = 1.0
 
         view = arr * mask
+
+
+def create_3d_lens(lens: Lens) -> np.ndarray:
+    """Convert the 2D lens height map into 3D profile"""
+    # ref: https://stackoverflow.com/questions/59851954/numpy-use-2d-array-as-heightmap-like-index-for-3d-array
+    lens_profile = lens.profile * 10e6
+    lens_profile = lens_profile * lens.aperture
+    print(np.min(lens_profile), np.max(lens_profile))
+
+    l_max = int(np.max(lens_profile))
+    arr3d = np.ones(shape=(l_max, lens_profile.shape[0], lens_profile.shape[1]))
+
+    for y in range(lens.profile.shape[0]):
+        for x in range(lens.profile.shape[1]):
+            height = int(lens_profile[y, x])
+            arr3d[height:, y, x] = 0
+
+    return arr3d
+
+def view_lens3d_in_napari(arr3d: np.ndarray) -> None:
+    """View the 3D lens in napari viewer"""
+    # create a viewer and add some images
+    viewer = napari.Viewer(ndisplay=3)
+    viewer.add_image(arr3d, name="lens", colormap="gray", rendering="iso", scale=[1, 1, 1], depiction="volume")
+
+    napari.run()
