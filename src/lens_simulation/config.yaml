@@ -1,8 +1,8 @@
 sim_parameters:
   A: 10000
   pixel_size: 1.e-6
-  sim_height: 300.e-6
-  sim_width: 300.e-6
+  sim_height: 500.e-6
+  sim_width: 500.e-6
   sim_wavelength: 488.e-9 # nice
 options:
   name: example-sim
@@ -34,7 +34,7 @@ lenses:
     height: 10.e-6 # core
     exponent: 2.0 # core
     lens_type:  "Spherical"     # "Cylindrical" or "Spherical 
-    escape_path: 0.1
+    # escape_path: 0.1
     # inverted: false 
     # length: nu # core
     # custom: \\ad.monash.edu\home\User028\pcle0002\Documents\repos\lens_simulation\src\lens_simulation\custom\profile.npy
@@ -74,7 +74,7 @@ stages:
   #     use_equivalent_focal_distance: False
   #     focal_distance_start_multiple: 0.0
   #     focal_distance_multiple: 2.0
-  - lens: lens_custom
+  - lens: lens_1
     output: 1.33 # nice 
     # step_size: 100.e-9
     n_steps: 100

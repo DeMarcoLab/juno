@@ -1,8 +1,8 @@
 sim_parameters:
   A: 10000
   pixel_size: 1.e-6
-  sim_height: 250.e-6
-  sim_width: 250.e-6
+  sim_height: 500.e-6
+  sim_width: 500.e-6
   sim_wavelength: 488.e-9
 options:
   log_dir: "log"

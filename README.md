@@ -63,10 +63,8 @@ This is useful for running large parameter sweeps on HPC setups.
 For more detailed documentation please see [Documentation.md](Documentation.md)
 
 
-
-
 ## Citation
-TODO
+TODO: details
 
 ## Tests
 [![Python package](https://github.com/DeMarcoLab/lens_simulation/actions/workflows/python-package.yml/badge.svg)](https://github.com/DeMarcoLab/lens_simulation/actions/workflows/python-package.yml)
