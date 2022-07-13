@@ -2,12 +2,12 @@ import os
 import sys
 import traceback
 
-import lens_simulation.ui.qtdesigner_files.LensCreator as LensCreator
+import star_glass.ui.qtdesigner_files.LensCreator as LensCreator
 import numpy as np
 import yaml
-from lens_simulation import constants, plotting, utils
-from lens_simulation.Lens import GratingSettings, LensType, Medium, generate_lens
-from lens_simulation.ui.utils import display_error_message
+from star_glass import constants, plotting, utils
+from star_glass.Lens import GratingSettings, LensType, Medium, generate_lens
+from star_glass.ui.utils import display_error_message
 from matplotlib import pyplot as plt
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
 from PyQt5 import QtCore, QtGui, QtWidgets

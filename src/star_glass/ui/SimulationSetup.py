@@ -7,15 +7,15 @@ from enum import Enum, auto
 from pathlib import Path
 from pprint import pprint
 
-import lens_simulation
-import lens_simulation.ui.qtdesigner_files.SimulationSetup as SimulationSetup
+import star_glass
+import star_glass.ui.qtdesigner_files.SimulationSetup as SimulationSetup
 import matplotlib.pyplot as plt
 import numpy as np
 import yaml
-from lens_simulation import plotting, utils, validation
-from lens_simulation.beam import generate_beam
-from lens_simulation.Simulation import generate_simulation_parameters
-from lens_simulation.ui.ParameterSweep import GUIParameterSweep
+from star_glass import plotting, utils, validation
+from star_glass.beam import generate_beam
+from star_glass.Simulation import generate_simulation_parameters
+from star_glass.ui.ParameterSweep import GUIParameterSweep
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtGui import QPixmap
 from PyQt5.QtWidgets import (QCheckBox, QFileDialog, QGridLayout, QGroupBox,
@@ -112,7 +112,7 @@ class GUISimulationSetup(SimulationSetup.Ui_MainWindow, QtWidgets.QMainWindow):
         # open file dialog
         sim_config_filename, _ = QFileDialog.getSaveFileName(self,
                     caption="Save Simulation Config",
-                    directory=os.path.dirname(lens_simulation.__file__),
+                    directory=os.path.dirname(star_glass.__file__),
                     filter="Yaml files (*.yml *.yaml)")
 
         if sim_config_filename:
@@ -128,7 +128,7 @@ class GUISimulationSetup(SimulationSetup.Ui_MainWindow, QtWidgets.QMainWindow):
         # open file dialog
         sim_config_filename, _ = QFileDialog.getOpenFileName(self,
                     caption="Load Simulation Config",
-                    directory=os.path.dirname(lens_simulation.__file__),
+                    directory=os.path.dirname(star_glass.__file__),
                     filter="Yaml files (*.yml *.yaml)"
                     )
         if sim_config_filename:
@@ -277,7 +277,7 @@ class GUISimulationSetup(SimulationSetup.Ui_MainWindow, QtWidgets.QMainWindow):
         print("loading lens_config")
 
         lens_config_filename, _ = QFileDialog.getOpenFileName(
-            self, "Select Lens Configuration", os.path.dirname(lens_simulation.__file__), "Yaml files (*.yml *.yaml)"
+            self, "Select Lens Configuration", os.path.dirname(star_glass.__file__), "Yaml files (*.yml *.yaml)"
         )
 
         if lens_config_filename == "":
@@ -300,7 +300,7 @@ class GUISimulationSetup(SimulationSetup.Ui_MainWindow, QtWidgets.QMainWindow):
         print("loading beam config")
 
         beam_config_filename, _ = QFileDialog.getOpenFileName(
-            self, "Select Beam Configuration", os.path.dirname(lens_simulation.__file__), "Yaml files (*.yml *.yaml)"
+            self, "Select Beam Configuration", os.path.dirname(star_glass.__file__), "Yaml files (*.yml *.yaml)"
         )
 
         if beam_config_filename == "":
@@ -375,7 +375,7 @@ class GUISimulationSetup(SimulationSetup.Ui_MainWindow, QtWidgets.QMainWindow):
 def create_stage_structure_display(config):
 
     # create / delete tmp directory
-    tmp_directory = os.path.join(os.path.dirname(lens_simulation.__file__), "tmp")
+    tmp_directory = os.path.join(os.path.dirname(star_glass.__file__), "tmp")
     os.makedirs(tmp_directory, exist_ok=True)
 
     layout = QGridLayout()
@@ -431,8 +431,8 @@ def create_stage_structure_display(config):
             if conf["name"] == lens_name:
                 lens_config = conf
 
-        from lens_simulation.Lens import generate_lens
-        from lens_simulation.Medium import Medium
+        from star_glass.Lens import generate_lens
+        from star_glass.Medium import Medium
 
         lens = generate_lens(lens_config,
                     Medium(lens_config["medium"], config["sim_parameters"]["sim_wavelength"]),

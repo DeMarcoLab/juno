@@ -11,7 +11,7 @@ import yaml
 import petname
 
 import zarr
-from lens_simulation import validation
+from star_glass import validation
 
 from pathlib import Path
 
@@ -79,7 +79,7 @@ def load_config(config_filename: str, validate: bool = True):
 
 def load_config_struct(config_filename: str):
     """Load the config as a struct"""
-    # from lens_simulation.structures import SimulationConfig
+    # from star_glass.structures import SimulationConfig
     
     config = load_config(config_filename)
 

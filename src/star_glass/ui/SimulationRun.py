@@ -1,12 +1,12 @@
 import sys
 
-import lens_simulation.ui.qtdesigner_files.SimulationRun as SimulationRun 
+import star_glass.ui.qtdesigner_files.SimulationRun as SimulationRun 
 from PyQt5 import QtCore, QtGui, QtWidgets
-from lens_simulation.SimulationRunner import SimulationRunner
-from lens_simulation.Simulation import Simulation
-from lens_simulation import utils
+from star_glass.SimulationRunner import SimulationRunner
+from star_glass.Simulation import Simulation
+from star_glass import utils
 import os 
-import lens_simulation
+import star_glass
 
 
 
@@ -39,7 +39,7 @@ class GUISimulationRun(SimulationRun.Ui_MainWindow, QtWidgets.QMainWindow):
         # open file dialog
         sim_config_filename, _ = QtWidgets.QFileDialog.getOpenFileName(self,
                     caption="Load Simulation Config",
-                    directory=os.path.dirname(lens_simulation.__file__),
+                    directory=os.path.dirname(star_glass.__file__),
                     filter="Yaml files (*.yml *.yaml)"
                     )
         if sim_config_filename:

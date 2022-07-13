@@ -6,7 +6,7 @@ import streamlit as st
 
 import matplotlib.pyplot as plt
 import numpy as np
-from lens_simulation import utils, plotting, light_sheet
+from star_glass import utils, plotting, light_sheet
 from IPython.display import Image
 import os
 

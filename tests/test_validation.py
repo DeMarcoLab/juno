@@ -1,5 +1,5 @@
 import pytest
-from lens_simulation import validation, utils, constants
+from star_glass import validation, utils, constants
 
 DEFAULT_CONFIG = validation.get_default_config()
 

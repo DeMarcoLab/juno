@@ -7,8 +7,8 @@ from pathlib import Path
 import numpy as np
 from scipy import ndimage
 
-from lens_simulation import validation
-from lens_simulation.Medium import Medium
+from star_glass import validation
+from star_glass.Medium import Medium
 
 
 @dataclass
@@ -111,7 +111,7 @@ class Lens:
         Returns:
             np.ndarray: lens profile
         """
-        from lens_simulation.utils import _calculate_num_of_pixels
+        from star_glass.utils import _calculate_num_of_pixels
 
         n_pixels = _calculate_num_of_pixels(self.diameter, pixel_size, odd=True)
 
@@ -166,7 +166,7 @@ class Lens:
             length: (int) the length of the extruded lens (metres)
 
         """
-        from lens_simulation.utils import _calculate_num_of_pixels
+        from star_glass.utils import _calculate_num_of_pixels
 
         # generate 1d profile
         profile = self.create_profile_1d(self.diameter, self.height, self.exponent, n_pixels)
@@ -302,7 +302,7 @@ class Lens:
         inverted: bool = False,
     ):
         """Calculate the aperture mask"""
-        from lens_simulation import utils
+        from star_glass import utils
 
         if inner_m > outer_m:
             raise ValueError(
@@ -397,7 +397,7 @@ class Lens:
         self.grating_depth = settings.depth
 
     def apply_aperture_masks(self):
-        from lens_simulation import utils
+        from star_glass import utils
 
         # create if they dont exist
         if self.non_lens_mask is None:
@@ -456,7 +456,7 @@ class Lens:
         Returns:
             np.ndarray: lens profile with escape path
         """
-        from lens_simulation import utils
+        from star_glass import utils
 
         if self.lens_type not in [LensType.Cylindrical, LensType.Spherical]:
             raise ValueError(
@@ -745,7 +745,7 @@ def calculate_escape_path_dimensions(lens: Lens, ep: float):
 
 
 def check_modification_masks(lens):
-    from lens_simulation import utils
+    from star_glass import utils
 
     # create if they dont exist
     if lens.grating_mask is None:

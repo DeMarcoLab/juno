@@ -3,15 +3,15 @@ import traceback
 
 import glob
 
-import lens_simulation
+import star_glass
 import os
 import yaml
 
 
-from lens_simulation import utils
+from star_glass import utils
 import matplotlib.pyplot as plt
 
-import lens_simulation.ui.qtdesigner_files.ParameterSweep as ParameterSweep
+import star_glass.ui.qtdesigner_files.ParameterSweep as ParameterSweep
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtWidgets import (
     QGroupBox,
@@ -30,8 +30,8 @@ import numpy as np
 
 from pprint import pprint
 
-from lens_simulation import validation, constants
-from lens_simulation.SimulationRunner import generate_parameter_sweep
+from star_glass import validation, constants
+from star_glass.SimulationRunner import generate_parameter_sweep
 
 
 
@@ -372,7 +372,7 @@ class GUIParameterSweep(ParameterSweep.Ui_MainWindow, QtWidgets.QMainWindow):
         # # open file dialog
         # sim_config_filename, _ = QFileDialog.getSaveFileName(self,
         #             caption="Save Simulation Config", 
-        #             directory=os.path.dirname(lens_simulation.__file__),
+        #             directory=os.path.dirname(star_glass.__file__),
         #             filter="Yaml files (*.yml, *.yaml)")
         # if sim_config_filename:          
 
@@ -436,7 +436,7 @@ def create_param_widgets(key, val, layout, idx, stop_val = None, step_val = None
 
 
 def main():
-    config = utils.load_config(os.path.join(os.path.dirname(lens_simulation.__file__), "sweep.yaml"))
+    config = utils.load_config(os.path.join(os.path.dirname(star_glass.__file__), "sweep.yaml"))
 
     """Launch the main application window. """
     application = QtWidgets.QApplication([])
