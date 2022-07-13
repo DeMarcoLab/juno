@@ -1,5 +1,5 @@
-# [PACKAGE_NAME]
- [PACKAGE_NAME] is python package for designing lens by performing full wave simulations.
+# Star Glass
+star-glass is python package for designing lenses by performing full wave simulations.
 
 <figure>
   <img
