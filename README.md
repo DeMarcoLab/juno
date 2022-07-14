@@ -20,8 +20,8 @@ On Windows - Open Anaconda Powershell Prompt:
 On Linux/Mac - Open Terminal:
 
 ``` bash
-$ git clone https://github.com/DeMarcoLab/star_glass.git
-$ cd star_glass
+$ git clone https://github.com/DeMarcoLab/star-glass.git
+$ cd star-glass
 $ conda create --name lens_sim python=3.8 pip
 $ conda activate lens_sim
 $ pip install -r requirements.txt
@@ -37,7 +37,7 @@ For a tutorial walkthrough for using the package please see [Tutorial.md](TUTORI
 
 To run the user interface:
 ```bash
-$ cd src/star_glass
+$ cd src/star-glass
 $ python ui/main.py
 ```
 
@@ -67,4 +67,4 @@ For more detailed documentation please see [Documentation.md](Documentation.md)
 TODO: details
 
 ## Tests
-[![Python package](https://github.com/DeMarcoLab/star_glass/actions/workflows/python-package.yml/badge.svg)](https://github.com/DeMarcoLab/star_glass/actions/workflows/python-package.yml)
+[![Python package](https://github.com/DeMarcoLab/star-glass/actions/workflows/python-package.yml/badge.svg)](https://github.com/DeMarcoLab/star-glass/actions/workflows/python-package.yml)
