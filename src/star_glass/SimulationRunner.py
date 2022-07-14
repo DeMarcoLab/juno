@@ -9,8 +9,8 @@ from pprint import pprint
 import numpy as np
 from tqdm import tqdm
 
-from lens_simulation import Simulation, utils, constants
-import lens_simulation
+from star_glass import Simulation, utils, constants
+import star_glass
 from copy import deepcopy
 
 class SimulationRunner:

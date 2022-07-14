@@ -6,10 +6,10 @@ from multiprocessing.sharedctypes import Value
 
 import numpy as np
 
-from lens_simulation import utils, validation
-from lens_simulation.Lens import Lens, LensType
-from lens_simulation.Medium import Medium
-from lens_simulation.structures import SimulationParameters
+from star_glass import utils, validation
+from star_glass.Lens import Lens, LensType
+from star_glass.Medium import Medium
+from star_glass.structures import SimulationParameters
 
 
 class BeamSpread(Enum):

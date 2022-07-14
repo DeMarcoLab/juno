@@ -1,11 +1,11 @@
 from matplotlib.pyplot import step
 import numpy as np
 import pytest
-from lens_simulation import Simulation
-from lens_simulation.Lens import Lens, LensType, generate_lens
-from lens_simulation.Medium import Medium
-from lens_simulation.structures import SimulationParameters, SimulationStage
-from lens_simulation import utils
+from star_glass import Simulation
+from star_glass.Lens import Lens, LensType, generate_lens
+from star_glass.Medium import Medium
+from star_glass.structures import SimulationParameters, SimulationStage
+from star_glass import utils
 
 
 LENS_DIAMETER = 100e-6

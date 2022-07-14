@@ -3,7 +3,7 @@ import pytest
 import os
 import numpy as np
 
-from lens_simulation import SimulationRunner, constants, utils
+from star_glass import SimulationRunner, constants, utils
 
 @pytest.fixture
 def config_with_sweep():

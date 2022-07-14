@@ -3,14 +3,14 @@ from pprint import pprint
 import sys
 import traceback
 
-import lens_simulation.ui.qtdesigner_files.BeamCreator as BeamCreator
+import star_glass.ui.qtdesigner_files.BeamCreator as BeamCreator
 import numpy as np
 import yaml
-from lens_simulation import constants, plotting, utils
-from lens_simulation.Lens import Medium
-from lens_simulation.beam import generate_beam
-from lens_simulation.Simulation import SimulationStage, SimulationParameters, SimulationOptions, propagate_wavefront_v2, calculate_stage_phase, calculate_wavefront_v2 
-from lens_simulation.ui.utils import display_error_message
+from star_glass import constants, plotting, utils
+from star_glass.Lens import Medium
+from star_glass.beam import generate_beam
+from star_glass.Simulation import SimulationStage, SimulationParameters, SimulationOptions, propagate_wavefront_v2, calculate_stage_phase, calculate_wavefront_v2 
+from star_glass.ui.utils import display_error_message
 from matplotlib import pyplot as plt
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
 from PyQt5 import QtCore, QtGui, QtWidgets
@@ -621,7 +621,7 @@ class GUIBeamCreator(BeamCreator.Ui_BeamCreator, QtWidgets.QMainWindow):
 
     def calculate_final_profile(self):
 
-        from lens_simulation.Simulation import calculate_propagation_distances
+        from star_glass.Simulation import calculate_propagation_distances
         start_distance, finish_distance = self.beam.calculate_propagation_distance()
         distances = calculate_propagation_distances(start_distance, finish_distance, n_steps=2)
 

@@ -1,5 +1,5 @@
-# [PACKAGE_NAME]
- [PACKAGE_NAME] is python package for designing lens by performing full wave simulations.
+# Star Glass
+star-glass is python package for designing lenses by performing full wave simulations.
 
 <figure>
   <img
@@ -20,8 +20,8 @@ On Windows - Open Anaconda Powershell Prompt:
 On Linux/Mac - Open Terminal:
 
 ``` bash
-$ git clone https://github.com/DeMarcoLab/lens_simulation.git
-$ cd lens_simulation
+$ git clone https://github.com/DeMarcoLab/star-glass.git
+$ cd star-glass
 $ conda create --name lens_sim python=3.8 pip
 $ conda activate lens_sim
 $ pip install -r requirements.txt
@@ -37,7 +37,7 @@ For a tutorial walkthrough for using the package please see [Tutorial.md](TUTORI
 
 To run the user interface:
 ```bash
-$ cd src/lens_simulation
+$ cd src/star-glass
 $ python ui/main.py
 ```
 
@@ -67,4 +67,4 @@ For more detailed documentation please see [Documentation.md](Documentation.md)
 TODO: details
 
 ## Tests
-[![Python package](https://github.com/DeMarcoLab/lens_simulation/actions/workflows/python-package.yml/badge.svg)](https://github.com/DeMarcoLab/lens_simulation/actions/workflows/python-package.yml)
+[![Python package](https://github.com/DeMarcoLab/star-glass/actions/workflows/python-package.yml/badge.svg)](https://github.com/DeMarcoLab/star-glass/actions/workflows/python-package.yml)

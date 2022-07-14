@@ -1,13 +1,13 @@
 
 
 import os
-import lens_simulation
-from lens_simulation import constants
+import star_glass
+from star_glass import constants
 import yaml
 
 def get_default_config():
     
-    config_filename = os.path.join(os.path.dirname(lens_simulation.__file__), "default.yaml")
+    config_filename = os.path.join(os.path.dirname(star_glass.__file__), "default.yaml")
     with open(config_filename, "r") as f:
         config = yaml.full_load(f)
     

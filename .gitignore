@@ -3,7 +3,7 @@
 .DS_Store
 build/*
 dist/*
-*/lens_simulation.egg-info/*
+*/star_glass.egg-info/*
 .pytest_cache/*
 pip-wheel-metadata/*
 
@@ -27,14 +27,14 @@ scripts/*
 *.yaml
 !tests/*.yaml
 !*default.yaml
-!src/lens_simulation/example/*.yaml
-src/lens_simulation/tmp/*
-src/lens_simulation/data/*
-src/lens_simulation/out.prof
+!src/star_glass/example/*.yaml
+src/star_glass/tmp/*
+src/star_glass/data/*
+src/star_glass/out.prof
 */sim.zarr/*
 
-src/lens_simulation/example/tutorial_simulation_results/*
-src/lens_simulation/custom/charizard.png
-src/lens_simulation/custom/star.png
-src/lens_simulation/example/sim_charizard_2d.yaml
-src/lens_simulation/example/sim_telescope_2d_charizard.yaml
+src/star_glass/example/tutorial_simulation_results/*
+src/star_glass/custom/charizard.png
+src/star_glass/custom/star.png
+src/star_glass/example/sim_charizard_2d.yaml
+src/star_glass/example/sim_telescope_2d_charizard.yaml

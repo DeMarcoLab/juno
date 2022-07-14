@@ -6,7 +6,7 @@
 
 # TODO: find longest sheet (loop through each)
 import matplotlib.pyplot as plt
-from lens_simulation import utils, plotting
+from star_glass import utils, plotting
 import os
 from pathlib import Path
 
