@@ -6,7 +6,7 @@ import streamlit as st
 
 import matplotlib.pyplot as plt
 import numpy as np
-from star_glass import utils, plotting, light_sheet
+from star_glass import utils, plotting, lightsheet
 from IPython.display import Image
 import os
 
@@ -28,7 +28,7 @@ threshold = st.number_input("threshold of max", 0.0, 1.0, 0.5)
 ### Sheet Measurement
 @st.cache
 def load_sim(path):
-    
+
     return utils.load_simulation(path)
 # load sim
 path = st.text_input("Simulation path (.zarr)")
