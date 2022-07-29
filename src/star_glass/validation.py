@@ -10,7 +10,7 @@ from star_glass import constants
 
 def get_default_config():
     
-    config_filename = os.path.join(os.path.dirname(star_glass.__file__), "default.yaml")
+    config_filename = os.path.join(os.path.dirname(__file__), "default.yaml")
     with open(config_filename, "r") as f:
         config = yaml.full_load(f)
     
