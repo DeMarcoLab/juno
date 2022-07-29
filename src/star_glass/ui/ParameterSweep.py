@@ -310,6 +310,7 @@ class GUIParameterSweep(ParameterSweep.Ui_MainWindow, QtWidgets.QMainWindow):
         }
 
         # label, start, stop, step, combo
+        self.sweep_config["beam"].update(self.config["beam"])
         for k, v in self.beam_widgets.items():
 
             self.sweep_config["beam"][k] = float(v[1].text())
@@ -368,25 +369,6 @@ class GUIParameterSweep(ParameterSweep.Ui_MainWindow, QtWidgets.QMainWindow):
             self.parent().SAVE_FROM_PARAMETER_SWEEP = True
 
             self.close()
-
-        # # open file dialog
-        # sim_config_filename, _ = QFileDialog.getSaveFileName(self,
-        #             caption="Save Simulation Config", 
-        #             directory=os.path.dirname(star_glass.__file__),
-        #             filter="Yaml files (*.yml, *.yaml)")
-        # if sim_config_filename:          
-
-        #     # same as yaml file
-        #     with open(sim_config_filename, "w") as f:
-        #         yaml.safe_dump(self.config, f)
-
-        #     self.statusBar.showMessage(f"Simulation config saved to {sim_config_filename}")
-
-
-# TODO: update combination counts?
-
-# TODO: validate sweep values here?
-
 
     def create_config_elements(self, config: dict, sweep_keys, layout, current_idx: int) -> list:
 
