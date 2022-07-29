@@ -644,8 +644,8 @@ def view_propagation_in_time(arr):
 def create_3d_lens(lens: Lens) -> np.ndarray:
     """Convert the 2D lens height map into 3D profile"""
     # ref: https://stackoverflow.com/questions/59851954/numpy-use-2d-array-as-heightmap-like-index-for-3d-array
-    lens_profile = lens.profile * 10e6
-    lens_profile = lens_profile * lens.aperture
+    lens_profile = lens.profile * 1e6
+
     print(np.min(lens_profile), np.max(lens_profile))
 
     l_max = int(np.max(lens_profile))
@@ -655,6 +655,9 @@ def create_3d_lens(lens: Lens) -> np.ndarray:
         for x in range(lens.profile.shape[1]):
             height = int(lens_profile[y, x])
             arr3d[height:, y, x] = 0
+
+    # apply aperture
+    arr3d[:, lens.aperture == 1] = 0
 
     return arr3d
 
