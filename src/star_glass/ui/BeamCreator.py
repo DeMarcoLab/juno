@@ -1,19 +1,22 @@
 import os
-from pprint import pprint
 import sys
 import traceback
+from pprint import pprint
 
-import star_glass.ui.qtdesigner_files.BeamCreator as BeamCreator
 import numpy as np
+import star_glass.ui.qtdesigner_files.BeamCreator as BeamCreator
 import yaml
-from star_glass import constants, plotting, utils
-from star_glass.Lens import Medium
-from star_glass.beam import generate_beam
-from star_glass.Simulation import SimulationStage, SimulationParameters, SimulationOptions, propagate_wavefront_v2, calculate_stage_phase, calculate_wavefront_v2 
-from star_glass.ui.utils import display_error_message
 from matplotlib import pyplot as plt
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
-from PyQt5 import QtCore, QtGui, QtWidgets
+from PyQt5 import QtWidgets
+from star_glass import constants, plotting, utils
+from star_glass.beam import generate_beam
+from star_glass.Lens import Medium
+from star_glass.Simulation import (SimulationOptions, SimulationParameters,
+                                   SimulationStage, calculate_stage_phase,
+                                   calculate_wavefront_v2,
+                                   propagate_wavefront_v2)
+from star_glass.ui.utils import display_error_message
 
 # maps the index of comboboxes to a constant
 units_dict = {

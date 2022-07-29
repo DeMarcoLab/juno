@@ -1,39 +1,13 @@
-import sys
-import traceback
-
-import glob
-
-import star_glass
 import os
-import yaml
-
-
-from star_glass import utils
-import matplotlib.pyplot as plt
-
-import star_glass.ui.qtdesigner_files.ParameterSweep as ParameterSweep
-from PyQt5 import QtCore, QtGui, QtWidgets
-from PyQt5.QtWidgets import (
-    QGroupBox,
-    QGridLayout,
-    QLabel,
-    QVBoxLayout,
-    QPushButton,
-    QLineEdit,
-    QComboBox,
-    QDoubleSpinBox,
-    QSpinBox,
-    QCheckBox,
-    QFileDialog,
-)
-import numpy as np
-
+import sys
 from pprint import pprint
 
-from star_glass import validation, constants
+import star_glass
+import star_glass.ui.qtdesigner_files.ParameterSweep as ParameterSweep
+from PyQt5 import QtCore, QtWidgets
+from PyQt5.QtWidgets import QGridLayout, QGroupBox, QLabel, QLineEdit
+from star_glass import constants, utils
 from star_glass.SimulationRunner import generate_parameter_sweep
-
-
 
 
 class GUIParameterSweep(ParameterSweep.Ui_MainWindow, QtWidgets.QMainWindow):

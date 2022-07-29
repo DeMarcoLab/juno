@@ -1,9 +1,12 @@
 
 
 import os
+
+import yaml
+
 import star_glass
 from star_glass import constants
-import yaml
+
 
 def get_default_config():
     

@@ -1,13 +1,11 @@
+import os
 import sys
 
-import star_glass.ui.qtdesigner_files.SimulationRun as SimulationRun 
-from PyQt5 import QtCore, QtGui, QtWidgets
-from star_glass.SimulationRunner import SimulationRunner
-from star_glass.Simulation import Simulation
-from star_glass import utils
-import os 
 import star_glass
-
+import star_glass.ui.qtdesigner_files.SimulationRun as SimulationRun
+from PyQt5 import QtWidgets
+from star_glass.Simulation import Simulation
+from star_glass.SimulationRunner import SimulationRunner
 
 
 class GUISimulationRun(SimulationRun.Ui_MainWindow, QtWidgets.QMainWindow):
