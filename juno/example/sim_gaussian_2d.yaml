@@ -19,7 +19,7 @@ beam:
   gaussian_z0: 400.e-3
   gaussian_z: 1.0 
   n_steps: 50
-  data: C:\Users\pcle0002\Documents\repos\star_glass\src\star_glass\custom\gaussian.npy
+  data: C:\Users\pcle0002\Documents\repos\juno\src\juno\custom\gaussian.npy
 lenses:
   - name: lens_1
     medium: 2.348

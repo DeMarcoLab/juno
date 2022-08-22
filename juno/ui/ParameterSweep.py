@@ -2,12 +2,12 @@ import os
 import sys
 from pprint import pprint
 
-import star_glass
-import star_glass.ui.qtdesigner_files.ParameterSweep as ParameterSweep
+import juno
+import juno.ui.qtdesigner_files.ParameterSweep as ParameterSweep
+from juno import constants, utils
+from juno.SimulationRunner import generate_parameter_sweep
 from PyQt5 import QtCore, QtWidgets
 from PyQt5.QtWidgets import QGridLayout, QGroupBox, QLabel, QLineEdit
-from star_glass import constants, utils
-from star_glass.SimulationRunner import generate_parameter_sweep
 
 
 class GUIParameterSweep(ParameterSweep.Ui_MainWindow, QtWidgets.QMainWindow):
@@ -27,8 +27,6 @@ class GUIParameterSweep(ParameterSweep.Ui_MainWindow, QtWidgets.QMainWindow):
 
 
     def setup_connections(self):
-
-        print("setup_connections")
 
         self.pushButton_save_config.clicked.connect(self.save_sweepable_config)
       
@@ -392,7 +390,7 @@ def create_param_widgets(key, val, layout, idx, stop_val = None, step_val = None
 
 
 def main():
-    config = utils.load_config(os.path.join(os.path.dirname(star_glass.__file__), "sweep.yaml"))
+    config = utils.load_config(os.path.join(os.path.dirname(juno.__file__), "sweep.yaml"))
 
     """Launch the main application window. """
     application = QtWidgets.QApplication([])

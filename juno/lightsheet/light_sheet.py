@@ -6,7 +6,7 @@
 
 # TODO: find longest sheet (loop through each)
 import matplotlib.pyplot as plt
-from star_glass import utils, plotting
+from juno import utils, plotting
 import os
 from pathlib import Path
 

@@ -1,0 +1,2 @@
+[console_scripts]
+juno_ui = juno.ui.main:main

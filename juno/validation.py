@@ -4,8 +4,8 @@ import os
 
 import yaml
 
-import star_glass
-from star_glass import constants
+import juno
+from juno import constants
 
 
 def get_default_config():

@@ -1,5 +1,5 @@
 import pytest
-from star_glass import validation, utils, constants
+from juno import validation, utils, constants
 
 DEFAULT_CONFIG = validation.get_default_config()
 

@@ -1,5 +1,5 @@
 import sys
-from star_glass.ui.LensSimulation import GUILensSimulation
+from juno.ui.LensSimulation import GUILensSimulation
 
 from PyQt5 import QtWidgets
 

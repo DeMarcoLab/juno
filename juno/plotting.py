@@ -10,9 +10,9 @@ import zarr
 from PIL import Image, ImageDraw
 import dask.array as da
 
-from star_glass import utils
-from star_glass.Lens import Lens
-from star_glass.structures import (SimulationParameters, SimulationResult,
+from juno import utils
+from juno.Lens import Lens
+from juno.structures import (SimulationParameters, SimulationResult,
                                         SimulationStage)
 
 import napari
@@ -443,7 +443,7 @@ def plot_apeture_masks(lens: Lens) -> plt.Figure:
 
 
 def plot_lens_modifications(lens: Lens) -> plt.Figure:
-    from star_glass.Lens import check_modification_masks
+    from juno.Lens import check_modification_masks
 
     lens = check_modification_masks(lens)
 

@@ -9,7 +9,7 @@ from pprint import pprint
 import numpy as np
 from tqdm import tqdm
 
-from star_glass import Simulation, utils, constants
+from juno import Simulation, utils, constants
 from copy import deepcopy
 
 class SimulationRunner:

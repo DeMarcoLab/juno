@@ -1,3 +1,18 @@
+Metadata-Version: 2.1
+Name: juno
+Version: 0.0.1
+Summary: juno is python package for designing lenses by performing full wave simulations.
+Home-page: https://github.com/DeMarcoLab/juno
+Author: David Dierickx, Patrick Cleeve
+Author-email: David Dierickx <David.Dierickx1@monash.edu>, Patrick Cleeve <Patrick.Cleeve@monash.edu>
+Project-URL: Bug Tracker, https://github.com/DeMarcoLab/juno/issues
+Classifier: Programming Language :: Python :: 3
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Operating System :: OS Independent
+Requires-Python: >=3.7
+Description-Content-Type: text/markdown
+License-File: LICENSE
+
 # Star Glass
 juno is python package for designing lenses by performing full wave simulations.
 

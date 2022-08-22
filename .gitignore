@@ -3,7 +3,7 @@
 .DS_Store
 build/*
 dist/*
-*/star_glass.egg-info/*
+*/juno.egg-info/*
 .pytest_cache/*
 pip-wheel-metadata/*
 
@@ -27,14 +27,14 @@ scripts/*
 *.yaml
 !tests/*.yaml
 !*default.yaml
-!src/star_glass/example/*.yaml
-src/star_glass/tmp/*
-src/star_glass/data/*
-src/star_glass/out.prof
+!juno/example/*.yaml
+juno/tmp/*
+juno/data/*
+juno/out.prof
 */sim.zarr/*
 
-src/star_glass/example/tutorial_simulation_results/*
-src/star_glass/custom/charizard.png
-src/star_glass/custom/star.png
-src/star_glass/example/sim_charizard_2d.yaml
-src/star_glass/example/sim_telescope_2d_charizard.yaml
+juno/example/tutorial_simulation_results/*
+juno/custom/charizard.png
+juno/custom/star.png
+juno/example/sim_charizard_2d.yaml
+juno/example/sim_telescope_2d_charizard.yaml

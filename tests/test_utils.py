@@ -1,7 +1,7 @@
 import pytest
 
 import numpy as np
-from star_glass import utils
+from juno import utils
 
 def test_pad_to_equal_size():
 

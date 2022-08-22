@@ -1,7 +1,7 @@
 
 from pathlib import Path
-from star_glass.Lens import Lens, LensType
-from star_glass.Medium import Medium
+from juno.Lens import Lens, LensType
+from juno.Medium import Medium
 from dataclasses import dataclass
 import numpy as np
 
