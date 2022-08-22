@@ -23,6 +23,13 @@ def run_single_simulation(config_filename: str = "config.yaml"):
     sim = Simulation.Simulation(config)
     sim.run_simulation()
 
+
+def run_main():
+    # required for console entry point
+    config_filename = os.path.join(os.path.dirname(juno.__file__), "config.yaml")
+
+    main(config_filename)
+
 if __name__ == "__main__":
 
     if len(sys.argv) >= 2:

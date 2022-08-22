@@ -38,3 +38,4 @@ juno/custom/charizard.png
 juno/custom/star.png
 juno/example/sim_charizard_2d.yaml
 juno/example/sim_telescope_2d_charizard.yaml
+juno.egg-info/*
