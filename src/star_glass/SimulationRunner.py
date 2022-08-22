@@ -10,7 +10,6 @@ import numpy as np
 from tqdm import tqdm
 
 from star_glass import Simulation, utils, constants
-import star_glass
 from copy import deepcopy
 
 class SimulationRunner:
