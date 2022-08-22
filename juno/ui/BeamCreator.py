@@ -4,19 +4,19 @@ import traceback
 from pprint import pprint
 
 import numpy as np
-import star_glass.ui.qtdesigner_files.BeamCreator as BeamCreator
+import juno.ui.qtdesigner_files.BeamCreator as BeamCreator
 import yaml
 from matplotlib import pyplot as plt
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
 from PyQt5 import QtWidgets
-from star_glass import constants, plotting, utils
-from star_glass.beam import generate_beam
-from star_glass.Lens import Medium
-from star_glass.Simulation import (SimulationOptions, SimulationParameters,
+from juno import constants, plotting, utils
+from juno.beam import generate_beam
+from juno.Lens import Medium
+from juno.Simulation import (SimulationOptions, SimulationParameters,
                                    SimulationStage, calculate_stage_phase,
                                    calculate_wavefront_v2,
                                    propagate_wavefront_v2)
-from star_glass.ui.utils import display_error_message
+from juno.ui.utils import display_error_message
 
 # maps the index of comboboxes to a constant
 units_dict = {
@@ -447,7 +447,7 @@ class GUIBeamCreator(BeamCreator.Ui_BeamCreator, QtWidgets.QMainWindow):
             self, "Load Profile", filter="Yaml config (*.yml *.yaml)",
         )
 
-        if filename is "":
+        if filename == "":
             return
 
         # get the status of live update to restore it post loading
@@ -624,7 +624,7 @@ class GUIBeamCreator(BeamCreator.Ui_BeamCreator, QtWidgets.QMainWindow):
 
     def calculate_final_profile(self):
 
-        from star_glass.Simulation import calculate_propagation_distances
+        from juno.Simulation import calculate_propagation_distances
         start_distance, finish_distance = self.beam.calculate_propagation_distance()
         distances = calculate_propagation_distances(start_distance, finish_distance, n_steps=2)
 

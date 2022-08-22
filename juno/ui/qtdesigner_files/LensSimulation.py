@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file '.\LensSimulation.ui'
+# Form implementation generated from reading ui file 'LensSimulation.ui'
 #
 # Created by: PyQt5 UI code generator 5.15.4
 #
@@ -68,7 +68,7 @@ class Ui_MainWindow(object):
         _translate = QtCore.QCoreApplication.translate
         MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow"))
         self.pushButton_setup_sim.setText(_translate("MainWindow", "Setup Simulation"))
-        self.label_title.setText(_translate("MainWindow", "Lens Simulation Package (TBD)"))
+        self.label_title.setText(_translate("MainWindow", "Juno"))
         self.pushButton_create_lens.setText(_translate("MainWindow", "Create Lens"))
         self.pushButton_create_beam.setText(_translate("MainWindow", "Create Beam"))
         self.pushButton_view_results.setText(_translate("MainWindow", "View Results"))

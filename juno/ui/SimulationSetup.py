@@ -7,15 +7,15 @@ from enum import Enum, auto
 from pathlib import Path
 from pprint import pprint
 
-import star_glass
-import star_glass.ui.qtdesigner_files.SimulationSetup as SimulationSetup
+import juno
+import juno.ui.qtdesigner_files.SimulationSetup as SimulationSetup
 import matplotlib.pyplot as plt
 import numpy as np
 import yaml
-from star_glass import plotting, utils, validation
-from star_glass.beam import generate_beam
-from star_glass.Simulation import generate_simulation_parameters
-from star_glass.ui.ParameterSweep import GUIParameterSweep
+from juno import plotting, utils, validation
+from juno.beam import generate_beam
+from juno.Simulation import generate_simulation_parameters
+from juno.ui.ParameterSweep import GUIParameterSweep
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtGui import QPixmap
 from PyQt5.QtWidgets import (QCheckBox, QFileDialog, QGridLayout, QGroupBox,
@@ -102,7 +102,6 @@ class GUISimulationSetup(SimulationSetup.Ui_MainWindow, QtWidgets.QMainWindow):
     
     def setup_parameter_sweep(self):
         # param sweep ui
-        print("setup parameter sweep")
         self.statusBar.showMessage("Setup Parameter Sweep")
         self.param_sweep_ui = GUIParameterSweep(self.simulation_config, parent_gui=self)
         self.statusBar.clearMessage()
@@ -112,7 +111,7 @@ class GUISimulationSetup(SimulationSetup.Ui_MainWindow, QtWidgets.QMainWindow):
         # open file dialog
         sim_config_filename, _ = QFileDialog.getSaveFileName(self,
                     caption="Save Simulation Config",
-                    directory=os.path.dirname(star_glass.__file__),
+                    directory=os.path.dirname(juno.__file__),
                     filter="Yaml files (*.yml *.yaml)")
 
         if sim_config_filename:
@@ -128,7 +127,7 @@ class GUISimulationSetup(SimulationSetup.Ui_MainWindow, QtWidgets.QMainWindow):
         # open file dialog
         sim_config_filename, _ = QFileDialog.getOpenFileName(self,
                     caption="Load Simulation Config",
-                    directory=os.path.dirname(star_glass.__file__),
+                    directory=os.path.dirname(juno.__file__),
                     filter="Yaml files (*.yml *.yaml)"
                     )
         if sim_config_filename:
@@ -277,7 +276,7 @@ class GUISimulationSetup(SimulationSetup.Ui_MainWindow, QtWidgets.QMainWindow):
         print("loading lens_config")
 
         lens_config_filename, _ = QFileDialog.getOpenFileName(
-            self, "Select Lens Configuration", os.path.dirname(star_glass.__file__), "Yaml files (*.yml *.yaml)"
+            self, "Select Lens Configuration", os.path.dirname(juno.__file__), "Yaml files (*.yml *.yaml)"
         )
 
         if lens_config_filename == "":
@@ -300,7 +299,7 @@ class GUISimulationSetup(SimulationSetup.Ui_MainWindow, QtWidgets.QMainWindow):
         print("loading beam config")
 
         beam_config_filename, _ = QFileDialog.getOpenFileName(
-            self, "Select Beam Configuration", os.path.dirname(star_glass.__file__), "Yaml files (*.yml *.yaml)"
+            self, "Select Beam Configuration", os.path.dirname(juno.__file__), "Yaml files (*.yml *.yaml)"
         )
 
         if beam_config_filename == "":
@@ -375,7 +374,7 @@ class GUISimulationSetup(SimulationSetup.Ui_MainWindow, QtWidgets.QMainWindow):
 def create_stage_structure_display(config):
 
     # create / delete tmp directory
-    tmp_directory = os.path.join(os.path.dirname(star_glass.__file__), "tmp")
+    tmp_directory = os.path.join(os.path.dirname(juno.__file__), "tmp")
     os.makedirs(tmp_directory, exist_ok=True)
 
     layout = QGridLayout()
@@ -431,8 +430,8 @@ def create_stage_structure_display(config):
             if conf["name"] == lens_name:
                 lens_config = conf
 
-        from star_glass.Lens import generate_lens
-        from star_glass.Medium import Medium
+        from juno.Lens import generate_lens
+        from juno.Medium import Medium
 
         lens = generate_lens(lens_config,
                     Medium(lens_config["medium"], config["sim_parameters"]["sim_wavelength"]),

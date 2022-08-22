@@ -4,10 +4,10 @@ from enum import Enum, auto
 
 import numpy as np
 
-from star_glass import utils, validation
-from star_glass.Lens import Lens, LensType
-from star_glass.Medium import Medium
-from star_glass.structures import SimulationParameters
+from juno import utils, validation
+from juno.Lens import Lens, LensType
+from juno.Medium import Medium
+from juno.structures import SimulationParameters
 
 
 class BeamSpread(Enum):

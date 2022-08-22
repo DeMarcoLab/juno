@@ -1,11 +1,11 @@
 import os
 import sys
 
-import star_glass
-import star_glass.ui.qtdesigner_files.SimulationRun as SimulationRun
+import juno
+import juno.ui.qtdesigner_files.SimulationRun as SimulationRun
 from PyQt5 import QtWidgets
-from star_glass.Simulation import Simulation
-from star_glass.SimulationRunner import SimulationRunner
+from juno.Simulation import Simulation
+from juno.SimulationRunner import SimulationRunner
 
 
 class GUISimulationRun(SimulationRun.Ui_MainWindow, QtWidgets.QMainWindow):
@@ -22,7 +22,6 @@ class GUISimulationRun(SimulationRun.Ui_MainWindow, QtWidgets.QMainWindow):
 
     def setup_connections(self):      
 
-        print("setup connections")
         self.pushButton_load_config.clicked.connect(self.load_config)
         self.pushButton_run_simulation.clicked.connect(self.run_simulations)
         self.pushButton_run_simulation.setVisible(False)
@@ -37,7 +36,7 @@ class GUISimulationRun(SimulationRun.Ui_MainWindow, QtWidgets.QMainWindow):
         # open file dialog
         sim_config_filename, _ = QtWidgets.QFileDialog.getOpenFileName(self,
                     caption="Load Simulation Config",
-                    directory=os.path.dirname(star_glass.__file__),
+                    directory=os.path.dirname(juno.__file__),
                     filter="Yaml files (*.yml *.yaml)"
                     )
         if sim_config_filename:

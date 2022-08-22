@@ -2,12 +2,12 @@ import os
 import sys
 import traceback
 
-import star_glass.ui.qtdesigner_files.LensCreator as LensCreator
+import juno.ui.qtdesigner_files.LensCreator as LensCreator
 import numpy as np
 import yaml
-from star_glass import constants, plotting, utils
-from star_glass.Lens import GratingSettings, LensType, Medium, generate_lens
-from star_glass.ui.utils import display_error_message
+from juno import constants, plotting, utils
+from juno.Lens import GratingSettings, LensType, Medium, generate_lens
+from juno.ui.utils import display_error_message
 from matplotlib import pyplot as plt
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
 from PyQt5 import QtCore, QtGui, QtWidgets
@@ -440,7 +440,7 @@ class GUILensCreator(LensCreator.Ui_LensCreator, QtWidgets.QMainWindow):
             filter="All types (*.yml *.yaml *.npy) ;;Yaml config (*.yml *.yaml) ;;Numpy array (*.npy)",
         )
 
-        if filename is "":
+        if filename == "":
             return
 
         # get the status of live update to restore it post loading

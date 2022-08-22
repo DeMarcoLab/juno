@@ -10,11 +10,11 @@ import zarr
 from scipy import fftpack
 from tqdm import tqdm
 
-from star_glass import plotting, utils, validation
-from star_glass.beam import generate_beam
-from star_glass.Lens import Lens, LensType, generate_lens
-from star_glass.Medium import Medium
-from star_glass.structures import (SimulationOptions,
+from juno import plotting, utils, validation
+from juno.beam import generate_beam
+from juno.Lens import Lens, LensType, generate_lens
+from juno.Medium import Medium
+from juno.structures import (SimulationOptions,
                                         SimulationParameters, SimulationResult,
                                         SimulationStage, StageSettings)
 
@@ -734,9 +734,9 @@ def invert_lens_and_output_medium(stage: SimulationStage, previous_stage: Simula
 
 
 def test_escape_path_fits_inside_simulation(lens: Lens, parameters, ep: float):
-    from star_glass import utils
-    from star_glass.Lens import calculate_escape_path_dimensions
-    from star_glass.structures import SimulationParameters
+    from juno import utils
+    from juno.Lens import calculate_escape_path_dimensions
+    from juno.structures import SimulationParameters
 
     n_pixels_sim_height = utils._calculate_num_of_pixels(
         parameters.sim_height, parameters.pixel_size

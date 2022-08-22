@@ -6,12 +6,12 @@ import traceback
 from enum import Enum, auto
 from typing import Union
 
-import star_glass
-import star_glass.ui.qtdesigner_files.VisualiseResults as VisualiseResults
+import juno
+import juno.ui.qtdesigner_files.VisualiseResults as VisualiseResults
 import napari
 import numpy as np
-from star_glass import plotting, utils
-from star_glass.ui.utils import display_error_message
+from juno import plotting, utils
+from juno.ui.utils import display_error_message
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtGui import QImage, QMovie, QPixmap
 from PyQt5.QtWidgets import (QComboBox, QGridLayout, QGroupBox, QLabel,
@@ -77,7 +77,7 @@ class GUIVisualiseResults(VisualiseResults.Ui_MainWindow, QtWidgets.QMainWindow)
     def load_simulation(self):
         try:
             # select directory
-            log_dir = os.path.join(os.path.dirname(star_glass.__file__), "log")
+            log_dir = os.path.join(os.path.dirname(juno.__file__), "log")
 
             directory = str(QtWidgets.QFileDialog.getExistingDirectory(self, "Load Simulation Run", log_dir))
 

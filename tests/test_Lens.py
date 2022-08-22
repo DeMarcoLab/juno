@@ -1,7 +1,7 @@
 import pytest
 
-from star_glass.Lens import Lens, LensType, GratingSettings, generate_lens
-from star_glass.Medium import Medium
+from juno.Lens import Lens, LensType, GratingSettings, generate_lens
+from juno.Medium import Medium
 import numpy as np
 
 

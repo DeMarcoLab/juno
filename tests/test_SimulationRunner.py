@@ -3,7 +3,7 @@ import pytest
 import os
 import numpy as np
 
-from star_glass import SimulationRunner, constants, utils
+from juno import SimulationRunner, constants, utils
 
 @pytest.fixture
 def config_with_sweep():

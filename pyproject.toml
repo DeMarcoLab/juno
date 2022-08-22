@@ -6,7 +6,7 @@ requires = [
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "star-glass"
+name = "juno"
 authors = [
     {name = "David Dierickx", email = "David.Dierickx1@monash.edu"},
     {name = "Patrick Cleeve", email = "Patrick.Cleeve@monash.edu"}

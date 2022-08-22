@@ -1,11 +1,11 @@
 from matplotlib.pyplot import step
 import numpy as np
 import pytest
-from star_glass import Simulation
-from star_glass.Lens import Lens, LensType, generate_lens
-from star_glass.Medium import Medium
-from star_glass.structures import SimulationParameters, SimulationStage
-from star_glass import utils
+from juno import Simulation
+from juno.Lens import Lens, LensType, generate_lens
+from juno.Medium import Medium
+from juno.structures import SimulationParameters, SimulationStage
+from juno import utils
 
 
 LENS_DIAMETER = 100e-6

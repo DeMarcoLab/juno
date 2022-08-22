@@ -6,8 +6,8 @@ import streamlit as st
 
 import matplotlib.pyplot as plt
 import numpy as np
-from star_glass import utils, plotting
-from star_glass.lightsheet import light_sheet
+from juno import utils, plotting
+from juno.lightsheet import light_sheet
 from IPython.display import Image
 import os
 

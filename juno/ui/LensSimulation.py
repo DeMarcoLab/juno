@@ -1,11 +1,11 @@
 import sys
 
-import star_glass.ui.qtdesigner_files.LensSimulation as LensSimulation
-from star_glass.ui.BeamCreator import GUIBeamCreator
-from star_glass.ui.LensCreator import GUILensCreator
-from star_glass.ui.SimulationRun import GUISimulationRun
-from star_glass.ui.SimulationSetup import GUISimulationSetup
-from star_glass.ui.VisualiseResults import GUIVisualiseResults
+import juno.ui.qtdesigner_files.LensSimulation as LensSimulation
+from juno.ui.BeamCreator import GUIBeamCreator
+from juno.ui.LensCreator import GUILensCreator
+from juno.ui.SimulationRun import GUISimulationRun
+from juno.ui.SimulationSetup import GUISimulationSetup
+from juno.ui.VisualiseResults import GUIVisualiseResults
 from PyQt5 import QtWidgets
 
 
@@ -15,15 +15,13 @@ class GUILensSimulation(LensSimulation.Ui_MainWindow, QtWidgets.QMainWindow):
         self.setupUi(MainWindow=self)
         self.statusBar = QtWidgets.QStatusBar()
         self.setStatusBar(self.statusBar)
-        self.setWindowTitle("Lens Simulation Launcher")
+        self.setWindowTitle("Juno Launcher")
 
         self.setup_connections()
 
         self.showNormal()
 
     def setup_connections(self):      
-
-        print("setup connections")
 
         self.pushButton_create_lens.clicked.connect(self.launch_lens_creation)
         self.pushButton_create_beam.clicked.connect(self.launch_beam_creation)
