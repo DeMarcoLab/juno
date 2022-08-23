@@ -97,9 +97,9 @@ class Simulation:
                 previous_wavefront=previous_wavefront,
                 A=amplitude,
                 aperture=stage.lens.aperture,
-            )
+            ) 
 
-            ## propagate wavefront
+            ## propagate wavefront #TODO: replace with v3 (vectorised)
             result = propagate_wavefront_v2(wavefront=wavefront, 
                                 stage=stage, 
                                 parameters=parameters, 

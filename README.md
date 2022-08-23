@@ -37,8 +37,7 @@ For a tutorial walkthrough for using the package please see [Tutorial.md](TUTORI
 
 To run the user interface:
 ```bash
-$ cd src/juno
-$ python ui/main.py
+$ juno_ui
 ```
 
 ### Examples
