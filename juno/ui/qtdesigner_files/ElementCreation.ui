@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>354</width>
-    <height>746</height>
+    <width>365</width>
+    <height>644</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -24,10 +24,48 @@
        <enum>QFrame::Raised</enum>
       </property>
       <layout class="QGridLayout" name="gridLayout_2">
+       <item row="5" column="0" colspan="2">
+        <widget class="QPushButton" name="pushButton_generate_profile">
+         <property name="text">
+          <string>Generate Profile</string>
+         </property>
+        </widget>
+       </item>
+       <item row="6" column="0" colspan="2">
+        <widget class="QPushButton" name="pushButton_load_profile">
+         <property name="text">
+          <string>Load Profile</string>
+         </property>
+        </widget>
+       </item>
+       <item row="7" column="0" colspan="2">
+        <widget class="QPushButton" name="pushButton_save_profile">
+         <property name="text">
+          <string>Save Profile</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="0">
+        <widget class="QLabel" name="label">
+         <property name="font">
+          <font>
+           <pointsize>12</pointsize>
+           <weight>75</weight>
+           <bold>true</bold>
+          </font>
+         </property>
+         <property name="text">
+          <string>Element Creator</string>
+         </property>
+        </widget>
+       </item>
        <item row="1" column="0" colspan="2">
         <widget class="QTabWidget" name="tabWidget">
+         <property name="tabShape">
+          <enum>QTabWidget::Rounded</enum>
+         </property>
          <property name="currentIndex">
-          <number>0</number>
+          <number>1</number>
          </property>
          <widget class="QWidget" name="tab_general">
           <attribute name="title">
@@ -46,143 +84,156 @@
               <bool>false</bool>
              </property>
              <layout class="QGridLayout" name="gridLayout_3">
-              <item row="4" column="1">
-               <widget class="QLineEdit" name="lineEdit_exponent">
-                <property name="text">
-                 <string>2.0</string>
-                </property>
-               </widget>
+              <item row="7" column="1">
+               <widget class="QComboBox" name="comboBox_type"/>
               </item>
-              <item row="1" column="1">
-               <widget class="QLineEdit" name="lineEdit_diameter">
-                <property name="text">
-                 <string>100e-6</string>
-                </property>
-               </widget>
-              </item>
-              <item row="4" column="0">
-               <widget class="QLabel" name="label_exponent">
-                <property name="text">
-                 <string>Exponent</string>
-                </property>
-               </widget>
-              </item>
-              <item row="1" column="0">
-               <widget class="QLabel" name="label_diameter">
-                <property name="text">
-                 <string>Diameter (m)</string>
-                </property>
-               </widget>
-              </item>
-              <item row="2" column="0">
-               <widget class="QLabel" name="label_length">
-                <property name="text">
-                 <string>Length (m)</string>
-                </property>
-               </widget>
-              </item>
-              <item row="5" column="1">
-               <widget class="QLineEdit" name="lineEdit_medium">
-                <property name="text">
-                 <string>2.348</string>
-                </property>
-               </widget>
-              </item>
-              <item row="3" column="0">
-               <widget class="QLabel" name="label_height">
-                <property name="text">
-                 <string>Height (m)</string>
-                </property>
-               </widget>
-              </item>
-              <item row="2" column="1">
-               <widget class="QLineEdit" name="lineEdit_length">
-                <property name="text">
-                 <string>100e-6</string>
-                </property>
-               </widget>
-              </item>
-              <item row="3" column="1">
-               <widget class="QLineEdit" name="lineEdit_height">
-                <property name="text">
-                 <string>50e-6</string>
-                </property>
-               </widget>
-              </item>
-              <item row="6" column="0">
-               <widget class="QLabel" name="label_type">
-                <property name="text">
-                 <string>Type</string>
-                </property>
-               </widget>
-              </item>
-              <item row="7" column="0">
+              <item row="8" column="0">
                <widget class="QLabel" name="label_escape_path">
                 <property name="text">
                  <string>Escape Path (%)</string>
                 </property>
                </widget>
               </item>
-              <item row="7" column="1">
-               <widget class="QLineEdit" name="lineEdit_escape_path">
-                <property name="text">
-                 <string>0.0</string>
-                </property>
-               </widget>
-              </item>
-              <item row="0" column="0">
-               <widget class="QLabel" name="label_pixelsize">
-                <property name="text">
-                 <string>Pixel Size</string>
-                </property>
-               </widget>
-              </item>
-              <item row="6" column="1">
-               <widget class="QComboBox" name="comboBox_type"/>
-              </item>
-              <item row="5" column="0">
-               <widget class="QLabel" name="label_medium">
-                <property name="text">
-                 <string>Medium</string>
-                </property>
-               </widget>
-              </item>
-              <item row="0" column="1">
+              <item row="1" column="1">
                <widget class="QLineEdit" name="lineEdit_pixelsize">
                 <property name="text">
                  <string>1e-6</string>
                 </property>
                </widget>
               </item>
-              <item row="8" column="0">
-               <widget class="QCheckBox" name="checkBox_invert_profile">
+              <item row="3" column="0">
+               <widget class="QLabel" name="label_length">
                 <property name="text">
-                 <string>Invert Profile</string>
+                 <string>Length (m)</string>
                 </property>
                </widget>
               </item>
-              <item row="9" column="0">
+              <item row="1" column="0">
+               <widget class="QLabel" name="label_pixelsize">
+                <property name="text">
+                 <string>Pixel Size</string>
+                </property>
+               </widget>
+              </item>
+              <item row="4" column="0">
+               <widget class="QLabel" name="label_height">
+                <property name="text">
+                 <string>Height (m)</string>
+                </property>
+               </widget>
+              </item>
+              <item row="6" column="0">
+               <widget class="QLabel" name="label_medium">
+                <property name="text">
+                 <string>Medium</string>
+                </property>
+               </widget>
+              </item>
+              <item row="3" column="1">
+               <widget class="QLineEdit" name="lineEdit_length">
+                <property name="text">
+                 <string>100e-6</string>
+                </property>
+               </widget>
+              </item>
+              <item row="2" column="1">
+               <widget class="QLineEdit" name="lineEdit_diameter">
+                <property name="text">
+                 <string>100e-6</string>
+                </property>
+               </widget>
+              </item>
+              <item row="6" column="1">
+               <widget class="QLineEdit" name="lineEdit_medium">
+                <property name="text">
+                 <string>2.348</string>
+                </property>
+               </widget>
+              </item>
+              <item row="2" column="0">
+               <widget class="QLabel" name="label_diameter">
+                <property name="text">
+                 <string>Diameter (m)</string>
+                </property>
+               </widget>
+              </item>
+              <item row="8" column="1">
+               <widget class="QLineEdit" name="lineEdit_escape_path">
+                <property name="text">
+                 <string>0.0</string>
+                </property>
+               </widget>
+              </item>
+              <item row="5" column="1">
+               <widget class="QLineEdit" name="lineEdit_exponent">
+                <property name="text">
+                 <string>2.0</string>
+                </property>
+               </widget>
+              </item>
+              <item row="5" column="0">
+               <widget class="QLabel" name="label_exponent">
+                <property name="text">
+                 <string>Exponent</string>
+                </property>
+               </widget>
+              </item>
+              <item row="4" column="1">
+               <widget class="QLineEdit" name="lineEdit_height">
+                <property name="text">
+                 <string>50e-6</string>
+                </property>
+               </widget>
+              </item>
+              <item row="7" column="0">
+               <widget class="QLabel" name="label_type">
+                <property name="text">
+                 <string>Type</string>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="0">
                <widget class="QLabel" name="label_name">
                 <property name="text">
                  <string>Name</string>
                 </property>
                </widget>
               </item>
-              <item row="9" column="1">
+              <item row="0" column="1">
                <widget class="QLineEdit" name="lineEdit_name">
                 <property name="text">
                  <string>Lens</string>
                 </property>
                </widget>
               </item>
+              <item row="9" column="0" colspan="2">
+               <widget class="QCheckBox" name="checkBox_invert_profile">
+                <property name="text">
+                 <string>Invert Profile</string>
+                </property>
+               </widget>
+              </item>
              </layout>
             </widget>
            </item>
+           <item row="1" column="0">
+            <spacer name="verticalSpacer_2">
+             <property name="orientation">
+              <enum>Qt::Vertical</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>20</width>
+               <height>40</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
           </layout>
          </widget>
-         <widget class="QWidget" name="tab_2">
+         <widget class="QWidget" name="tab_grating">
           <attribute name="title">
-           <string>Tab 2</string>
+           <string>Modifications</string>
           </attribute>
           <layout class="QGridLayout" name="gridLayout_5">
            <item row="0" column="0">
@@ -193,38 +244,217 @@
              <property name="flat">
               <bool>true</bool>
              </property>
+             <layout class="QGridLayout" name="gridLayout_6">
+              <item row="16" column="0">
+               <widget class="QLabel" name="label_aperture_mode">
+                <property name="text">
+                 <string>Mode</string>
+                </property>
+               </widget>
+              </item>
+              <item row="3" column="0">
+               <widget class="QLabel" name="label_grating_distance">
+                <property name="text">
+                 <string>Distance</string>
+                </property>
+               </widget>
+              </item>
+              <item row="18" column="1" colspan="2">
+               <widget class="QLineEdit" name="lineEdit_aperture_outer"/>
+              </item>
+              <item row="10" column="1" colspan="2">
+               <widget class="QComboBox" name="comboBox_truncation_mode"/>
+              </item>
+              <item row="2" column="0">
+               <widget class="QLabel" name="label_grating_width">
+                <property name="text">
+                 <string>Width</string>
+                </property>
+               </widget>
+              </item>
+              <item row="16" column="1" colspan="2">
+               <widget class="QComboBox" name="comboBox_aperture_mode"/>
+              </item>
+              <item row="2" column="1" colspan="2">
+               <widget class="QLineEdit" name="lineEdit_grating_width"/>
+              </item>
+              <item row="17" column="0">
+               <widget class="QLabel" name="label_aperture_inner">
+                <property name="text">
+                 <string>Inner</string>
+                </property>
+               </widget>
+              </item>
+              <item row="10" column="0">
+               <widget class="QLabel" name="label_truncation_mode">
+                <property name="text">
+                 <string>Mode</string>
+                </property>
+               </widget>
+              </item>
+              <item row="4" column="0">
+               <widget class="QLabel" name="label_grating_depth">
+                <property name="text">
+                 <string>Depth</string>
+                </property>
+               </widget>
+              </item>
+              <item row="6" column="0" colspan="3">
+               <widget class="Line" name="line">
+                <property name="orientation">
+                 <enum>Qt::Horizontal</enum>
+                </property>
+               </widget>
+              </item>
+              <item row="5" column="2">
+               <widget class="QCheckBox" name="checkBox_grating_centred">
+                <property name="text">
+                 <string>Centred</string>
+                </property>
+               </widget>
+              </item>
+              <item row="19" column="1" colspan="2">
+               <widget class="QCheckBox" name="checkBox_aperture_truncation">
+                <property name="text">
+                 <string>Truncation Aperture</string>
+                </property>
+               </widget>
+              </item>
+              <item row="7" column="0" colspan="3">
+               <widget class="QLabel" name="label_truncation_header">
+                <property name="font">
+                 <font>
+                  <pointsize>10</pointsize>
+                  <weight>75</weight>
+                  <bold>true</bold>
+                 </font>
+                </property>
+                <property name="text">
+                 <string>Truncation</string>
+                </property>
+               </widget>
+              </item>
+              <item row="4" column="1" colspan="2">
+               <widget class="QLineEdit" name="lineEdit_grating_depth"/>
+              </item>
+              <item row="11" column="0">
+               <widget class="QLabel" name="label_truncation_value">
+                <property name="text">
+                 <string>Value</string>
+                </property>
+               </widget>
+              </item>
+              <item row="5" column="1">
+               <widget class="QCheckBox" name="checkBox_grating_y_axis">
+                <property name="text">
+                 <string>Y-Axis</string>
+                </property>
+               </widget>
+              </item>
+              <item row="12" column="0" colspan="3">
+               <widget class="Line" name="line_2">
+                <property name="orientation">
+                 <enum>Qt::Horizontal</enum>
+                </property>
+               </widget>
+              </item>
+              <item row="18" column="0">
+               <widget class="QLabel" name="label_aperture_outer">
+                <property name="text">
+                 <string>Outer</string>
+                </property>
+               </widget>
+              </item>
+              <item row="3" column="1" colspan="2">
+               <widget class="QLineEdit" name="lineEdit_grating_distance"/>
+              </item>
+              <item row="5" column="0">
+               <widget class="QCheckBox" name="checkBox_grating_x_axis">
+                <property name="text">
+                 <string>X-Axis</string>
+                </property>
+               </widget>
+              </item>
+              <item row="11" column="1" colspan="2">
+               <widget class="QLineEdit" name="lineEdit_truncation_value"/>
+              </item>
+              <item row="14" column="0" colspan="3">
+               <widget class="QLabel" name="label_aperture_header">
+                <property name="font">
+                 <font>
+                  <pointsize>10</pointsize>
+                  <weight>75</weight>
+                  <bold>true</bold>
+                 </font>
+                </property>
+                <property name="text">
+                 <string>Aperture</string>
+                </property>
+               </widget>
+              </item>
+              <item row="17" column="1" colspan="2">
+               <widget class="QLineEdit" name="lineEdit_aperture_inner"/>
+              </item>
+              <item row="15" column="0" colspan="3">
+               <widget class="QCheckBox" name="checkBox_use_aperture">
+                <property name="text">
+                 <string>Apply Aperture</string>
+                </property>
+               </widget>
+              </item>
+              <item row="20" column="1">
+               <spacer name="verticalSpacer">
+                <property name="orientation">
+                 <enum>Qt::Vertical</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>20</width>
+                  <height>20</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
+              <item row="19" column="0">
+               <widget class="QCheckBox" name="checkBox_aperture_invert">
+                <property name="text">
+                 <string>Invert</string>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="0">
+               <widget class="QLabel" name="label_grating_header">
+                <property name="font">
+                 <font>
+                  <pointsize>10</pointsize>
+                  <weight>75</weight>
+                  <bold>true</bold>
+                 </font>
+                </property>
+                <property name="text">
+                 <string>Grating</string>
+                </property>
+               </widget>
+              </item>
+              <item row="9" column="0" colspan="2">
+               <widget class="QCheckBox" name="checkBox_use_truncation">
+                <property name="text">
+                 <string>Apply Truncation</string>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="0" colspan="3">
+               <widget class="QCheckBox" name="checkBox_use_grating">
+                <property name="text">
+                 <string>Apply Gratings</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
             </widget>
            </item>
           </layout>
          </widget>
-        </widget>
-       </item>
-       <item row="0" column="0">
-        <widget class="QLabel" name="label">
-         <property name="text">
-          <string>Element Creator</string>
-         </property>
-        </widget>
-       </item>
-       <item row="5" column="0" colspan="2">
-        <widget class="QPushButton" name="pushButton_generate_profile">
-         <property name="text">
-          <string>Generate Profile</string>
-         </property>
-        </widget>
-       </item>
-       <item row="7" column="0" colspan="2">
-        <widget class="QPushButton" name="pushButton_save_profile">
-         <property name="text">
-          <string>Save Profile</string>
-         </property>
-        </widget>
-       </item>
-       <item row="6" column="0" colspan="2">
-        <widget class="QPushButton" name="pushButton_load_profile">
-         <property name="text">
-          <string>Load Profile</string>
-         </property>
         </widget>
        </item>
       </layout>
@@ -237,7 +467,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>354</width>
+     <width>365</width>
      <height>21</height>
     </rect>
    </property>

@@ -42,10 +42,12 @@ class GUIElementCreation(ElementCreation.Ui_MainWindow, QtWidgets.QMainWindow):
 
         self.pushButton_generate_profile.clicked.connect(self.update_layer)
 
-        # lens types
-        self.comboBox_type.addItems([type.name for type in LensType])
+        # comboboxes
+        self.comboBox_type.addItems([type.name for type in LensType][::-1]) # lens types
+        self.comboBox_truncation_mode.addItems(["Height", "Radial"])  # truncation modes
+        self.comboBox_aperture_mode.addItems(["Radial", "Square"]) # aperture modes
 
-
+        # general
         self.lineEdit_pixelsize.textChanged.connect(self.update_layer)
         self.lineEdit_diameter.textChanged.connect(self.update_layer)
         self.lineEdit_length.textChanged.connect(self.update_layer)
@@ -57,6 +59,27 @@ class GUIElementCreation(ElementCreation.Ui_MainWindow, QtWidgets.QMainWindow):
         self.checkBox_invert_profile.stateChanged.connect(self.update_layer)
         self.lineEdit_name.textChanged.connect(self.update_layer)
 
+        # grating
+        self.checkBox_use_grating.stateChanged.connect(self.update_layer)
+        self.lineEdit_grating_width.textChanged.connect(self.update_layer)
+        self.lineEdit_grating_distance.textChanged.connect(self.update_layer)
+        self.lineEdit_grating_depth.textChanged.connect(self.update_layer)
+        self.checkBox_grating_x_axis.stateChanged.connect(self.update_layer)
+        self.checkBox_grating_y_axis.stateChanged.connect(self.update_layer)
+        self.checkBox_grating_centred.stateChanged.connect(self.update_layer)
+
+        # truncation
+        self.checkBox_use_truncation.stateChanged.connect(self.update_layer)
+        self.comboBox_truncation_mode.currentTextChanged.connect(self.update_layer)
+        self.lineEdit_truncation_value.textChanged.connect(self.update_layer)
+
+        # aperture
+        self.checkBox_use_aperture.stateChanged.connect(self.update_layer)
+        self.comboBox_aperture_mode.currentTextChanged.connect(self.update_layer)
+        self.lineEdit_aperture_inner.textChanged.connect(self.update_layer)
+        self.lineEdit_aperture_outer.textChanged.connect(self.update_layer)
+        self.checkBox_aperture_invert.stateChanged.connect(self.update_layer)
+        self.checkBox_aperture_truncation.stateChanged.connect(self.update_layer)
 
 
 
@@ -81,41 +104,40 @@ class GUIElementCreation(ElementCreation.Ui_MainWindow, QtWidgets.QMainWindow):
         # print(lens_config["lens_type"])
         
         #   # grating
-        #   if grating:
-        #     lens_config["grating"] = {}
-        #     lens_config["grating"]["width"] = grating_width * MICRON_TO_METRE
-        #     lens_config["grating"]["distance"] = grating_distance * MICRON_TO_METRE
-        #     lens_config["grating"]["depth"] = grating_depth * MICRON_TO_METRE
-        #     lens_config["grating"]["x"] = grating_x 
-        #     lens_config["grating"]["y"] = grating_y 
-        #     lens_config["grating"]["centred"] = grating_centred 
-        #   else:
-        lens_config["grating"] = None
+        if self.checkBox_use_grating.isChecked():
+            lens_config["grating"] = {}
+            lens_config["grating"]["width"] =  float(self.lineEdit_grating_width.text())
+            lens_config["grating"]["distance"] = float(self.lineEdit_grating_distance.text())
+            lens_config["grating"]["depth"] = float(self.lineEdit_grating_depth.text())
+            lens_config["grating"]["x"] = bool(self.checkBox_grating_x_axis.isChecked())
+            lens_config["grating"]["y"] = bool(self.checkBox_grating_y_axis.isChecked())
+            lens_config["grating"]["centred"] = bool(self.checkBox_grating_centred.isChecked())
+        else:
+            lens_config["grating"] = None
         
         # truncation
-        # if truncation:
-        # lens_config["truncation"] = {}
-        # lens_config["truncation"]["height"] = truncation_height * MICRON_TO_METRE
-        # lens_config["truncation"]["radius"] = truncation_radius * MICRON_TO_METRE
-        # lens_config["truncation"]["type"] = truncation_type 
-        # lens_config["truncation"]["aperture"] = truncation_aperture
-        # else:
-        lens_config["truncation"] = None
+        if self.checkBox_use_truncation.isChecked():
+            lens_config["truncation"] = {}
+            lens_config["truncation"]["height"] = float(self.lineEdit_truncation_value.text())
+            lens_config["truncation"]["radius"] = float(self.lineEdit_truncation_value.text())
+            lens_config["truncation"]["type"] = self.comboBox_truncation_mode.currentText() 
+            lens_config["truncation"]["aperture"] = bool(self.checkBox_aperture_truncation.isChecked())
+        else:
+            lens_config["truncation"] = None
 
         # aperture
-        # if aperture:
-        #     lens_config["aperture"] = {}
-        #     lens_config["aperture"]["inner"] = aperture_inner * MICRON_TO_METRE
-        #     lens_config["aperture"]["outer"] = aperture_outer * MICRON_TO_METRE
-        #     lens_config["aperture"]["type"] = aperture_type 
-        #     lens_config["aperture"]["invert"] = aperture_invert
-        # else:
-        lens_config["aperture"] = None
+        if self.checkBox_use_aperture.isChecked():
+            lens_config["aperture"] = {}
+            lens_config["aperture"]["inner"] = float(self.lineEdit_aperture_inner.text())            
+            lens_config["aperture"]["outer"] = float(self.lineEdit_aperture_outer.text())
+            lens_config["aperture"]["type"] = str(self.comboBox_aperture_mode.currentText())
+            lens_config["aperture"]["invert"] = bool(self.checkBox_aperture_invert.isChecked())
+        else:
+            lens_config["aperture"] = None
 
         self.lens_config = lens_config
 
-
-        pprint(self.lens_config)
+        # pprint(self.lens_config)
 
 
     def update_layer(self):
@@ -127,6 +149,8 @@ class GUIElementCreation(ElementCreation.Ui_MainWindow, QtWidgets.QMainWindow):
             print(f"Failure to read config values: {e}")
 
 
+        lens = None
+        arr3d = None
 
         try:
             # params
@@ -134,18 +158,23 @@ class GUIElementCreation(ElementCreation.Ui_MainWindow, QtWidgets.QMainWindow):
             pixelsize = float(self.lineEdit_pixelsize.text())
 
             lens = generate_lens(self.lens_config, Medium(medium), pixelsize)
+            lens.apply_aperture_masks()
             arr3d = plotting.create_3d_lens(lens)
+
+            if lens.grating_mask is None:
+                lens.grating_mask = np.zeros_like(lens.profile)
+            if lens.truncation_mask is None:
+                lens.truncation_mask = np.zeros_like(lens.profile)
 
         except Exception as e:
             print(f"Failure to load 3d lens: {e}")
             arr3d = np.random.random(size=(1000, 1000))
 
+            return
 
 
-    # return [(arr3d, {"name": "Lens", "colormap": "gray", "rendering": "iso", "depiction": "volume"}),
-    #         (lens.aperture, {"name": "Lens Aperture", "opacity": 0.4, "colormap": "yellow", "rendering": "translucent"}, "image"),
-    #         (lens.grating_mask, {"name": "Lens Grating Mask", "opacity": 0.4, "colormap": "green", "rendering": "translucent"}, "image"),
-    #         (lens.truncation_mask, {"name": "Lens Truncation Mask", "opacity": 0.4, "colormap": "cyan", "rendering": "translucent"}, "image")]
+        if lens is None or arr3d is None:
+            return        
 
         self.viewer.axes.visible = True
         self.viewer.axes.colored = False
@@ -157,11 +186,31 @@ class GUIElementCreation(ElementCreation.Ui_MainWindow, QtWidgets.QMainWindow):
         # https://forum.image.sc/t/update-refresh-a-layer-in-napari-julia-napari-jl/59728
         print("update_layer")
 
+        # TODO: check the lens and arr3d are valid here... otherwise dont update
+        # TODO: set lens layer as active
+        # TODO: find a better way to set the initial view iamges... probably better to separate
+        # TODO: load initial values
+        # TODO: load from config
+        # TODO: load profile
+        # TODO: do better validation, so that the viewer doesnt crash
+
         # update layer in place 
         try:
-            self.viewer.layers["Lens"].data = arr3d
-        except KeyError:
-            self.viewer.add_image(arr3d, name="Lens", colormap="gray", rendering="iso", depiction="volume")
+            try:
+                self.viewer.layers["Lens"].data = arr3d
+                self.viewer.layers["Aperture Mask"].data = lens.aperture
+                self.viewer.layers["Grating Mask"].data = lens.grating_mask
+                self.viewer.layers["Truncation Mask"].data = lens.truncation_mask
+
+            except KeyError as e:
+                # TODO: why doesnt this exist on the first pass?
+                self.viewer.add_image(arr3d, name="Lens", colormap="gray", rendering="iso", depiction="volume")
+                self.viewer.add_image(lens.aperture, name="Aperture Mask", opacity=0.4, colormap="yellow", rendering="translucent")
+                self.viewer.add_image(lens.truncation_mask, name="Truncation Mask", opacity=0.4, colormap="cyan", rendering="translucent")
+                self.viewer.add_image(lens.grating_mask, name="Grating Mask", opacity=0.4, colormap="green", rendering="translucent")
+        except Exception as e:
+            print(f"Failure to load viewer: {e}")
+
     
 
 
@@ -182,7 +231,3 @@ if __name__ == "__main__":
     main()
 
 
-def generate_3d_lens(config: dict, medium: float, pixel_size: float):
-
-
-    return arr3d
