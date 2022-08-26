@@ -1,28 +1,38 @@
 
-## features
-# create
+# DONE
+# create 
 # load config
-# load profile
 # save config
+# load profile
 
+## features
+# custom profile (load)
+# QOL: disable useless options
 
 import os
 import sys
 import traceback
+from pprint import pprint
 
 import juno.ui.qtdesigner_files.ElementCreation as ElementCreation
-import numpy as np
-import yaml
-from juno import constants, plotting, utils
-from juno.Lens import GratingSettings, LensType, Medium, generate_lens
-from juno.ui.utils import display_error_message
-from matplotlib import pyplot as plt
-from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
-from PyQt5 import QtCore, QtGui, QtWidgets
-
 import napari
 import numpy as np
-from pprint import pprint
+import yaml
+from juno import plotting, utils, validation
+from juno.Lens import LensType, Medium, generate_lens
+from juno.ui.utils import display_error_message
+from PyQt5 import QtWidgets
+
+default_lens_config = {
+    "name": "Lens", 
+    "diameter": 200e-6,
+    "height": 50e-6,
+    "exponent": 2.0,
+    "lens_type": "Spherical",
+    "medium": 2.348, 
+    "length": 10e-6,
+    "escape_path": 0.0,
+}
 
 class GUIElementCreation(ElementCreation.Ui_MainWindow, QtWidgets.QMainWindow):
     def __init__(self, parent=None, viewer: napari.Viewer = None):
@@ -30,22 +40,29 @@ class GUIElementCreation(ElementCreation.Ui_MainWindow, QtWidgets.QMainWindow):
         self.setupUi(self)
         self.statusBar = QtWidgets.QStatusBar()
         self.setStatusBar(self.statusBar)
+        self.setWindowTitle("Element Creator")
+
+        self.CONFIG_UPDATE = False
 
         self.viewer = viewer
         self.setup_connections()
         
+        # set initial config
+        validated_default_config = validation._validate_default_lens_config(default_lens_config)
+        
+        # update ui parameters and viz
+        self.update_ui_from_config(validated_default_config)
         self.update_layer()
         self.show()
 
     def setup_connections(self):
 
-
         self.pushButton_generate_profile.clicked.connect(self.update_layer)
 
         # comboboxes
         self.comboBox_type.addItems([type.name for type in LensType][::-1]) # lens types
-        self.comboBox_truncation_mode.addItems(["Height", "Radial"])  # truncation modes
-        self.comboBox_aperture_mode.addItems(["Radial", "Square"]) # aperture modes
+        self.comboBox_truncation_mode.addItems(["Height", "Radial"])    # truncation modes
+        self.comboBox_aperture_mode.addItems(["Radial", "Square"])      # aperture modes
 
         # general
         self.lineEdit_pixelsize.textChanged.connect(self.update_layer)
@@ -60,28 +77,177 @@ class GUIElementCreation(ElementCreation.Ui_MainWindow, QtWidgets.QMainWindow):
         self.lineEdit_name.textChanged.connect(self.update_layer)
 
         # grating
-        self.checkBox_use_grating.stateChanged.connect(self.update_layer)
+        self.checkBox_use_grating.toggled.connect(self.update_layer)
         self.lineEdit_grating_width.textChanged.connect(self.update_layer)
         self.lineEdit_grating_distance.textChanged.connect(self.update_layer)
         self.lineEdit_grating_depth.textChanged.connect(self.update_layer)
-        self.checkBox_grating_x_axis.stateChanged.connect(self.update_layer)
-        self.checkBox_grating_y_axis.stateChanged.connect(self.update_layer)
-        self.checkBox_grating_centred.stateChanged.connect(self.update_layer)
+        self.checkBox_grating_x_axis.toggled.connect(self.update_layer)
+        self.checkBox_grating_y_axis.toggled.connect(self.update_layer)
+        self.checkBox_grating_centred.toggled.connect(self.update_layer)
 
         # truncation
-        self.checkBox_use_truncation.stateChanged.connect(self.update_layer)
+        self.checkBox_use_truncation.toggled.connect(self.update_layer)
         self.comboBox_truncation_mode.currentTextChanged.connect(self.update_layer)
         self.lineEdit_truncation_value.textChanged.connect(self.update_layer)
+        self.checkBox_truncation_aperture.toggled.connect(self.update_layer) 
 
         # aperture
-        self.checkBox_use_aperture.stateChanged.connect(self.update_layer)
+        self.checkBox_use_aperture.toggled.connect(self.update_layer)
         self.comboBox_aperture_mode.currentTextChanged.connect(self.update_layer)
         self.lineEdit_aperture_inner.textChanged.connect(self.update_layer)
         self.lineEdit_aperture_outer.textChanged.connect(self.update_layer)
-        self.checkBox_aperture_invert.stateChanged.connect(self.update_layer)
-        self.checkBox_aperture_truncation.stateChanged.connect(self.update_layer)
+        self.checkBox_aperture_invert.toggled.connect(self.update_layer)
+
+        # buttons
+        self.pushButton_generate_profile.clicked.connect(self.update_layer)
+        self.pushButton_load_profile.clicked.connect(self.load_profile)
+        self.pushButton_save_profile.clicked.connect(self.save_profile)
+
+    def testing_function(self):
+
+        print("testing function!!")
+
+    def update_ui_from_config(self, config: dict):
+
+        self.CONFIG_UPDATE = True
+
+        # general
+        self.lineEdit_pixelsize.setText(str(1e-6))
+        self.lineEdit_diameter.setText(str(config["diameter"]))
+        self.lineEdit_length.setText(str(config["length"]))
+        self.lineEdit_height.setText(str(config["height"]))
+        self.lineEdit_medium.setText(str(config["medium"]))
+        self.lineEdit_exponent.setText(str(config["exponent"]))
+        self.lineEdit_escape_path.setText(str(config["escape_path"]))
+        self.comboBox_type.setCurrentText(str(config["lens_type"]).capitalize())
+        self.checkBox_invert_profile.setChecked(bool(config["inverted"]))
+        self.lineEdit_name.setText(str(config["name"]))
+
+        # grating
+        use_grating =  bool(config["grating"])
+        self.checkBox_use_grating.setChecked(use_grating)
+        if use_grating:
+            self.lineEdit_grating_width.setText(str(config["grating"]["width"]))
+            self.lineEdit_grating_distance.setText(str(config["grating"]["distance"]))
+            self.lineEdit_grating_depth.setText(str(config["grating"]["depth"]))
+            self.checkBox_grating_x_axis.setChecked(bool(config["grating"]["x"]))
+            self.checkBox_grating_y_axis.setChecked(bool(config["grating"]["y"]))
+            self.checkBox_grating_centred.setChecked(bool(config["grating"]["centred"]))
+
+        # # truncation
+        use_truncation = bool(config["truncation"])
+        self.checkBox_use_truncation.setChecked(use_truncation)
+        if use_truncation:
+            truncation_mode = str(config["truncation"]["type"])
+            self.comboBox_truncation_mode.setCurrentText(truncation_mode.capitalize())
+            if truncation_mode == "value":
+                self.lineEdit_truncation_value.setText(str(config["truncation"]["height"]))
+            if truncation_mode == "radial":
+                self.lineEdit_truncation_value.setText(str(config["truncation"]["radius"]))
+            self.checkBox_truncation_aperture.setChecked(bool(config["truncation"]["aperture"]))
 
 
+        # # aperture
+        use_aperture = bool(config["aperture"])
+        self.checkBox_use_aperture.setChecked(use_aperture)
+        if use_aperture:
+            aperture_mode = str(config["aperture"]["type"])
+            self.comboBox_aperture_mode.setCurrentText(aperture_mode.capitalize())
+            self.lineEdit_aperture_inner.setText(str(config["aperture"]["inner"]))
+            self.lineEdit_aperture_outer.setText(str(config["aperture"]["outer"]))
+            self.checkBox_aperture_invert.setChecked(bool(config["aperture"]["invert"]))
+
+        # self.update_ui_components()
+
+        self.CONFIG_UPDATE = False
+
+        return
+
+
+    def update_ui_components(self):
+
+        print("updating ui components...")
+
+        # enable / disable general components
+
+        # lenght based on lens type
+
+
+        # custom lens disable certain settings
+        # TODO
+
+
+        # enable / disable grating components
+        use_grating = self.checkBox_use_grating.isChecked()
+        self.lineEdit_grating_width.setEnabled(use_grating)
+        self.lineEdit_grating_distance.setEnabled(use_grating)
+        self.lineEdit_grating_depth.setEnabled(use_grating)
+        self.checkBox_grating_x_axis.setEnabled(use_grating)
+        self.checkBox_grating_y_axis.setEnabled(use_grating)
+        self.checkBox_grating_centred.setEnabled(use_grating)
+
+        # enable / disable truncation components
+        use_truncation = self.checkBox_use_truncation.isChecked()
+        self.comboBox_truncation_mode.setEnabled(use_truncation)
+        self.lineEdit_truncation_value.setEnabled(use_truncation)
+        self.lineEdit_truncation_value.setEnabled(use_truncation)
+        self.checkBox_truncation_aperture.setEnabled(use_truncation)
+
+        # enable / disable aperture components   
+        use_aperture = self.checkBox_use_aperture.isChecked()
+        self.comboBox_aperture_mode.setEnabled(use_aperture)
+        self.lineEdit_aperture_inner.setEnabled(use_aperture)
+        self.lineEdit_aperture_outer.setEnabled(use_aperture)
+        self.checkBox_aperture_invert.setEnabled(use_aperture)
+
+    def load_profile(self):
+
+        print("load profile...")
+
+        filename, _ = QtWidgets.QFileDialog.getOpenFileName(
+            self,
+            "Load Profile",
+            filter="All types (*.yml *.yaml *.npy) ;;Yaml config (*.yml *.yaml) ;;Numpy array (*.npy)",
+        )
+
+        if filename == "":
+            return
+
+        if filename.endswith(".npy"):
+            print("numpy file... TODO: custom profile load")
+
+        else:
+            print("lens configuration")
+            self.lens_config = utils.load_yaml_config(filename)
+            
+            # validate config...
+            self.lens_config = validation._validate_default_lens_config(self.lens_config)
+
+            # validate config?
+            try:
+                self.update_ui_from_config(self.lens_config)
+            except:
+                display_error_message(traceback.format_exc())
+            
+            self.update_layer() 
+
+    def save_profile(self):
+
+        try:
+            self.update_config()
+        except Exception as e:
+            print(f"Unable to update config... {e}")
+
+        filename, ext = QtWidgets.QFileDialog.getSaveFileName(self, "Save Profile", self.lens_config["name"], filter="Yaml config (*.yml *.yaml)")
+
+        if filename == "":
+            return
+
+        self.lens_config["name"] = os.path.basename(filename).split('.')[0]
+        self.lineEdit_name.setText(self.lens_config["name"])
+
+        with open(filename, "w") as f:
+            yaml.safe_dump(self.lens_config, f, sort_keys=False)
 
     def update_config(self):
 
@@ -90,7 +256,7 @@ class GUIElementCreation(ElementCreation.Ui_MainWindow, QtWidgets.QMainWindow):
 
         lens_config = {}
     
-        #   core
+        # core
         lens_config["height"] = float(self.lineEdit_height.text()) 
         lens_config["diameter"] = float(self.lineEdit_diameter.text()) 
         lens_config["exponent"] = float(self.lineEdit_exponent.text())
@@ -101,9 +267,7 @@ class GUIElementCreation(ElementCreation.Ui_MainWindow, QtWidgets.QMainWindow):
         lens_config["name"] = self.lineEdit_name.text()
         lens_config["medium"] = float(self.lineEdit_medium.text())
 
-        # print(lens_config["lens_type"])
-        
-        #   # grating
+        # grating
         if self.checkBox_use_grating.isChecked():
             lens_config["grating"] = {}
             lens_config["grating"]["width"] =  float(self.lineEdit_grating_width.text())
@@ -121,7 +285,7 @@ class GUIElementCreation(ElementCreation.Ui_MainWindow, QtWidgets.QMainWindow):
             lens_config["truncation"]["height"] = float(self.lineEdit_truncation_value.text())
             lens_config["truncation"]["radius"] = float(self.lineEdit_truncation_value.text())
             lens_config["truncation"]["type"] = self.comboBox_truncation_mode.currentText() 
-            lens_config["truncation"]["aperture"] = bool(self.checkBox_aperture_truncation.isChecked())
+            lens_config["truncation"]["aperture"] = bool(self.checkBox_truncation_aperture.isChecked())
         else:
             lens_config["truncation"] = None
 
@@ -137,17 +301,23 @@ class GUIElementCreation(ElementCreation.Ui_MainWindow, QtWidgets.QMainWindow):
 
         self.lens_config = lens_config
 
-        # pprint(self.lens_config)
 
 
     def update_layer(self):
+
+        self.update_ui_components()
+
+
+        # dont update the layers when the config is updating the ui...
+        if self.CONFIG_UPDATE:
+            return
 
         # get updated config
         try:
             self.update_config()
         except Exception as e:
-            print(f"Failure to read config values: {e}")
-
+            display_error_message(traceback.format_exc())
+            return
 
         lens = None
         arr3d = None
@@ -156,6 +326,11 @@ class GUIElementCreation(ElementCreation.Ui_MainWindow, QtWidgets.QMainWindow):
             # params
             medium = float(self.lineEdit_medium.text())
             pixelsize = float(self.lineEdit_pixelsize.text())
+
+            if pixelsize * self.lens_config["diameter"]  > 10000:
+                display_error_message(f"Lens dimensions are too large to display")
+                return
+
 
             lens = generate_lens(self.lens_config, Medium(medium), pixelsize)
             lens.apply_aperture_masks()
@@ -167,8 +342,7 @@ class GUIElementCreation(ElementCreation.Ui_MainWindow, QtWidgets.QMainWindow):
                 lens.truncation_mask = np.zeros_like(lens.profile)
 
         except Exception as e:
-            print(f"Failure to load 3d lens: {e}")
-            arr3d = np.random.random(size=(1000, 1000))
+            display_error_message(f"Failure to load 3d lens: {traceback.format_exc()}")
 
             return
 
@@ -189,8 +363,6 @@ class GUIElementCreation(ElementCreation.Ui_MainWindow, QtWidgets.QMainWindow):
         # TODO: check the lens and arr3d are valid here... otherwise dont update
         # TODO: set lens layer as active
         # TODO: find a better way to set the initial view iamges... probably better to separate
-        # TODO: load initial values
-        # TODO: load from config
         # TODO: load profile
         # TODO: do better validation, so that the viewer doesnt crash
 
@@ -201,17 +373,13 @@ class GUIElementCreation(ElementCreation.Ui_MainWindow, QtWidgets.QMainWindow):
                 self.viewer.layers["Aperture Mask"].data = lens.aperture
                 self.viewer.layers["Grating Mask"].data = lens.grating_mask
                 self.viewer.layers["Truncation Mask"].data = lens.truncation_mask
-
             except KeyError as e:
-                # TODO: why doesnt this exist on the first pass?
                 self.viewer.add_image(arr3d, name="Lens", colormap="gray", rendering="iso", depiction="volume")
                 self.viewer.add_image(lens.aperture, name="Aperture Mask", opacity=0.4, colormap="yellow", rendering="translucent")
                 self.viewer.add_image(lens.truncation_mask, name="Truncation Mask", opacity=0.4, colormap="cyan", rendering="translucent")
                 self.viewer.add_image(lens.grating_mask, name="Grating Mask", opacity=0.4, colormap="green", rendering="translucent")
         except Exception as e:
-            print(f"Failure to load viewer: {e}")
-
-    
+            display_error_message(f"Failure to load viewer: {traceback.exc()}")
 
 
 def main():
@@ -219,8 +387,6 @@ def main():
     application = QtWidgets.QApplication([])
 
     viewer = napari.Viewer(ndisplay=3)
-
-
     element_creation_ui = GUIElementCreation(viewer=viewer)                                          
     viewer.window.add_dock_widget(element_creation_ui, area='right')                  
 

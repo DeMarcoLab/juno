@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>365</width>
-    <height>644</height>
+    <height>661</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -65,7 +65,7 @@
           <enum>QTabWidget::Rounded</enum>
          </property>
          <property name="currentIndex">
-          <number>1</number>
+          <number>0</number>
          </property>
          <widget class="QWidget" name="tab_general">
           <attribute name="title">
@@ -245,78 +245,40 @@
               <bool>true</bool>
              </property>
              <layout class="QGridLayout" name="gridLayout_6">
-              <item row="16" column="0">
-               <widget class="QLabel" name="label_aperture_mode">
-                <property name="text">
-                 <string>Mode</string>
-                </property>
-               </widget>
-              </item>
-              <item row="3" column="0">
-               <widget class="QLabel" name="label_grating_distance">
-                <property name="text">
-                 <string>Distance</string>
-                </property>
-               </widget>
-              </item>
-              <item row="18" column="1" colspan="2">
-               <widget class="QLineEdit" name="lineEdit_aperture_outer"/>
-              </item>
               <item row="10" column="1" colspan="2">
                <widget class="QComboBox" name="comboBox_truncation_mode"/>
               </item>
-              <item row="2" column="0">
-               <widget class="QLabel" name="label_grating_width">
-                <property name="text">
-                 <string>Width</string>
-                </property>
-               </widget>
-              </item>
-              <item row="16" column="1" colspan="2">
-               <widget class="QComboBox" name="comboBox_aperture_mode"/>
-              </item>
-              <item row="2" column="1" colspan="2">
-               <widget class="QLineEdit" name="lineEdit_grating_width"/>
-              </item>
-              <item row="17" column="0">
+              <item row="18" column="0">
                <widget class="QLabel" name="label_aperture_inner">
                 <property name="text">
                  <string>Inner</string>
                 </property>
                </widget>
               </item>
-              <item row="10" column="0">
-               <widget class="QLabel" name="label_truncation_mode">
+              <item row="11" column="0">
+               <widget class="QLabel" name="label_truncation_value">
                 <property name="text">
-                 <string>Mode</string>
+                 <string>Value</string>
                 </property>
                </widget>
               </item>
-              <item row="4" column="0">
-               <widget class="QLabel" name="label_grating_depth">
+              <item row="3" column="1" colspan="2">
+               <widget class="QLineEdit" name="lineEdit_grating_distance"/>
+              </item>
+              <item row="20" column="0">
+               <widget class="QCheckBox" name="checkBox_aperture_invert">
                 <property name="text">
-                 <string>Depth</string>
+                 <string>Invert</string>
                 </property>
                </widget>
               </item>
-              <item row="6" column="0" colspan="3">
-               <widget class="Line" name="line">
-                <property name="orientation">
-                 <enum>Qt::Horizontal</enum>
-                </property>
-               </widget>
+              <item row="17" column="1" colspan="2">
+               <widget class="QComboBox" name="comboBox_aperture_mode"/>
               </item>
-              <item row="5" column="2">
-               <widget class="QCheckBox" name="checkBox_grating_centred">
+              <item row="2" column="0">
+               <widget class="QLabel" name="label_grating_width">
                 <property name="text">
-                 <string>Centred</string>
-                </property>
-               </widget>
-              </item>
-              <item row="19" column="1" colspan="2">
-               <widget class="QCheckBox" name="checkBox_aperture_truncation">
-                <property name="text">
-                 <string>Truncation Aperture</string>
+                 <string>Width</string>
                 </property>
                </widget>
               </item>
@@ -334,51 +296,35 @@
                 </property>
                </widget>
               </item>
-              <item row="4" column="1" colspan="2">
-               <widget class="QLineEdit" name="lineEdit_grating_depth"/>
-              </item>
-              <item row="11" column="0">
-               <widget class="QLabel" name="label_truncation_value">
-                <property name="text">
-                 <string>Value</string>
-                </property>
-               </widget>
-              </item>
-              <item row="5" column="1">
-               <widget class="QCheckBox" name="checkBox_grating_y_axis">
-                <property name="text">
-                 <string>Y-Axis</string>
-                </property>
-               </widget>
-              </item>
-              <item row="12" column="0" colspan="3">
-               <widget class="Line" name="line_2">
+              <item row="6" column="0" colspan="3">
+               <widget class="Line" name="line">
                 <property name="orientation">
                  <enum>Qt::Horizontal</enum>
                 </property>
                </widget>
               </item>
-              <item row="18" column="0">
+              <item row="5" column="2">
+               <widget class="QCheckBox" name="checkBox_grating_centred">
+                <property name="text">
+                 <string>Centred</string>
+                </property>
+               </widget>
+              </item>
+              <item row="17" column="0">
+               <widget class="QLabel" name="label_aperture_mode">
+                <property name="text">
+                 <string>Mode</string>
+                </property>
+               </widget>
+              </item>
+              <item row="19" column="0">
                <widget class="QLabel" name="label_aperture_outer">
                 <property name="text">
                  <string>Outer</string>
                 </property>
                </widget>
               </item>
-              <item row="3" column="1" colspan="2">
-               <widget class="QLineEdit" name="lineEdit_grating_distance"/>
-              </item>
-              <item row="5" column="0">
-               <widget class="QCheckBox" name="checkBox_grating_x_axis">
-                <property name="text">
-                 <string>X-Axis</string>
-                </property>
-               </widget>
-              </item>
-              <item row="11" column="1" colspan="2">
-               <widget class="QLineEdit" name="lineEdit_truncation_value"/>
-              </item>
-              <item row="14" column="0" colspan="3">
+              <item row="15" column="0" colspan="3">
                <widget class="QLabel" name="label_aperture_header">
                 <property name="font">
                  <font>
@@ -392,17 +338,57 @@
                 </property>
                </widget>
               </item>
-              <item row="17" column="1" colspan="2">
+              <item row="10" column="0">
+               <widget class="QLabel" name="label_truncation_mode">
+                <property name="text">
+                 <string>Mode</string>
+                </property>
+               </widget>
+              </item>
+              <item row="5" column="0">
+               <widget class="QCheckBox" name="checkBox_grating_x_axis">
+                <property name="text">
+                 <string>X-Axis</string>
+                </property>
+               </widget>
+              </item>
+              <item row="4" column="0">
+               <widget class="QLabel" name="label_grating_depth">
+                <property name="text">
+                 <string>Depth</string>
+                </property>
+               </widget>
+              </item>
+              <item row="19" column="1" colspan="2">
+               <widget class="QLineEdit" name="lineEdit_aperture_outer"/>
+              </item>
+              <item row="18" column="1" colspan="2">
                <widget class="QLineEdit" name="lineEdit_aperture_inner"/>
               </item>
-              <item row="15" column="0" colspan="3">
+              <item row="4" column="1" colspan="2">
+               <widget class="QLineEdit" name="lineEdit_grating_depth"/>
+              </item>
+              <item row="2" column="1" colspan="2">
+               <widget class="QLineEdit" name="lineEdit_grating_width"/>
+              </item>
+              <item row="16" column="0" colspan="3">
                <widget class="QCheckBox" name="checkBox_use_aperture">
                 <property name="text">
                  <string>Apply Aperture</string>
                 </property>
                </widget>
               </item>
-              <item row="20" column="1">
+              <item row="3" column="0">
+               <widget class="QLabel" name="label_grating_distance">
+                <property name="text">
+                 <string>Distance</string>
+                </property>
+               </widget>
+              </item>
+              <item row="11" column="1" colspan="2">
+               <widget class="QLineEdit" name="lineEdit_truncation_value"/>
+              </item>
+              <item row="21" column="1">
                <spacer name="verticalSpacer">
                 <property name="orientation">
                  <enum>Qt::Vertical</enum>
@@ -415,10 +401,10 @@
                 </property>
                </spacer>
               </item>
-              <item row="19" column="0">
-               <widget class="QCheckBox" name="checkBox_aperture_invert">
+              <item row="5" column="1">
+               <widget class="QCheckBox" name="checkBox_grating_y_axis">
                 <property name="text">
-                 <string>Invert</string>
+                 <string>Y-Axis</string>
                 </property>
                </widget>
               </item>
@@ -443,10 +429,24 @@
                 </property>
                </widget>
               </item>
+              <item row="13" column="0" colspan="3">
+               <widget class="Line" name="line_2">
+                <property name="orientation">
+                 <enum>Qt::Horizontal</enum>
+                </property>
+               </widget>
+              </item>
               <item row="1" column="0" colspan="3">
                <widget class="QCheckBox" name="checkBox_use_grating">
                 <property name="text">
                  <string>Apply Gratings</string>
+                </property>
+               </widget>
+              </item>
+              <item row="12" column="0" colspan="2">
+               <widget class="QCheckBox" name="checkBox_truncation_aperture">
+                <property name="text">
+                 <string>Aperture Truncation</string>
                 </property>
                </widget>
               </item>

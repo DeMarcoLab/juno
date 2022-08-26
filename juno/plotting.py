@@ -646,7 +646,7 @@ def create_3d_lens(lens: Lens) -> np.ndarray:
     # ref: https://stackoverflow.com/questions/59851954/numpy-use-2d-array-as-heightmap-like-index-for-3d-array
     lens_profile = lens.profile * 1e6
 
-    print(np.min(lens_profile), np.max(lens_profile))
+    # print(np.min(lens_profile), np.max(lens_profile))
 
     l_max = int(np.max(lens_profile))
     arr3d = np.ones(shape=(l_max, lens_profile.shape[0], lens_profile.shape[1]))
