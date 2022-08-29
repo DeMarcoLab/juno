@@ -302,7 +302,6 @@ class GUIElementCreation(ElementCreation.Ui_MainWindow, QtWidgets.QMainWindow):
         self.lens_config = lens_config
 
 
-
     def update_layer(self):
 
         self.update_ui_components()
@@ -316,7 +315,7 @@ class GUIElementCreation(ElementCreation.Ui_MainWindow, QtWidgets.QMainWindow):
         try:
             self.update_config()
         except Exception as e:
-            display_error_message(traceback.format_exc())
+            print(f"ERROR: {traceback.format_exc()}")
             return
 
         lens = None
@@ -342,7 +341,7 @@ class GUIElementCreation(ElementCreation.Ui_MainWindow, QtWidgets.QMainWindow):
                 lens.truncation_mask = np.zeros_like(lens.profile)
 
         except Exception as e:
-            display_error_message(f"Failure to load 3d lens: {traceback.format_exc()}")
+            print(f"ERROR: {traceback.format_exc()}")
 
             return
 

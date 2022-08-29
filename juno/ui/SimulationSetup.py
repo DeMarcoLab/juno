@@ -1,9 +1,6 @@
-import glob
-from multiprocessing.sharedctypes import Value
 import os
 import sys
 import traceback
-from enum import Enum, auto
 from pathlib import Path
 from pprint import pprint
 
@@ -16,6 +13,7 @@ from juno import plotting, utils, validation
 from juno.beam import generate_beam
 from juno.Simulation import generate_simulation_parameters
 from juno.ui.ParameterSweep import GUIParameterSweep
+from juno.ui.utils import display_error_message
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtGui import QPixmap
 from PyQt5.QtWidgets import (QCheckBox, QFileDialog, QGridLayout, QGroupBox,
@@ -23,12 +21,14 @@ from PyQt5.QtWidgets import (QCheckBox, QFileDialog, QGridLayout, QGroupBox,
 
 
 class GUISimulationSetup(SimulationSetup.Ui_MainWindow, QtWidgets.QMainWindow):
-    def __init__(self, parent_gui=None):
+    def __init__(self, viewer = None, parent_gui=None):
         super().__init__(parent=parent_gui)
         self.setupUi(MainWindow=self)
         self.statusBar = QtWidgets.QStatusBar()
         self.setStatusBar(self.statusBar)
         self.setWindowTitle("Simulation Setup")
+
+        self.viewer = viewer
 
         self.simulation_config = {}
         self.SAVE_FROM_PARAMETER_SWEEP = False
@@ -197,13 +197,22 @@ class GUISimulationSetup(SimulationSetup.Ui_MainWindow, QtWidgets.QMainWindow):
 
     def draw_simulation_stage_display(self):
 
-        # Think this can only be called once? why?
+        # Think this can only be called once? why?  
 
-        stage_layout, widgets = create_stage_structure_display(self.simulation_config)
-        groupBox_stage_display = QGroupBox(f"")
-        groupBox_stage_display.setLayout(stage_layout)
-        self.scrollArea_stage_display.setWidget(groupBox_stage_display)
-        self.scrollArea_stage_display.update()
+        # show sim overview
+        # show lens
+        # show beam
+
+        arr = np.random.random(size=(500, 500))
+
+        try:
+            try:
+                self.viewer.layers["Lens"].data = arr 
+            except KeyError as e:
+                self.viewer.add_image(arr, name="Lens", colormap="gray")
+               
+        except Exception as e:
+            display_error_message(f"Failure to load viewer: {traceback.exc()}")
 
 
     def read_stage_input_values(self):
@@ -333,7 +342,6 @@ class GUISimulationSetup(SimulationSetup.Ui_MainWindow, QtWidgets.QMainWindow):
                 sv = [w.text() for w in wid]
 
                 stored_values.append(sv)
-
         
         pprint(stored_values)
 
@@ -341,7 +349,6 @@ class GUISimulationSetup(SimulationSetup.Ui_MainWindow, QtWidgets.QMainWindow):
 
         # TODO: change it to store the current stage info before updating
         # TODO: fix it to store always not only for valid stuff 
-
 
         for stage_no, _ in enumerate(range(sim_num_stages), 1):
 
@@ -363,7 +370,6 @@ class GUISimulationSetup(SimulationSetup.Ui_MainWindow, QtWidgets.QMainWindow):
                 sv = stored_values[i]
                 for j, w in enumerate(wid):
                     w.setText(sv[j])
-
 
         inputBox = QGroupBox(f"")
         inputBox.setLayout(input_layout)
@@ -588,23 +594,16 @@ def update_status(statusBar, msg):
     statusBar.clearMessage()
     statusBar.showMessage(msg)
 
-def display_error_message(message, title="Error Message"):
-    """PyQt dialog box displaying an error message."""
-    # logging.debug('display_error_message')
-    # logging.exception(message)
-    error_dialog = QtWidgets.QErrorMessage()
-    error_dialog.setWindowTitle(title)
-    error_dialog.showMessage(message)
-    error_dialog.showNormal()
-    error_dialog.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
-    error_dialog.exec_()
-
 
 def main():
     """Launch the main application window. """
     application = QtWidgets.QApplication([])
-    window = GUISimulationSetup()
-    application.aboutToQuit.connect(window.disconnect)  # cleanup & teardown
+    import napari
+    viewer = napari.Viewer(ndisplay=3)
+    simulation_setup_ui = GUISimulationSetup(viewer=viewer)                                          
+    viewer.window.add_dock_widget(simulation_setup_ui, area='right')                  
+
+    application.aboutToQuit.connect(simulation_setup_ui.disconnect)  # cleanup & teardown
     sys.exit(application.exec_())
 
 

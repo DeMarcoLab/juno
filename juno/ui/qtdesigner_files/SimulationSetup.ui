@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1546</width>
-    <height>903</height>
+    <width>309</width>
+    <height>905</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -24,6 +24,21 @@
        <enum>QFrame::Raised</enum>
       </property>
       <layout class="QGridLayout" name="gridLayout_2">
+       <property name="leftMargin">
+        <number>0</number>
+       </property>
+       <property name="topMargin">
+        <number>0</number>
+       </property>
+       <property name="rightMargin">
+        <number>0</number>
+       </property>
+       <property name="bottomMargin">
+        <number>0</number>
+       </property>
+       <property name="spacing">
+        <number>0</number>
+       </property>
        <item row="0" column="0">
         <widget class="QFrame" name="frame_2">
          <property name="maximumSize">
@@ -49,7 +64,7 @@
             </property>
             <property name="font">
              <font>
-              <pointsize>22</pointsize>
+              <pointsize>16</pointsize>
               <weight>75</weight>
               <bold>true</bold>
              </font>
@@ -155,7 +170,7 @@
                   <x>0</x>
                   <y>0</y>
                   <width>233</width>
-                  <height>328</height>
+                  <height>358</height>
                  </rect>
                 </property>
                </widget>
@@ -300,35 +315,6 @@
          </layout>
         </widget>
        </item>
-       <item row="0" column="1">
-        <widget class="QFrame" name="frame_3">
-         <property name="frameShape">
-          <enum>QFrame::StyledPanel</enum>
-         </property>
-         <property name="frameShadow">
-          <enum>QFrame::Raised</enum>
-         </property>
-         <layout class="QGridLayout" name="gridLayout_5">
-          <item row="0" column="0">
-           <widget class="QScrollArea" name="scrollArea_stage_display">
-            <property name="widgetResizable">
-             <bool>true</bool>
-            </property>
-            <widget class="QWidget" name="scrollAreaWidgetContents_2">
-             <property name="geometry">
-              <rect>
-               <x>0</x>
-               <y>0</y>
-               <width>1205</width>
-               <height>802</height>
-              </rect>
-             </property>
-            </widget>
-           </widget>
-          </item>
-         </layout>
-        </widget>
-       </item>
       </layout>
      </widget>
     </item>
@@ -339,7 +325,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1546</width>
+     <width>309</width>
      <height>21</height>
     </rect>
    </property>
@@ -372,7 +358,6 @@
   <tabstop>pushButton_generate_simulation</tabstop>
   <tabstop>pushButton_setup_parameter_sweep</tabstop>
   <tabstop>pushButton_save_sim_config</tabstop>
-  <tabstop>scrollArea_stage_display</tabstop>
  </tabstops>
  <resources/>
  <connections/>
