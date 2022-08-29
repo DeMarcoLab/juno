@@ -9,13 +9,14 @@ from juno.SimulationRunner import SimulationRunner
 
 
 class GUISimulationRun(SimulationRun.Ui_MainWindow, QtWidgets.QMainWindow):
-    def __init__(self, parent_gui=None):
+    def __init__(self, viewer=None, parent_gui=None):
         super().__init__(parent=parent_gui)
         self.setupUi(MainWindow=self)
         self.statusBar = QtWidgets.QStatusBar()
         self.setStatusBar(self.statusBar)
         self.setWindowTitle("Simulation Runner")
 
+        self.viewer = viewer
         self.setup_connections()
 
         self.showNormal()
@@ -63,7 +64,7 @@ class GUISimulationRun(SimulationRun.Ui_MainWindow, QtWidgets.QMainWindow):
             sim = Simulation(sim_config)
             self.label_running_info.setText(f"Running Simulation: {sim.petname}  ({i}/{self.n_sims})")
             self.progressBar_running.setValue(int(i / self.n_sims) * 100)
-            sim.run_simulation()
+            sim.run_simulation() #TODO: get progress bar working in napari
         
         self.label_running_info.setText(f"")
         self.label_final_info.setText(f"Results were saved to: {self.sim_runner.data_path}.")
@@ -75,8 +76,11 @@ class GUISimulationRun(SimulationRun.Ui_MainWindow, QtWidgets.QMainWindow):
 def main():
     """Launch the main application window. """
     application = QtWidgets.QApplication([])
-    window = GUISimulationRun()
-    application.aboutToQuit.connect(window.disconnect)  # cleanup & teardown
+    import napari
+    viewer = napari.Viewer(ndisplay=3)
+    sim_run_ui = GUISimulationRun(viewer=viewer)
+    viewer.window.add_dock_widget(sim_run_ui, area='right') 
+    application.aboutToQuit.connect(sim_run_ui.disconnect)  # cleanup & teardown
     sys.exit(application.exec_())
 
 
