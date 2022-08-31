@@ -6,8 +6,11 @@ from juno.ui.SimulationRun import GUISimulationRun
 from juno.ui.SimulationSetup import GUISimulationSetup
 from juno.ui.VisualiseResults import GUIVisualiseResults
 from juno.ui.ElementCreation import GUIElementCreation
-from PyQt5 import QtWidgets
+from PyQt5 import QtWidgets, QtGui
 import napari
+
+import os
+LOGO_FILE = os.path.join(os.path.dirname(__file__), "logo.png")
 
 from napari import Viewer
 
@@ -28,15 +31,18 @@ class GUILensSimulation(LensSimulation.Ui_MainWindow, QtWidgets.QMainWindow):
 
     def setup_connections(self):      
 
-        self.pushButton_create_lens.clicked.connect(self.launch_lens_creation)
+        self.pushButton_create_element.clicked.connect(self.launch_element_creation)
         self.pushButton_create_beam.clicked.connect(self.launch_beam_creation)
         self.pushButton_setup_sim.clicked.connect(self.launch_setup_simulation)
         self.pushButton_run_simulation.clicked.connect(self.launch_run_simulation)
         self.pushButton_view_results.clicked.connect(self.launch_view_results)
-       
-    def launch_lens_creation(self):
 
-        print("launch lens creation")
+        pixmap = QtGui.QPixmap(LOGO_FILE)
+        self.label_logo.setPixmap(pixmap) # https://www.geeksforgeeks.org/pyqt5-lower-method-for-labels/ overlay TODO
+       
+    def launch_element_creation(self):
+
+        print("launch element creation")
         self.remove_current_docked_widgets()
         self.element_creation_ui = GUIElementCreation(viewer=self.viewer)
         dock_widget = self.viewer.window.add_dock_widget(self.element_creation_ui, area='right')                  
@@ -45,10 +51,14 @@ class GUILensSimulation(LensSimulation.Ui_MainWindow, QtWidgets.QMainWindow):
     def launch_beam_creation(self):
 
         print("launch beam creation")
-        self.beam_creator = GUIBeamCreator()
+        
+        self.remove_current_docked_widgets()
+        self.beam_creator_ui = GUIBeamCreator()
 
         # TODO:
-
+        # self.beam_creator_ui = GUIBeamCreator(viewer=self.viewer)
+        # dock_widget = self.viewer.window.add_dock_widget(self.beam_creator_ui, area='right')                  
+        # self.dock_widgets.append(dock_widget)
 
     def launch_setup_simulation(self):
 
@@ -72,9 +82,12 @@ class GUILensSimulation(LensSimulation.Ui_MainWindow, QtWidgets.QMainWindow):
 
 
     def launch_view_results(self):
-        # TODO:
+
         print("launch view results")
-        self.view_results = GUIVisualiseResults()
+        self.remove_current_docked_widgets()
+        self.view_results_ui = GUIVisualiseResults(viewer=self.viewer)
+        dock_widget = self.viewer.window.add_dock_widget(self.view_results_ui, area='right')
+        self.dock_widgets.append(dock_widget)
 
     def remove_current_docked_widgets(self):
 

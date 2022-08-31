@@ -554,7 +554,7 @@ def calculate_equivalent_focal_distance(lens: Lens, medium: Medium) -> float:
     return equivalent_focal_distance
 
 
-def pad_simulation(lens: Lens, parameters: SimulationParameters) -> np.ndarray:
+def pad_simulation(lens: Lens, parameters: SimulationParameters) -> Lens:
     """Pad the lens profile to match the simulation dimensions. Padding is used to
         prevent reflection in the simulation
 

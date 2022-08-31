@@ -28,7 +28,7 @@ import napari
 from magicgui import magicgui
 from napari.layers import Image
 from napari.types import ImageData
-
+import napari.utils.notifications
 
 class MODIFIER(Enum):
     EQUAL_TO = auto()
@@ -39,13 +39,21 @@ class MODIFIER(Enum):
 
 
 class GUIVisualiseResults(VisualiseResults.Ui_MainWindow, QtWidgets.QMainWindow):
-    def __init__(self, parent_gui=None):
+    def __init__(self, viewer: napari.Viewer = None, parent_gui=None):
         super().__init__(parent=parent_gui)
         self.setupUi(MainWindow=self)
         self.statusBar = QtWidgets.QStatusBar()
         self.setStatusBar(self.statusBar)
         self.setWindowTitle("Simulation Results")
 
+        self.viewer = viewer
+        self.viewer.axes.visible = True
+        self.viewer.axes.dashed = True
+        self.viewer.axes.labels = True
+        self.viewer.axes.colored = False
+        self.viewer.scale_bar.visible = True
+
+        self.table_view = None
         self.SIMULATION_LOADED = False
         self.df = None
 
@@ -66,13 +74,12 @@ class GUIVisualiseResults(VisualiseResults.Ui_MainWindow, QtWidgets.QMainWindow)
         self.spinBox_num_filters.valueChanged.connect(self.update_filter_display)
 
 
-        self.pushButton_open_napari.clicked.connect(self.open_sim_in_napari)
+        self.pushButton_open_napari.clicked.connect(self.view_simulation_result)
         self.pushButton_open_napari.setVisible(False)
         self.comboBox_napari_sim.setVisible(False)
         self.lineEdit_show_columns.setVisible(False)
         self.lineEdit_show_columns.setText("stage, lens, height, exponent")
-        self.pushButton_view_all_in_napari.clicked.connect(self.view_all_in_napari)
-        self.pushButton_view_all_in_napari.setVisible(False)
+
 
     def load_simulation(self):
         try:
@@ -195,6 +202,7 @@ class GUIVisualiseResults(VisualiseResults.Ui_MainWindow, QtWidgets.QMainWindow)
         filter_cols = [col for col in df.columns if col in cols_text] + ["petname", "path"]
         df = df[filter_cols]       
 
+
         # update available sims for napari
         self.pushButton_open_napari.setVisible(True)
         self.comboBox_napari_sim.setVisible(True)
@@ -207,8 +215,8 @@ class GUIVisualiseResults(VisualiseResults.Ui_MainWindow, QtWidgets.QMainWindow)
         stackable = plotting.check_simulations_are_stackable(self.paths)
         print("Stackable: ", stackable)
         if stackable:
-            self.pushButton_view_all_in_napari.setVisible(True)
-
+            # self.pushButton_view_all_in_napari.setVisible(True)
+            pass
         print("updating simulation display")
         print(df)
 
@@ -216,12 +224,52 @@ class GUIVisualiseResults(VisualiseResults.Ui_MainWindow, QtWidgets.QMainWindow)
         if self.checkBox_log_plots.isChecked():
             LOGARITHMIC_PLOTS = True
 
+
+        # results table
+        if self.table_view is None:
+            self.table_view = QTableView()
+            self.table_view.horizontalHeader().setStretchLastSection(True)
+            self.table_view.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+            self.tableLayout.addWidget(self.table_view)
+
+
+        df = df.drop(columns=["path"])
+        model = pandasModel(df)
+        self.table_view.setModel(model)
+        self.tableLayout.update()
+
+
+        return 
         runGridLayout = draw_run_layout(df=df, logarithmic=LOGARITHMIC_PLOTS)
         runBox = QGroupBox(f"")
         runBox.setLayout(runGridLayout)
 
         self.scroll_area.setWidget(runBox)
         self.scroll_area.update()
+
+
+    def view_simulation_result(self):
+
+        sim_name = self.comboBox_napari_sim.currentText()
+
+        print(f"Opening sim: {sim_name} in napari")
+
+        path = os.path.join(self.directory, sim_name)
+        sim = plotting.load_full_sim_propagation_v2(path)
+
+        SCALE_DIM = 0.01
+
+        # TODO: decide whether to only show one at a time or add?
+        self.viewer.layers.clear()
+        try:
+            try:
+                self.viewer.layers[sim_name].data = sim 
+            except KeyError as e:
+                self.viewer.add_image(sim, name=sim_name, colormap="turbo", rendering="average", scale=[1, SCALE_DIM, SCALE_DIM])
+               
+        except Exception as e:
+            napari.utils.notifications.show_error(f"Failure to load viewer: {traceback.exc()}")
+
 
     def open_sim_in_napari(self):
 

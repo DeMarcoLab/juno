@@ -6,19 +6,19 @@ from pprint import pprint
 
 import juno
 import juno.ui.qtdesigner_files.SimulationSetup as SimulationSetup
-import matplotlib.pyplot as plt
-import numpy as np
+# import matplotlib.pyplot as plt
+# import numpy as np
 import yaml
 from juno import plotting, utils, validation
-from juno.beam import generate_beam
-from juno.Simulation import generate_simulation_parameters
+# from juno.beam import generate_beam
+# from juno.Simulation import generate_simulation_parameters
 from juno.ui.ParameterSweep import GUIParameterSweep
 from juno.ui.utils import display_error_message
 from PyQt5 import QtCore, QtGui, QtWidgets
-from PyQt5.QtGui import QPixmap
 from PyQt5.QtWidgets import (QCheckBox, QFileDialog, QGridLayout, QGroupBox,
                              QLabel, QLineEdit, QPushButton, QVBoxLayout)
-
+import napari
+import napari.utils.notifications
 
 class GUISimulationSetup(SimulationSetup.Ui_MainWindow, QtWidgets.QMainWindow):
     def __init__(self, viewer = None, parent_gui=None):
@@ -27,6 +27,7 @@ class GUISimulationSetup(SimulationSetup.Ui_MainWindow, QtWidgets.QMainWindow):
         self.statusBar = QtWidgets.QStatusBar()
         self.setStatusBar(self.statusBar)
         self.setWindowTitle("Simulation Setup")
+        
 
         self.viewer = viewer
 
@@ -134,9 +135,10 @@ class GUISimulationSetup(SimulationSetup.Ui_MainWindow, QtWidgets.QMainWindow):
 
             config = utils.load_config(sim_config_filename)
 
-            self.statusBar.showMessage(f"Simulation config loaded from {sim_config_filename}")
+            # self.statusBar.showMessage(f"Simulation config loaded from {sim_config_filename}")
+            self.update_status(f"Simulation config loaded from {sim_config_filename}")
 
-            print("loaded config")
+            # print("loaded config")
             # TODO: how to handle partial configs??? throw error? this will fail if sim isnt valid...
 
             # load config values into ui....
@@ -165,56 +167,57 @@ class GUISimulationSetup(SimulationSetup.Ui_MainWindow, QtWidgets.QMainWindow):
 
     def update_status(self, msg= "Generating Simulation Configuration..."):
         """update status within button press..."""
-        self.statusBar.showMessage(msg)
-        self.statusBar.repaint()
+        # self.statusBar.showMessage(msg)
+        # self.statusBar.repaint()
+        napari.utils.notifications.show_info(msg)
+
 
     def generate_simulation_config(self):
         # TODO: need to check if things are loaded...
         
-        self.update_status(msg="Generating Simulation Configuration...")
+        napari.utils.notifications.show_info("Generating Simulation Configuration...")
         try:
 
             self.update_simulation_config()
             self.read_stage_input_values()
 
             validation._validate_simulation_config(self.simulation_config)
-            self.update_status(msg=f"Valid Simulation Configuration. Plotting Setup...")
+            napari.utils.notifications.show_info(f"Valid Simulation Configuration. Plotting Setup...")
             self.draw_simulation_stage_display()
 
             self.pushButton_setup_parameter_sweep.setEnabled(True)
             self.pushButton_save_sim_config.setEnabled(True)
 
-            self.update_status(msg=f"Generate Simulation Configuration Finished.")
+            napari.utils.notifications.show_info(f"Generate Simulation Configuration Finished.")
 
         except Exception as e:
-            self.statusBar.showMessage(f"Invalid Simulation Configuration...")
-            display_error_message(f"Invalid simulation config. \n{e}")
+            # self.statusBar.showMessage(f"Invalid Simulation Configuration...")
+            # display_error_message(f"Invalid simulation config. \n{e}")
+            napari.utils.notifications.show_error(f"Invalid simulation config. \n{e}")
             self.pushButton_setup_parameter_sweep.setEnabled(False)
             self.pushButton_save_sim_config.setEnabled(False)
-            self.statusBar.clearMessage()
+            # self.statusBar.clearMessage()
 
 
 
     def draw_simulation_stage_display(self):
 
-        # Think this can only be called once? why?  
+        # TODO: napari status bar?
 
-        # show sim overview
-        # show lens
-        # show beam
-
-        arr = plotting.plot_simulation_setup_v2(self.simulation_config)
-
-        # arr = np.random.random(size=(500, 500))
+        arr_elements = plotting.plot_simulation_setup_v2(self.simulation_config)
+        arr_medium = plotting.plot_simulation_setup_v2(self.simulation_config, medium_only=True)
 
         try:
             try:
-                self.viewer.layers["Simulation Structure"].data = arr 
+                self.viewer.layers["Simulation Medium"].data = arr_medium
+                self.viewer.layers["Simulation Elements"].data = arr_elements 
             except KeyError as e:
-                self.viewer.add_image(arr, name="Simulation Structure", colormap="turbo")
+                self.viewer.add_image(arr_medium, name="Simulation Medium", colormap="magma", opacity=0.5, rendering="iso")
+                self.viewer.add_image(arr_elements, name="Simulation Elements", colormap="gray", rendering="iso")
+
                
         except Exception as e:
-            display_error_message(f"Failure to load viewer: {traceback.exc()}")
+            napari.utils.notifications.show_error(f"Failure to load viewer: {traceback.exc()}")
 
 
     def read_stage_input_values(self):
@@ -592,9 +595,9 @@ def load_stage_config_widgets(config, all_widgets):
             widgets[12].setText(str(stage_config["focal_distance_start_multiple"]))
             widgets[14].setText(str(stage_config["focal_distance_multiple"]))
 
-def update_status(statusBar, msg):
-    statusBar.clearMessage()
-    statusBar.showMessage(msg)
+# def update_status(statusBar, msg):
+    # statusBar.clearMessage()
+    # statusBar.showMessage(msg)
 
 
 def main():
