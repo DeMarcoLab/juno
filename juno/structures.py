@@ -6,6 +6,7 @@ from dataclasses import dataclass
 import numpy as np
 
 
+# TODO: add @staticmethods for __to_dict__, __from_dict__
 
 @dataclass
 class SimulationParameters:

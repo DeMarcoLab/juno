@@ -7,14 +7,13 @@ import imageio
 import matplotlib.pyplot as plt
 import numpy as np
 import zarr
-from PIL import Image, ImageDraw
 import dask.array as da
 
 from juno import utils
-from juno.Lens import Lens
+from juno.Lens import Lens, generate_lens
 from juno.structures import (SimulationParameters, SimulationResult,
                                         SimulationStage)
-
+from juno.beam import Beam, generate_beam
 import napari
 
 
@@ -464,13 +463,26 @@ def plot_lens_modifications(lens: Lens) -> plt.Figure:
 
     return fig
 
-
-def plot_simulation_setup(config: dict) -> plt.Figure:
-    # TODO: redo this function to use zarr
+def plot_simulation_setup_v2(config: dict) -> plt.Figure:
+    # TODO: redo this function to use zarr, dask, 1D array for speed?
     arr = None
     sim_height = config["sim_parameters"]["sim_height"]
     pixel_size = config["sim_parameters"]["pixel_size"]
+    sim_wavelength = config["sim_parameters"]["sim_wavelength"]
     sim_n_pixels_h = utils._calculate_num_of_pixels(sim_height, pixel_size, True)
+
+    # TODO: add beam?    
+    import dask.array as da
+    from pprint import pprint
+    from juno.Medium import Medium
+    from juno.Simulation import generate_simulation_parameters
+    pprint(config["beam"])
+
+    parameters = generate_simulation_parameters(config)
+    beam: Beam = generate_beam(config["beam"], parameters)
+
+    n_pixels_beam = 20
+    arr = da.stack([np.clip(beam.lens.profile, 0, 10e-6)] * n_pixels_beam)
 
     for conf in config["stages"]:
 
@@ -479,7 +491,7 @@ def plot_simulation_setup(config: dict) -> plt.Figure:
         sd = conf["start_distance"]
         fd = conf["finish_distance"]
         total = fd - sd
-        n_pixels = utils._calculate_num_of_pixels(total, pixel_size, True)
+        n_pixels_output = utils._calculate_num_of_pixels(total, pixel_size, True)
 
         # get lens info
         lens_name = conf["lens"]
@@ -487,29 +499,30 @@ def plot_simulation_setup(config: dict) -> plt.Figure:
             if lens_name == lc["name"]:
                 lens_height = lc["height"]
                 lens_medium = lc["medium"]
+                lens = generate_lens(lc,   Medium(lens_medium, sim_wavelength), pixel_size)
                 break
 
         lens_n_pixels_z = utils._calculate_num_of_pixels(lens_height, pixel_size, True)
 
         # create arr
-        output = np.ones(shape=(sim_n_pixels_h, n_pixels)) * output_medium
-        lens = np.ones(shape=(sim_n_pixels_h, lens_n_pixels_z)) * lens_medium
+        profile = da.stack([lens.profile] * lens_n_pixels_z)
+        output = da.stack([da.zeros_like(lens.profile)] * n_pixels_output) #* output_medium
 
-        if arr is None:
-            arr = np.hstack([lens, output])
-        else:
-            arr = np.hstack([arr, lens, output])
+        arr = da.vstack([arr, profile, output])
+    # TODO: show lens in 3d?
 
-    # create plot
-    fig = plt.figure(figsize=(10, 2))
-    plt.imshow(arr, aspect="auto", cmap="turbo")
-    clb = plt.colorbar()
-    clb.ax.set_title("Medium")
-    plt.title("Simulation Stages")
-    plt.xlabel("Propagation Distance (px)")
-    plt.ylabel("Simulation Height (px)")
-    # TODO: correct the propagation distances to mm
-    return fig
+
+    sim_width = config["sim_parameters"]["sim_width"]
+    sim_n_pixels_w = utils._calculate_num_of_pixels(sim_width, pixel_size, True)
+
+    print(sim_width , sim_n_pixels_w)
+
+    print(arr.shape)
+    # arr = da.stack([arr]*sim_n_pixels_w, axis=2)
+    print(arr.shape)
+
+    return arr
+
 
 
 def check_simulations_are_stackable(paths):

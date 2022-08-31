@@ -34,8 +34,6 @@ class GUILensSimulation(LensSimulation.Ui_MainWindow, QtWidgets.QMainWindow):
         self.pushButton_run_simulation.clicked.connect(self.launch_run_simulation)
         self.pushButton_view_results.clicked.connect(self.launch_view_results)
        
-    # TODO: properly remove from dock on close?
-
     def launch_lens_creation(self):
 
         print("launch lens creation")

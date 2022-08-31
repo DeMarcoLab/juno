@@ -251,7 +251,6 @@ class GUIElementCreation(ElementCreation.Ui_MainWindow, QtWidgets.QMainWindow):
 
     def update_config(self):
 
-        # TODO: default values
         # try except block
 
         lens_config = {}
@@ -359,11 +358,9 @@ class GUIElementCreation(ElementCreation.Ui_MainWindow, QtWidgets.QMainWindow):
         # https://forum.image.sc/t/update-refresh-a-layer-in-napari-julia-napari-jl/59728
         print("update_layer")
 
-        # TODO: check the lens and arr3d are valid here... otherwise dont update
         # TODO: set lens layer as active
         # TODO: find a better way to set the initial view iamges... probably better to separate
         # TODO: load profile
-        # TODO: do better validation, so that the viewer doesnt crash
 
         # update layer in place 
         try:

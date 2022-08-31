@@ -198,7 +198,6 @@ def load_simulation_data(path):
 
     return df_join
 
-
 def load_run_simulation_data(directory):
     """Join all simulations metadata into a single dataframe
 
