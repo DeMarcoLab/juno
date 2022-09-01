@@ -22,6 +22,7 @@ from juno import plotting, utils, validation
 from juno.Lens import LensType, Medium, generate_lens
 from juno.ui.utils import display_error_message
 from PyQt5 import QtWidgets
+import napari.utils.notifications
 
 default_lens_config = {
     "name": "Lens", 
@@ -227,7 +228,7 @@ class GUIElementCreation(ElementCreation.Ui_MainWindow, QtWidgets.QMainWindow):
             try:
                 self.update_ui_from_config(self.lens_config)
             except:
-                display_error_message(traceback.format_exc())
+                napari.utils.notifications.show_error(traceback.format_exc())
             
             self.update_layer() 
 
@@ -314,7 +315,7 @@ class GUIElementCreation(ElementCreation.Ui_MainWindow, QtWidgets.QMainWindow):
         try:
             self.update_config()
         except Exception as e:
-            print(f"ERROR: {traceback.format_exc()}")
+            napari.utils.notifications.show_error(f"ERROR: {traceback.format_exc()}")
             return
 
         lens = None
@@ -326,7 +327,7 @@ class GUIElementCreation(ElementCreation.Ui_MainWindow, QtWidgets.QMainWindow):
             pixelsize = float(self.lineEdit_pixelsize.text())
 
             if pixelsize * self.lens_config["diameter"]  > 10000:
-                display_error_message(f"Lens dimensions are too large to display")
+                napari.utils.notifications.show_error(f"Lens dimensions are too large to display")
                 return
 
 
@@ -340,7 +341,7 @@ class GUIElementCreation(ElementCreation.Ui_MainWindow, QtWidgets.QMainWindow):
                 lens.truncation_mask = np.zeros_like(lens.profile)
 
         except Exception as e:
-            print(f"ERROR: {traceback.format_exc()}")
+            napari.utils.notifications.show_error(f"ERROR: {traceback.format_exc()}")
 
             return
 
@@ -348,6 +349,7 @@ class GUIElementCreation(ElementCreation.Ui_MainWindow, QtWidgets.QMainWindow):
         if lens is None or arr3d is None:
             return        
 
+        self.viewer.dims.ndisplay = 3
         self.viewer.axes.visible = True
         self.viewer.axes.colored = False
         self.viewer.axes.dashed = True
@@ -365,17 +367,17 @@ class GUIElementCreation(ElementCreation.Ui_MainWindow, QtWidgets.QMainWindow):
         # update layer in place 
         try:
             try:
-                self.viewer.layers["Lens"].data = arr3d
                 self.viewer.layers["Aperture Mask"].data = lens.aperture
-                self.viewer.layers["Grating Mask"].data = lens.grating_mask
                 self.viewer.layers["Truncation Mask"].data = lens.truncation_mask
+                self.viewer.layers["Grating Mask"].data = lens.grating_mask
+                self.viewer.layers["Element"].data = arr3d
             except KeyError as e:
-                self.viewer.add_image(arr3d, name="Lens", colormap="gray", rendering="iso", depiction="volume")
                 self.viewer.add_image(lens.aperture, name="Aperture Mask", opacity=0.4, colormap="yellow", rendering="translucent")
                 self.viewer.add_image(lens.truncation_mask, name="Truncation Mask", opacity=0.4, colormap="cyan", rendering="translucent")
                 self.viewer.add_image(lens.grating_mask, name="Grating Mask", opacity=0.4, colormap="green", rendering="translucent")
+                self.viewer.add_image(arr3d, name="Element", colormap="gray", rendering="iso", depiction="volume")
         except Exception as e:
-            display_error_message(f"Failure to load viewer: {traceback.exc()}")
+            napari.utils.notifications.show_error(f"Failure to load viewer: {traceback.format_exc()}")
 
 
 def main():

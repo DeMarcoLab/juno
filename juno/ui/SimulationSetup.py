@@ -202,7 +202,7 @@ class GUISimulationSetup(SimulationSetup.Ui_MainWindow, QtWidgets.QMainWindow):
 
     def draw_simulation_stage_display(self):
 
-        # TODO: napari status bar?
+        self.viewer.dims.ndisplay = 3
 
         arr_elements = plotting.plot_simulation_setup_v2(self.simulation_config)
         arr_medium = plotting.plot_simulation_setup_v2(self.simulation_config, medium_only=True)
@@ -217,7 +217,7 @@ class GUISimulationSetup(SimulationSetup.Ui_MainWindow, QtWidgets.QMainWindow):
 
                
         except Exception as e:
-            napari.utils.notifications.show_error(f"Failure to load viewer: {traceback.exc()}")
+            napari.utils.notifications.show_error(f"Failure to load viewer: {traceback.format_exc()}")
 
 
     def read_stage_input_values(self):
@@ -306,7 +306,7 @@ class GUISimulationSetup(SimulationSetup.Ui_MainWindow, QtWidgets.QMainWindow):
             self.simulation_config["lenses"].append(lens_config)
             self.sender().setText(f"{lens_config['name']}")
         except Exception as e:
-            display_error_message(f"Invalid config. \n{e}")
+            napari.utils.notifications.show_error(f"Invalid config. \n{e}")
 
     def load_beam_config(self):
 
@@ -329,7 +329,7 @@ class GUISimulationSetup(SimulationSetup.Ui_MainWindow, QtWidgets.QMainWindow):
                 f"{Path(beam_config_filename).stem}"
             )
         except Exception as e:
-            display_error_message(f"Invalid config. \n{e}")
+            napari.utils.notifications.show_error(f"Invalid config. \n{e}")
 
     def update_stage_input_display(self):
 

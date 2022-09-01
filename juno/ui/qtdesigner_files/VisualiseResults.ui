@@ -36,50 +36,18 @@
        <enum>QFrame::Raised</enum>
       </property>
       <layout class="QGridLayout" name="gridLayout_2">
-       <item row="4" column="0">
-        <widget class="QLabel" name="label_filter_title">
-         <property name="font">
-          <font>
-           <pointsize>12</pointsize>
-           <weight>75</weight>
-           <bold>true</bold>
-          </font>
+       <item row="7" column="0">
+        <spacer name="verticalSpacer_2">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
          </property>
-         <property name="text">
-          <string>Filter Results</string>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>30</height>
+          </size>
          </property>
-        </widget>
-       </item>
-       <item row="10" column="0">
-        <widget class="QPushButton" name="pushButton_open_napari">
-         <property name="text">
-          <string>View in Napari</string>
-         </property>
-        </widget>
-       </item>
-       <item row="9" column="0">
-        <widget class="QComboBox" name="comboBox_napari_sim"/>
-       </item>
-       <item row="3" column="0">
-        <widget class="QLabel" name="label_sim_no_loaded">
-         <property name="text">
-          <string/>
-         </property>
-        </widget>
-       </item>
-       <item row="0" column="0">
-        <widget class="QLabel" name="label_title">
-         <property name="font">
-          <font>
-           <pointsize>20</pointsize>
-           <weight>75</weight>
-           <bold>true</bold>
-          </font>
-         </property>
-         <property name="text">
-          <string>Simulation Results</string>
-         </property>
-        </widget>
+        </spacer>
        </item>
        <item row="5" column="0">
         <widget class="QFrame" name="frame_filter">
@@ -101,13 +69,6 @@
            <widget class="QPushButton" name="pushButton_reset_data">
             <property name="text">
              <string>Reset Data</string>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="0">
-           <widget class="QCheckBox" name="checkBox_log_plots">
-            <property name="text">
-             <string>Logarithmic Plots</string>
             </property>
            </widget>
           </item>
@@ -177,20 +138,62 @@
          </layout>
         </widget>
        </item>
-       <item row="7" column="0">
-        <spacer name="verticalSpacer_2">
-         <property name="orientation">
-          <enum>Qt::Vertical</enum>
+       <item row="2" column="0">
+        <widget class="QPushButton" name="pushButton_load_simulation">
+         <property name="text">
+          <string>Load Simulation</string>
          </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>20</width>
-           <height>30</height>
-          </size>
+        </widget>
+       </item>
+       <item row="4" column="0">
+        <widget class="QLabel" name="label_filter_title">
+         <property name="font">
+          <font>
+           <pointsize>12</pointsize>
+           <weight>75</weight>
+           <bold>true</bold>
+          </font>
          </property>
-        </spacer>
+         <property name="text">
+          <string>Filter Results</string>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="0">
+        <widget class="QLabel" name="label_sim_no_loaded">
+         <property name="text">
+          <string/>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="0">
+        <widget class="QLabel" name="label_title">
+         <property name="font">
+          <font>
+           <pointsize>20</pointsize>
+           <weight>75</weight>
+           <bold>true</bold>
+          </font>
+         </property>
+         <property name="text">
+          <string>Simulation Results</string>
+         </property>
+        </widget>
+       </item>
+       <item row="10" column="0">
+        <widget class="QComboBox" name="comboBox_napari_sim"/>
        </item>
        <item row="11" column="0">
+        <widget class="QPushButton" name="pushButton_open_napari">
+         <property name="text">
+          <string>View All Simulations</string>
+         </property>
+        </widget>
+       </item>
+       <item row="8" column="0">
+        <layout class="QVBoxLayout" name="tableLayout"/>
+       </item>
+       <item row="14" column="0">
         <spacer name="verticalSpacer">
          <property name="orientation">
           <enum>Qt::Vertical</enum>
@@ -210,15 +213,52 @@
          </property>
         </widget>
        </item>
-       <item row="2" column="0">
-        <widget class="QPushButton" name="pushButton_load_simulation">
-         <property name="text">
-          <string>Load Simulation</string>
-         </property>
-        </widget>
-       </item>
-       <item row="8" column="0">
-        <layout class="QVBoxLayout" name="tableLayout"/>
+       <item row="9" column="0">
+        <layout class="QGridLayout" name="gridLayout_3">
+         <item row="3" column="1">
+          <widget class="QDoubleSpinBox" name="doubleSpinBox_scale">
+           <property name="minimum">
+            <double>0.000000000000000</double>
+           </property>
+           <property name="maximum">
+            <double>1000.000000000000000</double>
+           </property>
+           <property name="singleStep">
+            <double>0.001000000000000</double>
+           </property>
+           <property name="value">
+            <double>1.000000000000000</double>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="0">
+          <widget class="QCheckBox" name="checkBox_log_plots">
+           <property name="text">
+            <string>Logarithmic Plots</string>
+           </property>
+          </widget>
+         </item>
+         <item row="3" column="0">
+          <widget class="QLabel" name="label_vis_scale">
+           <property name="text">
+            <string>Visualisation Scale</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="0">
+          <widget class="QLabel" name="label_vis_header">
+           <property name="font">
+            <font>
+             <weight>75</weight>
+             <bold>true</bold>
+            </font>
+           </property>
+           <property name="text">
+            <string>Visualisation Options</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
        </item>
       </layout>
      </widget>
