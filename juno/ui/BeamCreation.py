@@ -1,35 +1,23 @@
 
-# DONE
-# create 
-# load config
-# save config
-# load profile
-
-## features
-# custom profile (load)
-# QOL: disable useless options
-
 import os
 import sys
 import traceback
 from pprint import pprint
-from juno import beam
 
 import juno.ui.qtdesigner_files.BeamCreation as BeamCreation
 import napari
+import napari.utils.notifications
 import numpy as np
 import yaml
-from juno import plotting, utils, validation
-from PyQt5 import QtWidgets
-import napari.utils.notifications
-
-from juno.Simulation import (generate_beam_simulation_stage, calculate_stage_phase, 
-        calculate_wavefront_v2, propagate_wavefront_v2)
+from juno import beam, plotting, utils, validation
+from juno.beam import BeamShape, BeamSpread, DistanceMode
+from juno.Simulation import (calculate_stage_phase, calculate_wavefront_v2,
+                             generate_beam_simulation_stage,
+                             generate_simulation_parameters,
+                             propagate_wavefront_v2)
 from juno.structures import SimulationOptions
-from juno.Simulation import generate_simulation_parameters
+from PyQt5 import QtWidgets
 
-
-from juno.beam import Beam, BeamShape, BeamSpread, DistanceMode, generate_beam 
 
 class GUIBeamCreation(BeamCreation.Ui_MainWindow, QtWidgets.QMainWindow):
     def __init__(self, parent=None, viewer: napari.Viewer = None):
@@ -75,7 +63,6 @@ class GUIBeamCreation(BeamCreation.Ui_MainWindow, QtWidgets.QMainWindow):
         # tilt
         self.lineEdit_tilt_x.textChanged.connect(self.update_layer)
         self.lineEdit_tilt_y.textChanged.connect(self.update_layer)
-
 
         # gaussian
         self.checkBox_gaussian_enabled.toggled.connect(self.update_layer)
@@ -147,10 +134,10 @@ class GUIBeamCreation(BeamCreation.Ui_MainWindow, QtWidgets.QMainWindow):
         # simulation
         if config["step_size"] is None:
             self.comboBox_propagation_type.setCurrentText("Step Size")
-            self.lineEdit_beam_width.setText(str(config["step_size"]))
+            self.lineEdit_propagation_step.setText(str(config["step_size"]))
         else:
             self.comboBox_propagation_type.setCurrentText("Num Steps")
-            self.lineEdit_beam_width.setText(str(config["n_steps"]))
+            self.lineEdit_propagation_step.setText(str(config["n_steps"]))
 
 
         self.update_ui_components()
@@ -326,32 +313,28 @@ class GUIBeamCreation(BeamCreation.Ui_MainWindow, QtWidgets.QMainWindow):
             parameters = generate_simulation_parameters(self.config)
             stage = generate_beam_simulation_stage(self.config, parameters)
 
+            # TODO: use the actual propgation from sim, not this mess
             if stage.wavefront is not None:
-                propagation = stage.wavefront
+                previous_wavefront = stage.wavefront
 
-                previous_wavefront = propagation
+            # calculate stage phase profile
+            phase = calculate_stage_phase(stage, parameters)
 
-                # calculate stage phase profile
-                phase = calculate_stage_phase(stage, parameters)
+            # electric field (wavefront)
+            amplitude: float = parameters.A if stage._id == 0 else 1.0
+            wavefront = calculate_wavefront_v2(
+                phase=phase,
+                previous_wavefront=previous_wavefront,
+                A=amplitude,
+                aperture=stage.lens.aperture,
+            ) 
 
-                # electric field (wavefront)
-                amplitude: float = parameters.A if stage._id == 0 else 1.0
-                wavefront = calculate_wavefront_v2(
-                    phase=phase,
-                    previous_wavefront=previous_wavefront,
-                    A=amplitude,
-                    aperture=stage.lens.aperture,
-                ) 
-
-                ## propagate wavefront #TODO: replace with v3 (vectorised)
-                result = propagate_wavefront_v2(wavefront=wavefront, 
-                                    stage=stage, 
-                                    parameters=parameters, 
-                                    options=options)
-                
-                # pass the wavefront to the next stage
-                propagation = result.propagation
-
+            ## propagate wavefront #TODO: replace with v3 (vectorised)
+            result = propagate_wavefront_v2(wavefront=wavefront, 
+                                stage=stage, 
+                                parameters=parameters, 
+                                options=options)
+            
         except:
             napari.utils.notifications.show_error(f"Failure to propagate wavefron: {traceback.format_exc()}")
             return
@@ -369,7 +352,8 @@ class GUIBeamCreation(BeamCreation.Ui_MainWindow, QtWidgets.QMainWindow):
         try:
             path = os.path.join(options.log_dir, str(stage._id), "sim.zarr")
             print("path:", path)
-            sim = utils.load_simulation(path)
+            import dask.array as da
+            sim = da.from_zarr(utils.load_simulation(path))
 
         except:
             napari.utils.notifications.show_error(f"Failure to load simulation: {traceback.format_exc()}")

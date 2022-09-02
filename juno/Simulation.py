@@ -74,6 +74,7 @@ class Simulation:
         petname = config["petname"]
         sim_id = config["sim_id"]
 
+        # TODO: extract from the class
         progress_bar = tqdm(sim_stages, leave=False)
         for stage in progress_bar:
 
