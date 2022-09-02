@@ -45,7 +45,6 @@ class GUIBeamCreation(BeamCreation.Ui_MainWindow, QtWidgets.QMainWindow):
         self.setup_connections()
 
         # # update ui parameters and viz
-        # self.update_ui_from_config(validated_default_config)
         self.update_layer()
         self.show()
 
@@ -77,6 +76,14 @@ class GUIBeamCreation(BeamCreation.Ui_MainWindow, QtWidgets.QMainWindow):
         self.lineEdit_tilt_x.textChanged.connect(self.update_layer)
         self.lineEdit_tilt_y.textChanged.connect(self.update_layer)
 
+
+        # gaussian
+        self.checkBox_gaussian_enabled.toggled.connect(self.update_layer)
+        self.lineEdit_gaussian_waist_x.textChanged.connect(self.update_layer)
+        self.lineEdit_gaussian_waist_y.textChanged.connect(self.update_layer)
+        self.lineEdit_gaussian_axial_z0.textChanged.connect(self.update_layer)
+        self.lineEdit_gaussian_axial_z_total.textChanged.connect(self.update_layer)
+        
         # simulation
         self.lineEdit_pixelsize.textChanged.connect(self.update_layer)
         self.lineEdit_sim_width.textChanged.connect(self.update_layer)
@@ -90,74 +97,67 @@ class GUIBeamCreation(BeamCreation.Ui_MainWindow, QtWidgets.QMainWindow):
         self.pushButton_load_config.clicked.connect(self.load_config)
         self.pushButton_save_config.clicked.connect(self.save_config)
 
-
-    def load_config(self):
-
-        print("load config")
-
-    def save_config(self):
-
-        print("save config")
-
     # def testing_function(self):
 
     #     print("testing function!!")
 
-    # def update_ui_from_config(self, config: dict):
+    def update_ui_from_config(self, config: dict):
+        # read the config, update ui elements...
 
-    #     self.CONFIG_UPDATE = True
+        self.CONFIG_UPDATE = True
 
-    #     # general
-    #     self.lineEdit_pixelsize.setText(str(1e-6))
-    #     self.lineEdit_diameter.setText(str(config["diameter"]))
-    #     self.lineEdit_length.setText(str(config["length"]))
-    #     self.lineEdit_height.setText(str(config["height"]))
-    #     self.lineEdit_medium.setText(str(config["medium"]))
-    #     self.lineEdit_exponent.setText(str(config["exponent"]))
-    #     self.lineEdit_escape_path.setText(str(config["escape_path"]))
-    #     self.comboBox_type.setCurrentText(str(config["lens_type"]).capitalize())
-    #     self.checkBox_invert_profile.setChecked(bool(config["inverted"]))
-    #     self.lineEdit_name.setText(str(config["name"]))
+        # general
+        self.lineEdit_beam_width.setText(str(config["width"]))
+        self.lineEdit_beam_height.setText(str(config["height"]))
+        self.lineEdit_shift_x.setText(str(config["position_x"]))
+        self.lineEdit_shift_y.setText(str(config["position_y"]))
 
-    #     # grating
-    #     use_grating =  bool(config["grating"])
-    #     self.checkBox_use_grating.setChecked(use_grating)
-    #     if use_grating:
-    #         self.lineEdit_grating_width.setText(str(config["grating"]["width"]))
-    #         self.lineEdit_grating_distance.setText(str(config["grating"]["distance"]))
-    #         self.lineEdit_grating_depth.setText(str(config["grating"]["depth"]))
-    #         self.checkBox_grating_x_axis.setChecked(bool(config["grating"]["x"]))
-    #         self.checkBox_grating_y_axis.setChecked(bool(config["grating"]["y"]))
-    #         self.checkBox_grating_centred.setChecked(bool(config["grating"]["centred"]))
+        self.comboBox_shape.setCurrentText(str(config["shape"]))
+        self.comboBox_spread.setCurrentText(str(config["spread"]))
 
-    #     # # truncation
-    #     use_truncation = bool(config["truncation"])
-    #     self.checkBox_use_truncation.setChecked(use_truncation)
-    #     if use_truncation:
-    #         truncation_mode = str(config["truncation"]["type"])
-    #         self.comboBox_truncation_mode.setCurrentText(truncation_mode.capitalize())
-    #         if truncation_mode == "value":
-    #             self.lineEdit_truncation_value.setText(str(config["truncation"]["height"]))
-    #         if truncation_mode == "radial":
-    #             self.lineEdit_truncation_value.setText(str(config["truncation"]["radius"]))
-    #         self.checkBox_truncation_aperture.setChecked(bool(config["truncation"]["aperture"]))
+        if config["numerical_aperture"] is None:
+            self.comboBox_convergence.setCurrentText("Theta")
+            self.lineEdit_convergence_value.setText(str(config["theta"]))       
+        else:
+            self.comboBox_convergence.setCurrentText("Numerical Aperture")
+            self.lineEdit_convergence_value.setText(str(config["numerical_aperture"]))
+
+        self.lineEdit_tilt_x.setText(str(config["tilt_x"]))
+        self.lineEdit_tilt_y.setText(str(config["tilt_y"]))
 
 
-    #     # # aperture
-    #     use_aperture = bool(config["aperture"])
-    #     self.checkBox_use_aperture.setChecked(use_aperture)
-    #     if use_aperture:
-    #         aperture_mode = str(config["aperture"]["type"])
-    #         self.comboBox_aperture_mode.setCurrentText(aperture_mode.capitalize())
-    #         self.lineEdit_aperture_inner.setText(str(config["aperture"]["inner"]))
-    #         self.lineEdit_aperture_outer.setText(str(config["aperture"]["outer"]))
-    #         self.checkBox_aperture_invert.setChecked(bool(config["aperture"]["invert"]))
+        self.comboBox_distance_mode.setCurrentText(str(config["distance_mode"]))    
+        if config["distance_mode"] == "Direct":
+            distance_value = config["source_distance"]
+        if config["distance_mode"] == "Diameter":
+            distance_value = config["final_diameter"]
+        if config["distance_mode"] == "Focal":
+            distance_value = config["focal_multiple"]
+        self.lineEdit_distance_value.setText(str(distance_value))
+        
 
-    #     # self.update_ui_components()
+        # gaussian
+        use_gaussian = config["operator"] == "Gaussian"
+        self.checkBox_gaussian_enabled.setChecked(use_gaussian)
+        self.lineEdit_gaussian_waist_x.setText(str(config["gaussian_wx"]))
+        self.lineEdit_gaussian_waist_y.setText(str(config["gaussian_wy"]))
+        self.lineEdit_gaussian_axial_z0.setText(str(config["gaussian_z0"]))
+        self.lineEdit_gaussian_axial_z_total.setText(str(config["gaussian_z"]))
 
-    #     self.CONFIG_UPDATE = False
+        # simulation
+        if config["step_size"] is None:
+            self.comboBox_propagation_type.setCurrentText("Step Size")
+            self.lineEdit_beam_width.setText(str(config["step_size"]))
+        else:
+            self.comboBox_propagation_type.setCurrentText("Num Steps")
+            self.lineEdit_beam_width.setText(str(config["n_steps"]))
 
-    #     return
+
+        self.update_ui_components()
+
+        self.CONFIG_UPDATE = False
+
+        return
 
 
     def update_ui_components(self):
@@ -195,59 +195,32 @@ class GUIBeamCreation(BeamCreation.Ui_MainWindow, QtWidgets.QMainWindow):
             self.label_distance_value.setText("Focal Multiple")
             
 
-    #     # enable / disable grating components
-    #     use_grating = self.checkBox_use_grating.isChecked()
-    #     self.lineEdit_grating_width.setEnabled(use_grating)
-    #     self.lineEdit_grating_distance.setEnabled(use_grating)
-    #     self.lineEdit_grating_depth.setEnabled(use_grating)
-    #     self.checkBox_grating_x_axis.setEnabled(use_grating)
-    #     self.checkBox_grating_y_axis.setEnabled(use_grating)
-    #     self.checkBox_grating_centred.setEnabled(use_grating)
+    def load_config(self):
 
-    #     # enable / disable truncation components
-    #     use_truncation = self.checkBox_use_truncation.isChecked()
-    #     self.comboBox_truncation_mode.setEnabled(use_truncation)
-    #     self.lineEdit_truncation_value.setEnabled(use_truncation)
-    #     self.lineEdit_truncation_value.setEnabled(use_truncation)
-    #     self.checkBox_truncation_aperture.setEnabled(use_truncation)
+        print("load config...")
 
-    #     # enable / disable aperture components   
-    #     use_aperture = self.checkBox_use_aperture.isChecked()
-    #     self.comboBox_aperture_mode.setEnabled(use_aperture)
-    #     self.lineEdit_aperture_inner.setEnabled(use_aperture)
-    #     self.lineEdit_aperture_outer.setEnabled(use_aperture)
-    #     self.checkBox_aperture_invert.setEnabled(use_aperture)
+        filename, _ = QtWidgets.QFileDialog.getOpenFileName(
+            self,
+            "Load Configuration",
+            filter="All types (*.yml *.yaml *.npy) ;;Yaml config (*.yml *.yaml) ;;Numpy array (*.npy)",
+        )
 
-    # def load_profile(self):
+        if filename == "":
+            return
 
-    #     print("load profile...")
+        print("beam configuration")
+        beam_config = utils.load_yaml_config(filename)
+        
+        # validate config...
+        beam_config = validation._validate_default_beam_config(beam_config)
 
-    #     filename, _ = QtWidgets.QFileDialog.getOpenFileName(
-    #         self,
-    #         "Load Profile",
-    #         filter="All types (*.yml *.yaml *.npy) ;;Yaml config (*.yml *.yaml) ;;Numpy array (*.npy)",
-    #     )
-
-    #     if filename == "":
-    #         return
-
-    #     if filename.endswith(".npy"):
-    #         print("numpy file... TODO: custom profile load")
-
-    #     else:
-    #         print("lens configuration")
-    #         self.lens_config = utils.load_yaml_config(filename)
+        # validate config?
+        try:
+            self.update_ui_from_config(beam_config)
+        except:
+            napari.utils.notifications.show_error(traceback.format_exc())
             
-    #         # validate config...
-    #         self.lens_config = validation._validate_default_lens_config(self.lens_config)
-
-    #         # validate config?
-    #         try:
-    #             self.update_ui_from_config(self.lens_config)
-    #         except:
-    #             napari.utils.notifications.show_error(traceback.format_exc())
-            
-    #         self.update_layer() 
+        self.update_layer() 
 
     def save_config(self):
 
@@ -267,8 +240,6 @@ class GUIBeamCreation(BeamCreation.Ui_MainWindow, QtWidgets.QMainWindow):
             yaml.safe_dump(self.config["beam"], f, sort_keys=False)
 
     def update_config(self):
-
-    #     # try except block
 
         beam_config = {}
         parameters_config =  {}
@@ -308,12 +279,20 @@ class GUIBeamCreation(BeamCreation.Ui_MainWindow, QtWidgets.QMainWindow):
         if self.comboBox_propagation_type.currentText() == "Step Size":
             beam_config["step_size"] = float(self.lineEdit_propagation_step.text())
 
+        # gaussian
+        if self.checkBox_gaussian_enabled.isChecked():
+            beam_config["operator"] = "Gaussian"
+            beam_config["gaussian_wx"] = float(self.lineEdit_gaussian_waist_x.text())
+            beam_config["gaussian_wy"] = float(self.lineEdit_gaussian_waist_y.text())
+            beam_config["gaussian_z0"] = float(self.lineEdit_gaussian_axial_z0.text())
+            beam_config["gaussian_z"] = float(self.lineEdit_gaussian_axial_z_total.text())
+
         # sim parameters
-        parameters_config["A"] = 10000
+        parameters_config["A"] = float(self.lineEdit_sim_amplitude.text())
         parameters_config["pixel_size"] = float(self.lineEdit_pixelsize.text())
         parameters_config["sim_width"] = float(self.lineEdit_sim_width.text())
         parameters_config["sim_height"] = float(self.lineEdit_sim_height.text())
-        parameters_config["sim_wavelength"] = 488.e-9
+        parameters_config["sim_wavelength"] = float(self.lineEdit_sim_wavelength.text())
 
         self.config = {
             "sim_parameters": parameters_config,

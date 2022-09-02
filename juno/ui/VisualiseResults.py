@@ -276,8 +276,10 @@ class GUIVisualiseResults(VisualiseResults.Ui_MainWindow, QtWidgets.QMainWindow)
 
         # add the points
         sim_height = int(sim.shape[1] // len(simulation_names))
-        points = np.array([[0, int(x*sim_height*SCALE_DIM)] for x in range(len(simulation_names))])
+        points = np.array([[0, int(x*sim_height)] for x in range(len(simulation_names))])
         features = {"name": simulation_names}
+
+        # TODO: get the labels to move when the viewer axes changes
 
         text = {
             'string': "{name}",
@@ -365,7 +367,6 @@ def draw_filter_layout(n_filters = 5):
         filterLayout.addWidget(filterBox)
 
     return filterLayout, filter_widgets
-
 
 
 # ref https://learndataanalysis.org/display-pandas-dataframe-with-pyqt5-qtableview-widget/

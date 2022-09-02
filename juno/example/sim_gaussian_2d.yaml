@@ -13,13 +13,13 @@ beam:
   height: 400.e-3
   shape: Circular
   source_distance: 800.e-3
-  operator: Custom
+  operator: Gaussian
   gaussian_wx: 40.e-3
   gaussian_wy: 40.e-3
   gaussian_z0: 400.e-3
   gaussian_z: 1.0 
   n_steps: 50
-  data: C:\Users\pcle0002\Documents\repos\juno\juno\custom\gaussian.npy
+  # data: C:\Users\pcle0002\Documents\repos\juno\juno\custom\gaussian.npy
 lenses:
   - name: lens_1
     medium: 2.348

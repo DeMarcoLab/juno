@@ -1,7 +1,7 @@
 import sys
 
-import juno.ui.qtdesigner_files.LensSimulation as LensSimulation
-from juno.ui.BeamCreator import GUIBeamCreator
+import juno.ui.qtdesigner_files.JunoLauncher as JunoLauncher
+from juno.ui.BeamCreation import GUIBeamCreation
 from juno.ui.SimulationRun import GUISimulationRun
 from juno.ui.SimulationSetup import GUISimulationSetup
 from juno.ui.VisualiseResults import GUIVisualiseResults
@@ -14,7 +14,7 @@ LOGO_FILE = os.path.join(os.path.dirname(__file__), "logo.png")
 
 from napari import Viewer
 
-class GUILensSimulation(LensSimulation.Ui_MainWindow, QtWidgets.QMainWindow):
+class GUIJunoLauncher(JunoLauncher.Ui_MainWindow, QtWidgets.QMainWindow):
     def __init__(self, viewer: Viewer = None, parent_gui=None):
         super().__init__(parent=parent_gui)
         self.setupUi(MainWindow=self)
@@ -51,14 +51,10 @@ class GUILensSimulation(LensSimulation.Ui_MainWindow, QtWidgets.QMainWindow):
     def launch_beam_creation(self):
 
         print("launch beam creation")
-        
         self.remove_current_docked_widgets()
-        self.beam_creator_ui = GUIBeamCreator()
-
-        # TODO:
-        # self.beam_creator_ui = GUIBeamCreator(viewer=self.viewer)
-        # dock_widget = self.viewer.window.add_dock_widget(self.beam_creator_ui, area='right')                  
-        # self.dock_widgets.append(dock_widget)
+        self.beam_creator_ui = GUIBeamCreation(viewer=self.viewer)
+        dock_widget = self.viewer.window.add_dock_widget(self.beam_creator_ui, area='right')                  
+        self.dock_widgets.append(dock_widget)
 
     def launch_setup_simulation(self):
 
@@ -105,7 +101,7 @@ def main():
     application = QtWidgets.QApplication([])
 
     viewer = napari.Viewer(ndisplay=3)
-    sim_launcher_ui = GUILensSimulation(viewer=viewer)
+    sim_launcher_ui = GUIJunoLauncher(viewer=viewer)
     viewer.window.add_dock_widget(sim_launcher_ui, area='right')                  
     application.aboutToQuit.connect(sim_launcher_ui.disconnect)  # cleanup & teardown
     sys.exit(application.exec_())

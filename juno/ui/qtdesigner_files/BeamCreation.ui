@@ -65,13 +65,26 @@
           <enum>QTabWidget::Rounded</enum>
          </property>
          <property name="currentIndex">
-          <number>0</number>
+          <number>2</number>
          </property>
          <widget class="QWidget" name="tab_general">
           <attribute name="title">
            <string>General</string>
           </attribute>
           <layout class="QGridLayout" name="gridLayout_4">
+           <item row="1" column="0">
+            <spacer name="verticalSpacer_2">
+             <property name="orientation">
+              <enum>Qt::Vertical</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>20</width>
+               <height>40</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
            <item row="0" column="0">
             <widget class="QGroupBox" name="groupBox">
              <property name="title">
@@ -293,8 +306,68 @@
              </layout>
             </widget>
            </item>
+           <item row="2" column="0">
+            <widget class="QCheckBox" name="checkBox_auto_update">
+             <property name="text">
+              <string>Auto Update</string>
+             </property>
+             <property name="checked">
+              <bool>true</bool>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+         <widget class="QWidget" name="tab">
+          <attribute name="title">
+           <string>Gaussian</string>
+          </attribute>
+          <layout class="QGridLayout" name="gridLayout_7">
+           <item row="5" column="0">
+            <widget class="QLabel" name="label_gaussian_z_total">
+             <property name="text">
+              <string>Total Distance (z)</string>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="0">
+            <widget class="QLabel" name="label_gaussian_header">
+             <property name="font">
+              <font>
+               <weight>75</weight>
+               <bold>true</bold>
+              </font>
+             </property>
+             <property name="text">
+              <string>Gaussian</string>
+             </property>
+            </widget>
+           </item>
            <item row="1" column="0">
-            <spacer name="verticalSpacer_2">
+            <widget class="QCheckBox" name="checkBox_gaussian_enabled">
+             <property name="text">
+              <string>Enable Gaussian Beam</string>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="1">
+            <widget class="QLineEdit" name="lineEdit_gaussian_waist_x"/>
+           </item>
+           <item row="2" column="0">
+            <widget class="QLabel" name="label_gaussian_waist_x">
+             <property name="text">
+              <string>Waist Radius (X)</string>
+             </property>
+            </widget>
+           </item>
+           <item row="3" column="1">
+            <widget class="QLineEdit" name="lineEdit_gaussian_waist_y"/>
+           </item>
+           <item row="4" column="1">
+            <widget class="QLineEdit" name="lineEdit_gaussian_axial_z0"/>
+           </item>
+           <item row="6" column="0" colspan="2">
+            <spacer name="verticalSpacer_3">
              <property name="orientation">
               <enum>Qt::Vertical</enum>
              </property>
@@ -305,6 +378,23 @@
               </size>
              </property>
             </spacer>
+           </item>
+           <item row="5" column="1">
+            <widget class="QLineEdit" name="lineEdit_gaussian_axial_z_total"/>
+           </item>
+           <item row="4" column="0">
+            <widget class="QLabel" name="label_gaussian_z0">
+             <property name="text">
+              <string>Axial Distance (z0)</string>
+             </property>
+            </widget>
+           </item>
+           <item row="3" column="0">
+            <widget class="QLabel" name="label_gaussian_waist_y">
+             <property name="text">
+              <string>Waist Radius (Y)</string>
+             </property>
+            </widget>
            </item>
           </layout>
          </widget>
@@ -322,14 +412,86 @@
               <bool>true</bool>
              </property>
              <layout class="QGridLayout" name="gridLayout_6">
-              <item row="6" column="1">
+              <item row="5" column="0">
+               <widget class="QLabel" name="label">
+                <property name="text">
+                 <string>Wavelength (m)</string>
+                </property>
+               </widget>
+              </item>
+              <item row="2" column="0">
+               <widget class="QLabel" name="label_pixelsize">
+                <property name="text">
+                 <string>Pixel Size</string>
+                </property>
+               </widget>
+              </item>
+              <item row="7" column="1">
+               <widget class="QComboBox" name="comboBox_propagation_type"/>
+              </item>
+              <item row="1" column="0">
+               <widget class="QLabel" name="label_sim_header">
+                <property name="font">
+                 <font>
+                  <weight>75</weight>
+                  <bold>true</bold>
+                 </font>
+                </property>
+                <property name="text">
+                 <string>Simulation</string>
+                </property>
+               </widget>
+              </item>
+              <item row="4" column="0">
+               <widget class="QLabel" name="label_sim_height">
+                <property name="text">
+                 <string>Sim Height (m)</string>
+                </property>
+               </widget>
+              </item>
+              <item row="2" column="1">
+               <widget class="QLineEdit" name="lineEdit_pixelsize">
+                <property name="text">
+                 <string>1e-6</string>
+                </property>
+               </widget>
+              </item>
+              <item row="5" column="1">
+               <widget class="QLineEdit" name="lineEdit_sim_wavelength">
+                <property name="text">
+                 <string>488e-9</string>
+                </property>
+               </widget>
+              </item>
+              <item row="7" column="0">
+               <widget class="QLabel" name="label_propagation_type">
+                <property name="text">
+                 <string>Propagation</string>
+                </property>
+               </widget>
+              </item>
+              <item row="9" column="1">
+               <widget class="QLineEdit" name="lineEdit_medium">
+                <property name="text">
+                 <string>1.0</string>
+                </property>
+               </widget>
+              </item>
+              <item row="8" column="0">
+               <widget class="QLabel" name="label_propagation_step">
+                <property name="text">
+                 <string>Num Steps</string>
+                </property>
+               </widget>
+              </item>
+              <item row="8" column="1">
                <widget class="QLineEdit" name="lineEdit_propagation_step">
                 <property name="text">
                  <string>10</string>
                 </property>
                </widget>
               </item>
-              <item row="9" column="1">
+              <item row="11" column="1">
                <spacer name="verticalSpacer">
                 <property name="orientation">
                  <enum>Qt::Vertical</enum>
@@ -349,75 +511,10 @@
                 </property>
                </widget>
               </item>
-              <item row="5" column="1">
-               <widget class="QComboBox" name="comboBox_propagation_type"/>
-              </item>
-              <item row="1" column="0">
-               <widget class="QLabel" name="label_sim_header">
-                <property name="font">
-                 <font>
-                  <weight>75</weight>
-                  <bold>true</bold>
-                 </font>
-                </property>
-                <property name="text">
-                 <string>Simulation</string>
-                </property>
-               </widget>
-              </item>
-              <item row="3" column="0">
-               <widget class="QLabel" name="label_sim_width">
-                <property name="text">
-                 <string>Sim Width (m)</string>
-                </property>
-               </widget>
-              </item>
-              <item row="2" column="0">
-               <widget class="QLabel" name="label_pixelsize">
-                <property name="text">
-                 <string>Pixel Size</string>
-                </property>
-               </widget>
-              </item>
-              <item row="4" column="0">
-               <widget class="QLabel" name="label_sim_height">
-                <property name="text">
-                 <string>Sim Height (m)</string>
-                </property>
-               </widget>
-              </item>
-              <item row="5" column="0">
-               <widget class="QLabel" name="label_propagation_type">
-                <property name="text">
-                 <string>Propagation</string>
-                </property>
-               </widget>
-              </item>
-              <item row="6" column="0">
-               <widget class="QLabel" name="label_propagation_step">
-                <property name="text">
-                 <string>Num Steps</string>
-                </property>
-               </widget>
-              </item>
-              <item row="7" column="0">
+              <item row="9" column="0">
                <widget class="QLabel" name="label_medium">
                 <property name="text">
                  <string>Output Medium</string>
-                </property>
-               </widget>
-              </item>
-              <item row="7" column="1">
-               <widget class="QLineEdit" name="lineEdit_medium">
-                <property name="text">
-                 <string>1.0</string>
-                </property>
-               </widget>
-              </item>
-              <item row="2" column="1">
-               <widget class="QLineEdit" name="lineEdit_pixelsize">
-                <property name="text">
-                 <string>1e-6</string>
                 </property>
                </widget>
               </item>
@@ -428,10 +525,31 @@
                 </property>
                </widget>
               </item>
-              <item row="8" column="0" colspan="2">
+              <item row="10" column="0" colspan="2">
                <widget class="Line" name="line">
                 <property name="orientation">
                  <enum>Qt::Horizontal</enum>
+                </property>
+               </widget>
+              </item>
+              <item row="3" column="0">
+               <widget class="QLabel" name="label_sim_width">
+                <property name="text">
+                 <string>Sim Width (m)</string>
+                </property>
+               </widget>
+              </item>
+              <item row="6" column="0">
+               <widget class="QLabel" name="label_2">
+                <property name="text">
+                 <string>Amplitude</string>
+                </property>
+               </widget>
+              </item>
+              <item row="6" column="1">
+               <widget class="QLineEdit" name="lineEdit_sim_amplitude">
+                <property name="text">
+                 <string>10000</string>
                 </property>
                </widget>
               </item>
