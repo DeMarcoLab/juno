@@ -136,9 +136,6 @@ def propagate_stage(stage: SimulationStage,
     
     return result
 
-
-
-
 def generate_simulation_options(config: dict, log_dir: str) -> SimulationOptions:
 
     options = SimulationOptions(
@@ -605,7 +602,7 @@ def pad_simulation(lens: Lens, parameters: SimulationParameters) -> Lens:
 
     return lens
 
-def calculate_sim_aperture(lens, sim_h, sim_w) -> np.ndarray:
+def calculate_sim_aperture(lens: Lens, sim_h: int, sim_w: int) -> np.ndarray:
     lens_h, lens_w = lens.profile.shape
     aperture_mask = np.ones(shape=(sim_h, sim_w))
 
@@ -745,10 +742,9 @@ def invert_lens_and_output_medium(stage: SimulationStage, previous_stage: Simula
 
 
 
-def test_escape_path_fits_inside_simulation(lens: Lens, parameters, ep: float):
+def test_escape_path_fits_inside_simulation(lens: Lens, parameters: SimulationParameters, ep: float):
     from juno import utils
     from juno.Lens import calculate_escape_path_dimensions
-    from juno.structures import SimulationParameters
 
     n_pixels_sim_height = utils._calculate_num_of_pixels(
         parameters.sim_height, parameters.pixel_size

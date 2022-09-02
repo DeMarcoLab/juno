@@ -15,7 +15,6 @@ from juno import utils
 from juno.beam import Beam, generate_beam
 from juno.Lens import Lens, generate_lens
 from juno.Medium import Medium
-from juno.Simulation import generate_simulation_parameters, pad_simulation
 from juno.structures import (SimulationParameters, SimulationResult,
                              SimulationStage)
 
@@ -408,11 +407,11 @@ def save_result_plots(
         except: 
             pass # cant plot apertures and truncation for beam...
 
-    # save propagation gifs
-    try:
-        save_propagation_gif(os.path.join(save_path, "sim.zarr"))
-    except Exception as e:
-        logging.error(f"Error during plotting GIF: {e}")
+    # save propagation gifs #TODO: remove :(
+    # try:
+    #     save_propagation_gif(os.path.join(save_path, "sim.zarr"))
+    # except Exception as e:
+    #     logging.error(f"Error during plotting GIF: {e}")
 
     plt.close(fig)
     plt.close()
@@ -466,6 +465,8 @@ def plot_lens_modifications(lens: Lens) -> plt.Figure:
     return fig
 
 def plot_simulation_setup_v2(config: dict, medium_only: bool = False) -> plt.Figure:
+    from juno.Simulation import generate_simulation_parameters, pad_simulation
+  
     arr = None
     sim_height = config["sim_parameters"]["sim_height"]
     pixel_size = config["sim_parameters"]["pixel_size"]

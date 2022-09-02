@@ -202,10 +202,17 @@ class GUISimulationSetup(SimulationSetup.Ui_MainWindow, QtWidgets.QMainWindow):
 
     def draw_simulation_stage_display(self):
 
-        self.viewer.dims.ndisplay = 3
+        # TODO: find a way to make the viewing of this much more performant
+        pixel_size = self.simulation_config["sim_parameters"]["pixel_size"] 
+        self.simulation_config["sim_parameters"]["pixel_size"] = 1e-6
 
         arr_elements = plotting.plot_simulation_setup_v2(self.simulation_config)
         arr_medium = plotting.plot_simulation_setup_v2(self.simulation_config, medium_only=True)
+
+        if arr_elements.size > 10_000_000:
+            self.viewer.dims.ndisplay = 2
+        else:
+            self.viewer.dims.ndisplay = 3
 
         try:
             try:
@@ -219,6 +226,8 @@ class GUISimulationSetup(SimulationSetup.Ui_MainWindow, QtWidgets.QMainWindow):
         except Exception as e:
             napari.utils.notifications.show_error(f"Failure to load viewer: {traceback.format_exc()}")
 
+        # reset pixel_size
+        self.simulation_config["sim_parameters"]["pixel_size"] = pixel_size
 
     def read_stage_input_values(self):
 
@@ -380,108 +389,6 @@ class GUISimulationSetup(SimulationSetup.Ui_MainWindow, QtWidgets.QMainWindow):
         inputBox.setLayout(input_layout)
         self.scrollArea_stages.setWidget(inputBox)
         self.scrollArea_stages.update()
-
-
-# def create_stage_structure_display(config):
-
-#     # create / delete tmp directory
-#     tmp_directory = os.path.join(os.path.dirname(juno.__file__), "tmp")
-#     os.makedirs(tmp_directory, exist_ok=True)
-
-#     layout = QGridLayout()
-
-#     # TODO: need to account for focal distance multiple.... otherwise it gets too large to plot
-
-#     # simulation setup
-#     fig = plotting.plot_simulation_setup(config)
-#     sim_setup_fname  = os.path.join(tmp_directory, "sim_setup.png")
-#     plotting.save_figure(fig, sim_setup_fname)
-#     plt.close(fig)
-
-#     sim_label = QLabel()
-#     sim_label.setPixmap(QPixmap(sim_setup_fname))#.scaled(300*(len(config["stages"])+1), 300))
-
-#     layout.addWidget(sim_label, 0, 0, 1, len(config["stages"])+1)
-
-#     # beam
-#     parameters = generate_simulation_parameters(config)
-#     beam = generate_beam(config["beam"], parameters)
-    
-#     fig = plotting.plot_lens_profile_slices(beam.lens, max_height=np.max(beam.lens.profile))
-#     beam_sideon_fname  = os.path.join(tmp_directory, "beam_sideon.png")
-#     plotting.save_figure(fig, beam_sideon_fname)
-#     plt.close(fig)
-
-#     fig = plotting.plot_lens_profile_2D(beam.lens)
-#     beam_topdown_fname = os.path.join(tmp_directory, "beam_topdown.png")
-#     plotting.save_figure(fig, beam_topdown_fname)
-#     plt.close(fig)
-
-#     beam_label = QLabel()
-#     beam_label.setPixmap(QPixmap(beam_sideon_fname))#.scaled(300, 300))
-
-#     beam_top_down_label = QLabel()
-#     beam_top_down_label.setPixmap(QPixmap(beam_topdown_fname))#.scaled(300, 300))
-
-#     beam_title_label = QLabel()
-#     beam_title_label.setText("Beam Stage")
-#     beam_title_label.setStyleSheet("font-weight: bold; font-size: 16px")
-#     layout.addWidget(beam_title_label, 1, 0)
-#     layout.addWidget(beam_label, 2, 0)
-#     layout.addWidget(beam_top_down_label, 3, 0)
-
-#     display_widgets = [[beam_label, beam_top_down_label]]
-
-#     # stages
-#     for i, stage_config in enumerate(config["stages"], 1):
-
-#         lens_name = stage_config["lens"]
-
-#         for conf in config["lenses"]:
-#             if conf["name"] == lens_name:
-#                 lens_config = conf
-
-#         from juno.Lens import generate_lens
-#         from juno.Medium import Medium
-
-#         lens = generate_lens(lens_config,
-#                     Medium(lens_config["medium"], config["sim_parameters"]["sim_wavelength"]),
-#                     config["sim_parameters"]["pixel_size"])
-
-#         fig = plotting.plot_lens_profile_slices(lens, max_height=lens.height)
-#         side_on_fname = os.path.join(tmp_directory, "side_on_profile.png")
-#         plotting.save_figure(fig, side_on_fname)
-#         plt.close(fig)
-
-#         fig = plotting.plot_lens_profile_2D(lens)
-#         top_down_fname = os.path.join(tmp_directory, "top_down_profile.png")
-#         plotting.save_figure(fig, top_down_fname)
-#         plt.close(fig)
-
-#         stage_label = QLabel()
-#         stage_label.setPixmap(QPixmap(side_on_fname))#.scaled(300, 300))
-
-#         stage_top_down_label = QLabel()
-#         stage_top_down_label.setPixmap(QPixmap(top_down_fname))#.scaled(300, 300))
-
-#         stage_title_label = QLabel()
-#         stage_title_label.setText(f"Lens Stage {i+1}")
-#         stage_title_label.setStyleSheet("font-weight: bold; font-size: 16px")
-
-#         layout.addWidget(stage_title_label, 1, i)
-#         layout.addWidget(stage_label, 2, i)
-#         layout.addWidget(stage_top_down_label, 3, i)
-
-#         display_widgets.append([stage_label, stage_top_down_label])
-
-
-    # generate beam
-    # generate lens
-
-    # plot
-    # show on label
-
-    # return layout, display_widgets
 
 
 def create_stage_input_display(stage_no):

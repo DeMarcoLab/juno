@@ -62,6 +62,47 @@ class BeamSettings:
     gaussian_z: float = None
     data: str = None # path to custom array
 
+    @staticmethod
+    def __from__dict__(config: dict) -> 'BeamSettings':
+        """Load the beam settings from dictionary
+
+        Args:
+            config (dict): beam configuration as dictionary
+
+        Returns:
+            BeamSettings: beam configuration as BeamSettings
+        """
+
+        config = validation._validate_default_beam_config(config)
+
+        beam_settings = BeamSettings(
+            distance_mode=DistanceMode[config["distance_mode"]],
+            beam_spread=BeamSpread[config["spread"]],
+            beam_shape=BeamShape[config["shape"]],
+            width=config["width"],
+            height= config["height"],
+            position_x=config["position_x"],
+            position_y=config["position_y"],
+            theta=config["theta"],
+            numerical_aperture=config["numerical_aperture"],
+            tilt_x=config["tilt_x"],
+            tilt_y=config["tilt_y"],
+            source_distance=config["source_distance"],
+            final_diameter=config["final_diameter"],
+            focal_multiple=config["focal_multiple"],
+            n_steps=config["n_steps"],
+            step_size=config["step_size"],
+            output_medium=config["output_medium"],
+            operator=BeamOperator[config["operator"]],
+            gaussian_wx=config["gaussian_wx"],
+            gaussian_wy=config["gaussian_wy"],
+            gaussian_z0=config["gaussian_z0"],
+            gaussian_z=config["gaussian_z"],
+            data=config["data"]
+        )
+
+        return beam_settings
+
 
 class Beam:
     def __init__(self, settings: BeamSettings) -> None:
@@ -378,6 +419,7 @@ def load_beam_config(config: dict) -> BeamSettings:
         BeamSettings: beam configuration as BeamSettings
     """
 
+    logging.warning(f"This function is deprecated and will be removed. Please use BeamSettings.__from_dict__ instead.")
 
     config = validation._validate_default_beam_config(config)
 
@@ -420,7 +462,7 @@ def generate_beam(config: dict, parameters: SimulationParameters):
         Beam: initial simulation beam
     """
     # load beam settings
-    beam_settings = load_beam_config(config)
+    beam_settings = BeamSettings.__from__dict__(config)
 
     # create beam
     beam = Beam(settings=beam_settings)
