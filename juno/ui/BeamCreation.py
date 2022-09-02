@@ -11,10 +11,9 @@ import numpy as np
 import yaml
 from juno import beam, plotting, utils, validation
 from juno.beam import BeamShape, BeamSpread, DistanceMode
-from juno.Simulation import (calculate_stage_phase, calculate_wavefront_v2,
-                             generate_beam_simulation_stage,
+from juno.Simulation import (generate_beam_simulation_stage,
                              generate_simulation_parameters,
-                             propagate_wavefront_v2)
+                             propagate_stage)
 from juno.structures import SimulationOptions
 from PyQt5 import QtWidgets
 
@@ -313,27 +312,30 @@ class GUIBeamCreation(BeamCreation.Ui_MainWindow, QtWidgets.QMainWindow):
             parameters = generate_simulation_parameters(self.config)
             stage = generate_beam_simulation_stage(self.config, parameters)
 
+            result = propagate_stage(stage, parameters, options, None)
+
+
             # TODO: use the actual propgation from sim, not this mess
-            if stage.wavefront is not None:
-                previous_wavefront = stage.wavefront
+            # if stage.wavefront is not None:
+            #     previous_wavefront = stage.wavefront
 
-            # calculate stage phase profile
-            phase = calculate_stage_phase(stage, parameters)
+            # # calculate stage phase profile
+            # phase = calculate_stage_phase(stage, parameters)
 
-            # electric field (wavefront)
-            amplitude: float = parameters.A if stage._id == 0 else 1.0
-            wavefront = calculate_wavefront_v2(
-                phase=phase,
-                previous_wavefront=previous_wavefront,
-                A=amplitude,
-                aperture=stage.lens.aperture,
-            ) 
+            # # electric field (wavefront)
+            # amplitude: float = parameters.A if stage._id == 0 else 1.0
+            # wavefront = calculate_wavefront_v2(
+            #     phase=phase,
+            #     previous_wavefront=previous_wavefront,
+            #     A=amplitude,
+            #     aperture=stage.lens.aperture,
+            # ) 
 
-            ## propagate wavefront #TODO: replace with v3 (vectorised)
-            result = propagate_wavefront_v2(wavefront=wavefront, 
-                                stage=stage, 
-                                parameters=parameters, 
-                                options=options)
+            # ## propagate wavefront #TODO: replace with v3 (vectorised)
+            # result = propagate_wavefront_v2(wavefront=wavefront, 
+            #                     stage=stage, 
+            #                     parameters=parameters, 
+            #                     options=options)
             
         except:
             napari.utils.notifications.show_error(f"Failure to propagate wavefron: {traceback.format_exc()}")

@@ -75,6 +75,7 @@ class Simulation:
         sim_id = config["sim_id"]
 
         # TODO: extract from the class
+        propagation = None
         progress_bar = tqdm(sim_stages, leave=False)
         for stage in progress_bar:
 
@@ -82,30 +83,8 @@ class Simulation:
                 f"Sim: {petname} ({str(sim_id)[-10:]}) - Propagating Wavefront"
             )
 
+            result = propagate_stage(stage, parameters, options, propagation)
 
-            if stage.wavefront is not None:
-                propagation = stage.wavefront
-
-            previous_wavefront = propagation
-
-            # calculate stage phase profile
-            phase = calculate_stage_phase(stage, parameters)
-
-            # electric field (wavefront)
-            amplitude: float = parameters.A if stage._id == 0 else 1.0
-            wavefront = calculate_wavefront_v2(
-                phase=phase,
-                previous_wavefront=previous_wavefront,
-                A=amplitude,
-                aperture=stage.lens.aperture,
-            ) 
-
-            ## propagate wavefront #TODO: replace with v3 (vectorised)
-            result = propagate_wavefront_v2(wavefront=wavefront, 
-                                stage=stage, 
-                                parameters=parameters, 
-                                options=options)
-            
             # pass the wavefront to the next stage
             propagation = result.propagation
 
@@ -115,7 +94,7 @@ class Simulation:
             if options.save_plot:
 
                 # additional plotting items
-                result.phase = phase
+                # result.phase = phase
 
                 progress_bar.set_description(
                     f"Sim: {petname} ({str(sim_id)[-10:]}) - Plotting Simulation"
@@ -126,6 +105,38 @@ class Simulation:
         # save final sim configruation
         config["finished"] = utils.current_timestamp()
         utils.save_metadata(config, options.log_dir)
+
+def propagate_stage(stage: SimulationStage, 
+    parameters: SimulationParameters, 
+    options: SimulationOptions, 
+    propagation: np.ndarray = None) -> SimulationResult:
+    
+    if stage.wavefront is not None:
+        propagation = stage.wavefront
+
+    previous_wavefront = propagation
+
+    # calculate stage phase profile
+    phase = calculate_stage_phase(stage, parameters)
+
+    # electric field (wavefront)
+    amplitude: float = parameters.A if stage._id == 0 else 1.0
+    wavefront = calculate_wavefront_v2(
+        phase=phase,
+        previous_wavefront=previous_wavefront,
+        A=amplitude,
+        aperture=stage.lens.aperture,
+    ) 
+
+    ## propagate wavefront #TODO: replace with v3 (vectorised)
+    result = propagate_wavefront_v2(wavefront=wavefront, 
+                        stage=stage, 
+                        parameters=parameters, 
+                        options=options)
+    
+    return result
+
+
 
 
 def generate_simulation_options(config: dict, log_dir: str) -> SimulationOptions:
