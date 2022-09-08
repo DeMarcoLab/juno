@@ -1,9 +1,9 @@
 import pytest
 import numpy as np
-from lens_simulation.beam import Beam,BeamSettings, DistanceMode, BeamSpread, BeamShape, focal_distance_from_theta, height_from_focal_distance, validate_beam_configuration
-from lens_simulation.Lens import Lens, LensType
-from lens_simulation.Medium import Medium
-from lens_simulation.structures import SimulationParameters
+from juno.beam import Beam,BeamSettings, DistanceMode, BeamSpread, BeamShape, focal_distance_from_theta, height_from_focal_distance, validate_beam_configuration
+from juno.Lens import Lens, LensType
+from juno.Medium import Medium
+from juno.structures import SimulationParameters
 
 
 @pytest.fixture

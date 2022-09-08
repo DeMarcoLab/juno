@@ -1,0 +1,38 @@
+sim_parameters:
+  A: 10000
+  pixel_size: 1.e-3
+  sim_height: 400.e-3
+  sim_width: 400.e-3
+  sim_wavelength: 30.e-3
+options:
+  log_dir: "log"
+  save: true
+  save_plot: true
+beam:
+  width: 400.e-3
+  height: 400.e-3
+  shape: Circular
+  source_distance: 800.e-3
+  operator: Gaussian
+  gaussian_wx: 40.e-3
+  gaussian_wy: 40.e-3
+  gaussian_z0: 400.e-3
+  gaussian_z: 1.0 
+  n_steps: 50
+  # data: C:\Users\pcle0002\Documents\repos\juno\juno\custom\gaussian.npy
+lenses:
+  - name: lens_1
+    medium: 2.348
+    diameter: 250.e-6
+    height: 10.e-6
+    exponent: 2.0
+    lens_type:  "Spherical"     # "Cylindrical" or "Spherical 
+stages:
+  - lens: lens_1
+    output: 1.33
+    n_steps: 1
+    use_equivalent_focal_distance: true
+    focal_distance_start_multiple: 0.0
+    focal_distance_multiple: 2.0
+
+

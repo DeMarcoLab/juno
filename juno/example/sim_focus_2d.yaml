@@ -1,0 +1,31 @@
+sim_parameters:
+  A: 10000
+  pixel_size: 1.e-6
+  sim_height: 500.e-6
+  sim_width: 500.e-6
+  sim_wavelength: 488.e-9
+options:
+  log_dir: "log"
+  save: true
+  save_plot: true
+beam:
+  width: 250.e-6
+  height: 250.e-6
+  shape: Rectangular
+  source_distance: 2.0e-3
+lenses:
+  - name: lens_1
+    medium: 2.348
+    diameter: 250.e-6
+    height: 10.e-6
+    exponent: 2.0
+    lens_type:  "Spherical"     # "Cylindrical" or "Spherical 
+stages:
+  - lens: lens_1
+    output: 1.33
+    n_steps: 50
+    use_equivalent_focal_distance: true
+    focal_distance_start_multiple: 0.0
+    focal_distance_multiple: 2.0
+
+

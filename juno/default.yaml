@@ -1,0 +1,49 @@
+beam:
+  distance_mode: Direct
+  spread: Plane
+  shape: Circular
+  n_steps: 10
+  step_size: 0
+  source_distance: null
+  position_x: 0.0
+  position_y: 0.0
+  theta: 0.0 # #convergance
+  numerical_aperture: null
+  tilt_x: 0.0
+  tilt_y: 0.0
+  final_diameter: null
+  output_medium: 1.0
+  operator: Plane
+  gaussian_wx: 40.e-3
+  gaussian_wy: 40.e-3
+  gaussian_z0: -400.e-3
+  gaussian_z: 1.0
+  data: null 
+lens:
+  custom: null
+  length: null
+  grating: null
+  truncation: null
+  aperture: null
+  escape_path: null
+  lens_type: Spherical
+  inverted: false
+parameters:
+  A: 10000
+  pixel_size: 1.e-6
+  sim_width: 500.e-6
+  sim_height: 500.e-6
+  sim_wavelength: 488.e-9
+options:
+  name: null
+  save_plot: true
+  debug: false
+stage:
+  n_steps: 10
+  step_size: 0
+  start_distance: 0
+  finish_distance: 1.e-3
+  use_equivalent_focal_distance: false
+  focal_distance_start_multiple: 0.0
+  focal_distance_multiple: 1.0
+

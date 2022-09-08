@@ -12,3 +12,4 @@ pyyaml
 imageio
 zarr
 pyqt5
+dask
