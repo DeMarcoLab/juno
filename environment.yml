@@ -1,0 +1,18 @@
+name: juno
+channels:
+  - conda-forge
+dependencies:
+  - python=3.8
+  - numpy
+  - scipy
+  - pandas
+  - petname
+  - matplotlib
+  - tqdm
+  - pyyaml
+  - imageio
+  - pyqt5
+  - zarr
+  - dask
+  - napari
+  - pytest

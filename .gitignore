@@ -40,3 +40,4 @@ juno/example/sim_charizard_2d.yaml
 juno/example/sim_telescope_2d_charizard.yaml
 juno.egg-info/*
 juno/ui/tmp/*
+!environment.yml

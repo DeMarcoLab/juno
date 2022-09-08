@@ -53,17 +53,10 @@ class GUISimulationRun(SimulationRun.Ui_MainWindow, QtWidgets.QMainWindow):
             self.pushButton_run_simulation.setVisible(True)
             self.label_config_info.setVisible(True)
 
-            # napari.utils.notifications.show_info(f"")
-            # self.statusBar.showMessage(f"Simulation config loaded from {os.path.basename(sim_config_filename)}")
 
     def run_simulations(self):
         print("run_simulations...")
-        self.statusBar.clearMessage()
-
-        # self.label_running_info.setVisible(True)
-        # self.label_final_info.setVisible(False)
-        # self.progressBar_running.setVisible(True)
-                
+        self.statusBar.clearMessage()               
 
         self.viewer.window._status_bar._toggle_activity_dock(True)
 
@@ -72,16 +65,8 @@ class GUISimulationRun(SimulationRun.Ui_MainWindow, QtWidgets.QMainWindow):
             
             sim = Simulation(sim_config)
             progress_bar.set_description(f"Running Simulation: {sim.petname} ({i}/{self.n_sims})")
-
-            # self.label_running_info.setText(f"Running Simulation: {sim.petname}  ({i}/{self.n_sims})")
-            # self.progressBar_running.setValue(int(i / self.n_sims) * 100)
-            sim.run_simulation() #TODO: get progress bar working in napari
-        
-        # self.label_running_info.setText(f"")
-        # self.label_final_info.setVisible(True)
-        # self.label_final_info.setText(f"Results were saved to: {self.sim_runner.data_path}.")
-        # self.statusBar.showMessage(f"Finished running {self.n_sims} simulations.")
-        # self.progressBar_running.setValue(100)
+            sim.run_simulation() 
+                    
         self.sim_runner.finish_simulations()
         self.viewer.window._status_bar._toggle_activity_dock(False)
 
