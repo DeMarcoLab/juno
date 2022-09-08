@@ -1,15 +1,14 @@
-# Star Glass
-juno is python package for designing lenses by performing full wave simulations.
-
 <figure>
   <img
-  src="doc/img/sim.png"
-  alt="Simulation Image">
-  <figcaption style="text-align:center">Simulation Image</figcaption>
+  src="juno/ui/logo.png"
+  alt="Juno Simulation"
+  width="750">
 </figure>
 
-## Getting Started
+# Juno
+juno is python package for designing lenses by performing full wave simulations.
 
+## Getting Started
 
 ### Installation
 
@@ -22,9 +21,7 @@ On Linux/Mac - Open Terminal:
 ``` bash
 $ git clone https://github.com/DeMarcoLab/juno.git
 $ cd juno
-$ conda create --name lens_sim python=3.8 pip
-$ conda activate lens_sim
-$ pip install -r requirements.txt
+$ conda env create -f environment.yml
 $ pip install -e .
 
 ```
@@ -37,8 +34,7 @@ For a tutorial walkthrough for using the package please see [Tutorial.md](TUTORI
 
 To run the user interface:
 ```bash
-$ cd src/juno
-$ python ui/main.py
+$ juno_ui
 ```
 
 ### Examples

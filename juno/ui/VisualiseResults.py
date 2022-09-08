@@ -9,25 +9,14 @@ from typing import Union
 import juno
 import juno.ui.qtdesigner_files.VisualiseResults as VisualiseResults
 import napari
+import napari.utils.notifications
 import numpy as np
-from juno import plotting, utils
-from juno.ui.utils import display_error_message
-from PyQt5 import QtCore, QtGui, QtWidgets
-from PyQt5.QtGui import QImage, QMovie, QPixmap
-from PyQt5.QtWidgets import (QComboBox, QGridLayout, QGroupBox, QLabel,
-                             QLineEdit, QPushButton, QTableWidget,
-                             QTableWidgetItem, QVBoxLayout, QHeaderView, QTableView)
-
 import pandas as pd
+from juno import plotting, utils
+from PyQt5 import QtWidgets
 from PyQt5.QtCore import QAbstractTableModel, Qt
-
-import matplotlib.pyplot as plt
-
-
-import napari
-from magicgui import magicgui
-from napari.layers import Image
-from napari.types import ImageData
+from PyQt5.QtWidgets import (QComboBox, QGridLayout, QGroupBox, QHeaderView,
+                             QLabel, QLineEdit, QTableView, QVBoxLayout)
 
 
 class MODIFIER(Enum):
@@ -36,16 +25,22 @@ class MODIFIER(Enum):
     GREATER_THAN = auto()
     CONTAINS = auto()
 
-
-
 class GUIVisualiseResults(VisualiseResults.Ui_MainWindow, QtWidgets.QMainWindow):
-    def __init__(self, parent_gui=None):
+    def __init__(self, viewer: napari.Viewer = None, parent_gui=None):
         super().__init__(parent=parent_gui)
         self.setupUi(MainWindow=self)
         self.statusBar = QtWidgets.QStatusBar()
         self.setStatusBar(self.statusBar)
         self.setWindowTitle("Simulation Results")
 
+        self.viewer = viewer
+        self.viewer.axes.visible = True
+        self.viewer.axes.dashed = True
+        self.viewer.axes.labels = True
+        self.viewer.axes.colored = False
+        self.viewer.scale_bar.visible = True
+
+        self.table_view = None
         self.SIMULATION_LOADED = False
         self.df = None
 
@@ -65,14 +60,17 @@ class GUIVisualiseResults(VisualiseResults.Ui_MainWindow, QtWidgets.QMainWindow)
         self.pushButton_reset_data.clicked.connect(self.load_dataframe)
         self.spinBox_num_filters.valueChanged.connect(self.update_filter_display)
 
-
-        self.pushButton_open_napari.clicked.connect(self.open_sim_in_napari)
+        self.pushButton_open_napari.clicked.connect(lambda: self.view_simulation(view_all=True))
         self.pushButton_open_napari.setVisible(False)
         self.comboBox_napari_sim.setVisible(False)
         self.lineEdit_show_columns.setVisible(False)
         self.lineEdit_show_columns.setText("stage, lens, height, exponent")
-        self.pushButton_view_all_in_napari.clicked.connect(self.view_all_in_napari)
-        self.pushButton_view_all_in_napari.setVisible(False)
+
+        self.label_vis_header.setVisible(False)
+        self.checkBox_log_plots.setVisible(False)
+        self.label_vis_scale.setVisible(False)
+        self.doubleSpinBox_scale.setVisible(False)
+
 
     def load_simulation(self):
         try:
@@ -100,7 +98,7 @@ class GUIVisualiseResults(VisualiseResults.Ui_MainWindow, QtWidgets.QMainWindow)
 
             self.SIMULATION_LOADED = True
         except Exception as e:
-            display_error_message(f'Error loading simulation folder: {e}')
+            napari.utils.notifications.show_error(f'Error loading simulation folder: {e}')
 
     def load_dataframe(self):
 
@@ -195,77 +193,110 @@ class GUIVisualiseResults(VisualiseResults.Ui_MainWindow, QtWidgets.QMainWindow)
         filter_cols = [col for col in df.columns if col in cols_text] + ["petname", "path"]
         df = df[filter_cols]       
 
-        # update available sims for napari
-        self.pushButton_open_napari.setVisible(True)
-        self.comboBox_napari_sim.setVisible(True)
-        self.lineEdit_show_columns.setVisible(True)
-        self.comboBox_napari_sim.clear()
-        self.comboBox_napari_sim.addItems([os.path.basename(path) for path in df["petname"].unique()])
-
-        self.paths = [path for path in df["path"].unique()]
-        print(self.paths)
-        stackable = plotting.check_simulations_are_stackable(self.paths)
-        print("Stackable: ", stackable)
-        if stackable:
-            self.pushButton_view_all_in_napari.setVisible(True)
-
         print("updating simulation display")
         print(df)
 
-        LOGARITHMIC_PLOTS = False
-        if self.checkBox_log_plots.isChecked():
-            LOGARITHMIC_PLOTS = True
+        self.paths = [path for path in df["path"].unique()]
+        self.STACKABLE = plotting.check_simulations_are_stackable(self.paths)
+        if self.STACKABLE:
+            self.pushButton_open_napari.setVisible(True)
 
-        runGridLayout = draw_run_layout(df=df, logarithmic=LOGARITHMIC_PLOTS)
-        runBox = QGroupBox(f"")
-        runBox.setLayout(runGridLayout)
+        # visualisation
+        # update available sims for napari
+        self.comboBox_napari_sim.setVisible(True)
+        self.lineEdit_show_columns.setVisible(True)
+        self.checkBox_log_plots.setVisible(True)
+        self.label_vis_scale.setVisible(True)
+        self.doubleSpinBox_scale.setVisible(True)
+        self.label_vis_header.setVisible(True)
 
-        self.scroll_area.setWidget(runBox)
-        self.scroll_area.update()
-
-    def open_sim_in_napari(self):
-
-        sim_name = self.comboBox_napari_sim.currentText()
-
-        print(f"Opening sim: {sim_name} in napari")
-
-        path = os.path.join(self.directory, sim_name)
-        full_sim = plotting.load_full_sim_propagation_v2(path)
-
-        self.view_in_napari(full_sim, widget=True)
+        try:
+            self.comboBox_napari_sim.currentTextChanged.disconnect()
+        except:
+            pass
+        self.comboBox_napari_sim.clear()
+        self.comboBox_napari_sim.addItems([os.path.basename(path) for path in df["petname"].unique()])
+        self.comboBox_napari_sim.currentTextChanged.connect(lambda: self.view_simulation(view_all=False))
 
 
-    def view_in_napari(self, arr, widget:bool = False):
+        # results table
+        if self.table_view is None:
+            self.table_view = QTableView()
+            self.table_view.horizontalHeader().setStretchLastSection(True)
+            self.table_view.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+            self.tableLayout.addWidget(self.table_view)
 
-        # create a viewer and add some images
-        self.viewer = napari.Viewer()
-        self.viewer.add_image(arr, name="simulation", colormap="turbo")
+        df = df.drop(columns=["path"])
+        model = pandasModel(df)
+        self.table_view.setModel(model)
+        self.tableLayout.update()
+
+        self.view_simulation(view_all=True)
+
+        return 
+    
+    def view_simulation(self, view_all=False):
+        # view sims
         
-        if widget:
-        
-            # https://napari.org/guides/magicgui.html#return-annotations
-            @magicgui(
-                auto_call=True,
-                prop={"widget_type": "FloatSlider", "max": 1.0},
-                axis={"choices": [0, 1, 2]},
-                layout="horizontal",
-            )
-            def slice_image(layer: Image, prop: float = 0.5, axis: int = 0) -> ImageData:
-                """Slice the volume along the selected axis"""
-                if layer:
-                    return plotting.slice_simulation_view(layer.data, axis=axis, prop=prop)
+        if self.STACKABLE is False:
+            napari.utils.notifications.show_warning("Simulations do not have the same dimensions, and therefore cannot be displayed together.")
 
-            # Add it to the napari viewer
-            self.viewer.window.add_dock_widget(slice_image, area="bottom")
+        self.viewer.layers.clear()
 
-        napari.run()
+        if view_all:
+            self.viewer.dims.ndisplay = 2
+            name = "simulations"
+            simulation_names = [self.comboBox_napari_sim.itemText(i) for i in range(self.comboBox_napari_sim.count())]
+            paths = [os.path.join(self.directory, sim_name) for sim_name in simulation_names]
+            sim = plotting.load_multi_simulations(paths)
+        else:
+            simulation_names = [self.comboBox_napari_sim.currentText()]
+            name = simulation_names[0]
+            path = os.path.join(self.directory, name)
+            sim = plotting.load_full_sim_propagation_v2(path)
+            self.viewer.dims.ndisplay = 2
 
-    def view_all_in_napari(self):
-        # open all simulations stacked in napari
-        mega = plotting.load_multi_simulations(self.paths)
-        self.view_in_napari(mega, widget=False)
+        SCALE_DIM = float(self.doubleSpinBox_scale.text())
+        scale = [SCALE_DIM, 1, 1]
+        # sim = np.moveaxis(sim, [0, 1, 2], [2, 0, 1])#.T # get the simulation into side on view
 
+        # use logarithmic plots
+        if bool(self.checkBox_log_plots.isChecked()):
+            sim = np.log(sim + 1e-12) 
+            print("LOGARITHMIC PLOTS")
 
+        try:
+            try:
+                self.viewer.layers[name].data = sim 
+            except KeyError as e:
+                self.viewer.add_image(sim, name=name, colormap="magma", rendering="average", interpolation="bicubic", scale=scale)
+               
+        except Exception as e:
+            napari.utils.notifications.show_error(f"Failure to load viewer: {traceback.format_exc()}")
+
+        # add the points
+        sim_height = int(sim.shape[1] // len(simulation_names))
+        points = np.array([[0, int(x*sim_height)] for x in range(len(simulation_names))])
+        features = {"name": simulation_names}
+
+        # TODO: get the labels to move when the viewer axes changes
+
+        text = {
+            'string': "{name}",
+            'size': 4,
+            'color': 'white',
+            'translation': np.array([0,-5]),
+        }
+
+        self.viewer.add_points(
+            points,
+            name="sim names",
+            features=features,
+            text=text,
+            size=0.1,
+            edge_width=0.01,
+            edge_width_is_relative=False,
+        )
 
 def get_column_value_by_type(lineEdit: QLineEdit, type) -> Union[str, int, float]:
 
@@ -308,97 +339,6 @@ def filter_dataframe_by_modifier(df, filter_col, value, modifier):
 
     return df_filter
 
-def draw_image_on_label(fname: str, shape: tuple = (250, 250)) -> QLabel:
-    """Load a image / gif from file, and set it on a label"""
-    label = QLabel()
-    if "gif" in fname:
-        movie = QMovie(fname)
-        movie.setScaledSize(QtCore.QSize(shape[0], shape[1]))
-        label.setScaledContents(True)
-        label.setMovie(movie)
-        if movie is not None:
-            movie.start()
-
-    else:
-        label.setPixmap(QPixmap(fname))#.scaled(*shape))
-
-    label.setStyleSheet("border-radius: 5px")
-
-    return label
-
-
-def draw_sim_grid_layout(path, logarithmic: bool = False, df: pd.DataFrame = None):
-    simGridLayout = QGridLayout()
-    label_sim_title = QLabel()
-    label_sim_title.setStyleSheet("font-size: 14px; font-weight: bold")
-    label_sim_title.setText(os.path.basename(path))
-    simGridLayout.addWidget(label_sim_title, 0, 0)
-
-
-    # TODO: 
-    # add side on toggle, 
-    # filter to rows of table clicked...
-    # data table
-
-    model = pandasModel(df)
-    view = QTableView()
-    view.setModel(model)
-
-    view.horizontalHeader().setStretchLastSection(True)
-    view.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
-
-    simGridLayout.addWidget(view, 1, 0)
-
-
-    # plotting figures
-    # need to regenerate plot to get log correctly
-    log_prefix = "log_" if logarithmic is True else ""
-    view_fname = os.path.join(path, f"{log_prefix}view.png")
-    gif_fname = os.path.join(path, "propagation.gif")
-    
-    if not os.path.exists(view_fname):
-        view_fig = plotting.plot_sim_propagation_v2(path, axis=1, prop=0.5, log=logarithmic)
-        plotting.save_figure(view_fig, view_fname)
-        plt.close(view_fig)
-
-    if not os.path.exists(gif_fname):
-        plotting.save_propagation_gif_full(path)
-        
-    fnames = [view_fname, gif_fname]
-
-    # draw figures
-    for i, fname in enumerate(fnames, 1):
-        label = draw_image_on_label(fname)
-        simGridLayout.addWidget(label, 1, i)
-
-
-    return simGridLayout
-
-
-def draw_run_layout(df: pd.DataFrame, logarithmic: bool = False, nlim: int = None):
-    runGridLayout = QVBoxLayout()
-    
-    sim_directories = df["path"].unique()
-    df = df.drop(columns=["path"])
-
-    # limit the number of simulations shown
-    if nlim is None:
-        nlim = len(sim_directories)
-
-    for sim_path in sim_directories[:nlim]:
-
-        df_sim = df[df["petname"] == os.path.basename(sim_path)]
-        df_sim = df_sim.drop(columns=["petname"])
-        simGridLayout = draw_sim_grid_layout(sim_path, logarithmic=logarithmic, df=df_sim)
-
-        simBox = QGroupBox(f"")
-        simBox.setLayout(simGridLayout)
-        simBox.setMaximumHeight(400)
-        runGridLayout.addWidget(simBox)
-
-    return runGridLayout
-
-
 def draw_filter_layout(n_filters = 5):
 
     filterLayout = QVBoxLayout()
@@ -426,10 +366,7 @@ def draw_filter_layout(n_filters = 5):
         filterBox.setLayout(filterGridLayout)
         filterLayout.addWidget(filterBox)
 
-
-
     return filterLayout, filter_widgets
-
 
 
 # ref https://learndataanalysis.org/display-pandas-dataframe-with-pyqt5-qtableview-widget/
@@ -462,8 +399,10 @@ class pandasModel(QAbstractTableModel):
 def main():
     """Launch the main application window. """
     application = QtWidgets.QApplication([])
-    window = GUIVisualiseResults()
-    application.aboutToQuit.connect(window.disconnect)  # cleanup & teardown
+    viewer = napari.Viewer(ndisplay=3)
+    view_results_ui = GUIVisualiseResults(viewer=viewer)
+    viewer.window.add_dock_widget(view_results_ui, area='right')    
+    application.aboutToQuit.connect(view_results_ui.disconnect)  # cleanup & teardown
     sys.exit(application.exec_())
 
 

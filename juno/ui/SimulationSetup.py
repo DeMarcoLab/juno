@@ -1,34 +1,35 @@
-import glob
-from multiprocessing.sharedctypes import Value
 import os
 import sys
 import traceback
-from enum import Enum, auto
 from pathlib import Path
 from pprint import pprint
 
 import juno
 import juno.ui.qtdesigner_files.SimulationSetup as SimulationSetup
-import matplotlib.pyplot as plt
-import numpy as np
+# import matplotlib.pyplot as plt
+# import numpy as np
 import yaml
 from juno import plotting, utils, validation
-from juno.beam import generate_beam
-from juno.Simulation import generate_simulation_parameters
+# from juno.beam import generate_beam
+# from juno.Simulation import generate_simulation_parameters
 from juno.ui.ParameterSweep import GUIParameterSweep
+from juno.ui.utils import display_error_message
 from PyQt5 import QtCore, QtGui, QtWidgets
-from PyQt5.QtGui import QPixmap
 from PyQt5.QtWidgets import (QCheckBox, QFileDialog, QGridLayout, QGroupBox,
                              QLabel, QLineEdit, QPushButton, QVBoxLayout)
-
+import napari
+import napari.utils.notifications
 
 class GUISimulationSetup(SimulationSetup.Ui_MainWindow, QtWidgets.QMainWindow):
-    def __init__(self, parent_gui=None):
+    def __init__(self, viewer = None, parent_gui=None):
         super().__init__(parent=parent_gui)
         self.setupUi(MainWindow=self)
         self.statusBar = QtWidgets.QStatusBar()
         self.setStatusBar(self.statusBar)
         self.setWindowTitle("Simulation Setup")
+        
+
+        self.viewer = viewer
 
         self.simulation_config = {}
         self.SAVE_FROM_PARAMETER_SWEEP = False
@@ -134,9 +135,10 @@ class GUISimulationSetup(SimulationSetup.Ui_MainWindow, QtWidgets.QMainWindow):
 
             config = utils.load_config(sim_config_filename)
 
-            self.statusBar.showMessage(f"Simulation config loaded from {sim_config_filename}")
+            # self.statusBar.showMessage(f"Simulation config loaded from {sim_config_filename}")
+            self.update_status(f"Simulation config loaded from {sim_config_filename}")
 
-            print("loaded config")
+            # print("loaded config")
             # TODO: how to handle partial configs??? throw error? this will fail if sim isnt valid...
 
             # load config values into ui....
@@ -165,46 +167,67 @@ class GUISimulationSetup(SimulationSetup.Ui_MainWindow, QtWidgets.QMainWindow):
 
     def update_status(self, msg= "Generating Simulation Configuration..."):
         """update status within button press..."""
-        self.statusBar.showMessage(msg)
-        self.statusBar.repaint()
+        # self.statusBar.showMessage(msg)
+        # self.statusBar.repaint()
+        napari.utils.notifications.show_info(msg)
+
 
     def generate_simulation_config(self):
         # TODO: need to check if things are loaded...
         
-        self.update_status(msg="Generating Simulation Configuration...")
+        napari.utils.notifications.show_info("Generating Simulation Configuration...")
         try:
 
             self.update_simulation_config()
             self.read_stage_input_values()
 
             validation._validate_simulation_config(self.simulation_config)
-            self.update_status(msg=f"Valid Simulation Configuration. Plotting Setup...")
+            napari.utils.notifications.show_info(f"Valid Simulation Configuration. Plotting Setup...")
             self.draw_simulation_stage_display()
 
             self.pushButton_setup_parameter_sweep.setEnabled(True)
             self.pushButton_save_sim_config.setEnabled(True)
 
-            self.update_status(msg=f"Generate Simulation Configuration Finished.")
+            napari.utils.notifications.show_info(f"Generate Simulation Configuration Finished.")
 
         except Exception as e:
-            self.statusBar.showMessage(f"Invalid Simulation Configuration...")
-            display_error_message(f"Invalid simulation config. \n{e}")
+            # self.statusBar.showMessage(f"Invalid Simulation Configuration...")
+            # display_error_message(f"Invalid simulation config. \n{e}")
+            napari.utils.notifications.show_error(f"Invalid simulation config. \n{e}")
             self.pushButton_setup_parameter_sweep.setEnabled(False)
             self.pushButton_save_sim_config.setEnabled(False)
-            self.statusBar.clearMessage()
+            # self.statusBar.clearMessage()
 
 
 
     def draw_simulation_stage_display(self):
 
-        # Think this can only be called once? why?
+        # TODO: find a way to make the viewing of this much more performant
+        pixel_size = self.simulation_config["sim_parameters"]["pixel_size"] 
+        self.simulation_config["sim_parameters"]["pixel_size"] = 1e-6
 
-        stage_layout, widgets = create_stage_structure_display(self.simulation_config)
-        groupBox_stage_display = QGroupBox(f"")
-        groupBox_stage_display.setLayout(stage_layout)
-        self.scrollArea_stage_display.setWidget(groupBox_stage_display)
-        self.scrollArea_stage_display.update()
+        arr_elements = plotting.plot_simulation_setup_v2(self.simulation_config)
+        arr_medium = plotting.plot_simulation_setup_v2(self.simulation_config, medium_only=True)
 
+        if arr_elements.size > 10_000_000:
+            self.viewer.dims.ndisplay = 2
+        else:
+            self.viewer.dims.ndisplay = 3
+
+        try:
+            try:
+                self.viewer.layers["Simulation Medium"].data = arr_medium
+                self.viewer.layers["Simulation Elements"].data = arr_elements 
+            except KeyError as e:
+                self.viewer.add_image(arr_medium, name="Simulation Medium", colormap="magma", opacity=0.5, rendering="iso")
+                self.viewer.add_image(arr_elements, name="Simulation Elements", colormap="gray", rendering="iso")
+
+               
+        except Exception as e:
+            napari.utils.notifications.show_error(f"Failure to load viewer: {traceback.format_exc()}")
+
+        # reset pixel_size
+        self.simulation_config["sim_parameters"]["pixel_size"] = pixel_size
 
     def read_stage_input_values(self):
 
@@ -292,7 +315,7 @@ class GUISimulationSetup(SimulationSetup.Ui_MainWindow, QtWidgets.QMainWindow):
             self.simulation_config["lenses"].append(lens_config)
             self.sender().setText(f"{lens_config['name']}")
         except Exception as e:
-            display_error_message(f"Invalid config. \n{e}")
+            napari.utils.notifications.show_error(f"Invalid config. \n{e}")
 
     def load_beam_config(self):
 
@@ -315,7 +338,7 @@ class GUISimulationSetup(SimulationSetup.Ui_MainWindow, QtWidgets.QMainWindow):
                 f"{Path(beam_config_filename).stem}"
             )
         except Exception as e:
-            display_error_message(f"Invalid config. \n{e}")
+            napari.utils.notifications.show_error(f"Invalid config. \n{e}")
 
     def update_stage_input_display(self):
 
@@ -333,7 +356,6 @@ class GUISimulationSetup(SimulationSetup.Ui_MainWindow, QtWidgets.QMainWindow):
                 sv = [w.text() for w in wid]
 
                 stored_values.append(sv)
-
         
         pprint(stored_values)
 
@@ -341,7 +363,6 @@ class GUISimulationSetup(SimulationSetup.Ui_MainWindow, QtWidgets.QMainWindow):
 
         # TODO: change it to store the current stage info before updating
         # TODO: fix it to store always not only for valid stuff 
-
 
         for stage_no, _ in enumerate(range(sim_num_stages), 1):
 
@@ -364,113 +385,10 @@ class GUISimulationSetup(SimulationSetup.Ui_MainWindow, QtWidgets.QMainWindow):
                 for j, w in enumerate(wid):
                     w.setText(sv[j])
 
-
         inputBox = QGroupBox(f"")
         inputBox.setLayout(input_layout)
         self.scrollArea_stages.setWidget(inputBox)
         self.scrollArea_stages.update()
-
-
-def create_stage_structure_display(config):
-
-    # create / delete tmp directory
-    tmp_directory = os.path.join(os.path.dirname(juno.__file__), "tmp")
-    os.makedirs(tmp_directory, exist_ok=True)
-
-    layout = QGridLayout()
-
-    # TODO: need to account for focal distance multiple.... otherwise it gets too large to plot
-
-    # simulation setup
-    fig = plotting.plot_simulation_setup(config)
-    sim_setup_fname  = os.path.join(tmp_directory, "sim_setup.png")
-    plotting.save_figure(fig, sim_setup_fname)
-    plt.close(fig)
-
-    sim_label = QLabel()
-    sim_label.setPixmap(QPixmap(sim_setup_fname))#.scaled(300*(len(config["stages"])+1), 300))
-
-    layout.addWidget(sim_label, 0, 0, 1, len(config["stages"])+1)
-
-    # beam
-    parameters = generate_simulation_parameters(config)
-    beam = generate_beam(config["beam"], parameters)
-    
-    fig = plotting.plot_lens_profile_slices(beam.lens, max_height=np.max(beam.lens.profile))
-    beam_sideon_fname  = os.path.join(tmp_directory, "beam_sideon.png")
-    plotting.save_figure(fig, beam_sideon_fname)
-    plt.close(fig)
-
-    fig = plotting.plot_lens_profile_2D(beam.lens)
-    beam_topdown_fname = os.path.join(tmp_directory, "beam_topdown.png")
-    plotting.save_figure(fig, beam_topdown_fname)
-    plt.close(fig)
-
-    beam_label = QLabel()
-    beam_label.setPixmap(QPixmap(beam_sideon_fname))#.scaled(300, 300))
-
-    beam_top_down_label = QLabel()
-    beam_top_down_label.setPixmap(QPixmap(beam_topdown_fname))#.scaled(300, 300))
-
-    beam_title_label = QLabel()
-    beam_title_label.setText("Beam Stage")
-    beam_title_label.setStyleSheet("font-weight: bold; font-size: 16px")
-    layout.addWidget(beam_title_label, 1, 0)
-    layout.addWidget(beam_label, 2, 0)
-    layout.addWidget(beam_top_down_label, 3, 0)
-
-    display_widgets = [[beam_label, beam_top_down_label]]
-
-    # stages
-    for i, stage_config in enumerate(config["stages"], 1):
-
-        lens_name = stage_config["lens"]
-
-        for conf in config["lenses"]:
-            if conf["name"] == lens_name:
-                lens_config = conf
-
-        from juno.Lens import generate_lens
-        from juno.Medium import Medium
-
-        lens = generate_lens(lens_config,
-                    Medium(lens_config["medium"], config["sim_parameters"]["sim_wavelength"]),
-                    config["sim_parameters"]["pixel_size"])
-
-        fig = plotting.plot_lens_profile_slices(lens, max_height=lens.height)
-        side_on_fname = os.path.join(tmp_directory, "side_on_profile.png")
-        plotting.save_figure(fig, side_on_fname)
-        plt.close(fig)
-
-        fig = plotting.plot_lens_profile_2D(lens)
-        top_down_fname = os.path.join(tmp_directory, "top_down_profile.png")
-        plotting.save_figure(fig, top_down_fname)
-        plt.close(fig)
-
-        stage_label = QLabel()
-        stage_label.setPixmap(QPixmap(side_on_fname))#.scaled(300, 300))
-
-        stage_top_down_label = QLabel()
-        stage_top_down_label.setPixmap(QPixmap(top_down_fname))#.scaled(300, 300))
-
-        stage_title_label = QLabel()
-        stage_title_label.setText(f"Lens Stage {i+1}")
-        stage_title_label.setStyleSheet("font-weight: bold; font-size: 16px")
-
-        layout.addWidget(stage_title_label, 1, i)
-        layout.addWidget(stage_label, 2, i)
-        layout.addWidget(stage_top_down_label, 3, i)
-
-        display_widgets.append([stage_label, stage_top_down_label])
-
-
-    # generate beam
-    # generate lens
-
-    # plot
-    # show on label
-
-    return layout, display_widgets
 
 
 def create_stage_input_display(stage_no):
@@ -584,27 +502,20 @@ def load_stage_config_widgets(config, all_widgets):
             widgets[12].setText(str(stage_config["focal_distance_start_multiple"]))
             widgets[14].setText(str(stage_config["focal_distance_multiple"]))
 
-def update_status(statusBar, msg):
-    statusBar.clearMessage()
-    statusBar.showMessage(msg)
-
-def display_error_message(message, title="Error Message"):
-    """PyQt dialog box displaying an error message."""
-    # logging.debug('display_error_message')
-    # logging.exception(message)
-    error_dialog = QtWidgets.QErrorMessage()
-    error_dialog.setWindowTitle(title)
-    error_dialog.showMessage(message)
-    error_dialog.showNormal()
-    error_dialog.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
-    error_dialog.exec_()
+# def update_status(statusBar, msg):
+    # statusBar.clearMessage()
+    # statusBar.showMessage(msg)
 
 
 def main():
     """Launch the main application window. """
     application = QtWidgets.QApplication([])
-    window = GUISimulationSetup()
-    application.aboutToQuit.connect(window.disconnect)  # cleanup & teardown
+    import napari
+    viewer = napari.Viewer(ndisplay=3)
+    simulation_setup_ui = GUISimulationSetup(viewer=viewer)                                          
+    viewer.window.add_dock_widget(simulation_setup_ui, area='right')                  
+
+    application.aboutToQuit.connect(simulation_setup_ui.disconnect)  # cleanup & teardown
     sys.exit(application.exec_())
 
 

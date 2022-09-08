@@ -5,35 +5,49 @@ The following is a step by step guide on how to design, create, simulate and vis
 We are going to be creating a two-lens telescope using two focusing lenses of diameter 300um and 200um respectively.
 <figure>
   <img
-  src="/doc/img/tutorial_telescope.png"
+  src="doc/img/tutorial_telescope.png"
   alt="Tutorial Telescope">
   <figcaption style="text-align:center">Tutorial telescope</figcaption>
 </figure>
 
 The simulation parameters are global and will inform our design choices. We will be using a pixel size of 0.25um and a simulation size of 500um x 500um.
 
-To start, load the user interface as shown in *User Interface*.
+To start, load the user interface as shown in *User Interface*. 
+
+```bash
+$ juno_ui
+```
+
+You will see the following launcher open:
+
+<figure>
+  <img
+  src="doc/img/home.png"
+  alt="Tutorial Lens">
+  <figcaption style="text-align:center">Juno Launcher</figcaption>
+</figure>
+
 
 ## Creating the Lenses
 
 We will start by creating the lenses to place in the simulation.  By default the units are in micron.
-- Press "Create Lens"
-- Set the pixel size to 1
-- Set the diameter to 300
-- Set the lens height to 30
+- Press "Create Element"
+- Set the pixel size to 1e-6
+- Set the diameter to 300e-6
+- Set the lens height to 30e-6
 - Set the escape path to 0.1
-- Press 'Save Profile' and save the configuration file as 'Tutorial_lens_1.yml' under the src/lens_config folder.
+- Press 'Save Profile' and save the configuration file as 'Tutorial_lens_1.yml' under the config folder.
 
-The LensCreator should now look like this:
+The ElementCreator should now look like this:
 
 <figure>
   <img
-  src="doc/img/tutorial_lens.png"
+  src="doc/img/tutorial_lens_01.png"
   alt="Tutorial Lens">
   <figcaption style="text-align:center">Lens Creator for Lens 1</figcaption>
 </figure>
 
-Now, repeat the process for the second lens, changing the height to 60 and the diameter to 200, and saving the profile in the same location as 'Tutorial_lens_2.yml'.
+Now, repeat the process for the second lens, changing the height to 60e-6 and the diameter to 200e-6, and saving the profile in the same location as 'Tutorial_lens_2.yml'.
 
 You can now close the LensCreator interface.
 
@@ -42,33 +56,47 @@ You can now close the LensCreator interface.
 The lenses we defined earlier naturally act as apertures, only allowing light through where the profile is defined, so any light outside the lens diameter will be blocked.
 
 Next we will create the beam.  We will be using a planar, circular beam with a diameter of 400um.
-- Press "Create beam"
-- Set the pixel size to 1
-- Set the simulation width to 500
-- Set the simulation height to 500
-    - Note, the simulation width and height defined in this window have no effect other than for visualisation and construction purposes, the actual parameters will be set in the simulation setup interface.
-- Set the beam width to 400
-- Set the beam width to 400
-- Set the lens shape to 'Circular', using the drop-down menu
-- Set the propagation distance to 300
-- Press 'Calculate final propagation' to visualise the cross-section of the beam propagation when it enters the first lens
-- Press 'Save Profile' and save the configuration file as 'Tutorial_beam.yml' under the src/lens_config folder.
+- Press "Create Beam"
 
-The BeamCreator interface should now look like this:
+On the General Tab
+- Set the beam width to 400e-6
+- Set the beam width to 400e-6
+- Set the lens shape to 'Circular', using the drop-down menu
+- Set the propagation distance to 300e-6
+- Press 'Calculate final propagation' to visualise the cross-section of the beam propagation when it enters the first lens
+
+On the Simulation Tab:
+- Set the pixel size to 1e-6
+- Set the simulation width to 500e-6
+- Set the simulation height to 500e-6
+    - Note, the simulation width and height defined in this window have no effect other than for visualisation and construction purposes, the actual parameters will be set in the simulation setup interface.
+  
+Once complete:
+- Press 'Save Profile' and save the configuration file as 'Tutorial_beam.yml' under the config folder.
+
+The Beam Creation interface should now look like this:
 <figure>
   <img
   src="doc/img/tutorial_beam.png"
   alt="Tutorial Beam">
-  <figcaption style="text-align:center">Beam Creator for tutorial</figcaption>
+  <figcaption style="text-align:center">Tutorial Beam Creation</figcaption>
+</figure>
+
+You can rotate the beam propagation to interact with and visualise it in 3D. 
+
+<figure>
+  <img
+  src="doc/img/tutorial_beam_3D.png"
+  alt="Tutorial Beam">
+  <figcaption style="text-align:center">3D Beam Visualisation</figcaption>
 </figure>
 
 
-You can now close the BeamCreator interface.
 
 ## Setting up the simulation
 
 Now that we have our lenses and beam, we are ready to set them up in a simulation.
-- Press 'Setup simulation'
+- Press 'Setup Simulation'
 - Set pixel size to 0.25e-6
 - Set simulation height to 500e-6
 - Set simulation width to 500e-6
@@ -96,25 +124,13 @@ For stage 2:
 - Set the finish distance to 1
     - The simulation will set the propagation finish distance to an equivalent focal distance of a focusing lens of the same height and diameter 
 
-- Now that both stages have been defined, press 'Generate' to generate the simulation configuration.
-- Press 'Save Simulation' and save the configuration file as 'Tutorial_simulation.yml' under the src/lens_config folder.
+- Now that both stages have been defined, press 'Generate Simulation' to generate the simulation configuration. Depending on your computer, this might take a while.
+- Press 'Save Simulation' and save the configuration file as 'Tutorial_simulation.yml' under the config folder.
 
 The Simulation Setup interface should now look like this:
 <figure>
   <img
-  src="doc/img/tutorial_sim_setup_1.png"
-  alt="Tutorial Simulation">
-  <figcaption style="text-align:center">Simulation Setup for tutorial</figcaption>
-</figure>
-<figure>
-  <img
-  src="doc/img/tutorial_sim_setup_2.png"
-  alt="Tutorial Simulation">
-  <figcaption style="text-align:center">Simulation Setup for tutorial</figcaption>
-</figure>
-<figure>
-  <img
-  src="doc/img/tutorial_sim_setup_3.png"
+  src="doc/img/tutorial_sim_setup.png"
   alt="Tutorial Simulation">
   <figcaption style="text-align:center">Simulation Setup for tutorial</figcaption>
 </figure>
@@ -140,16 +156,14 @@ The Simulation Parameter Sweep interface should look like this:
 - Press 'Save configuration'
 - Press 'Save Simulation' and save the configuration file as 'Tutorial_simulation.yml' under the src/lens_config folder.
 
-You can now close the SimulationSetup interface.
-
 
 ## Running your simulation
-- Press 'Run Simulation'
+- On the Launcher, press 'Run Simulation'
 - Press 'Load Simulation Config'
 - - Load the 'Tutorial_simulation.yml' file saved earlier
 - Press 'Run Simulation'
-- Note: The simulation will be given a 'pet name', allowing for easier identification of the simulation.  This name will be stated here, note it down to load the simulation later.
-- The progress of the simulation will be show in the command line from which you opened the user interface
+- Note: The simulation will be given a 'pet name', allowing for easier identification of the simulation.  This name will be stated here, note it down to load the simulation later. You can also set the name manually in the Simulation Setup interface.
+- The progress of the simulation will be show in the command line from which you opened the user interface.
 
 <figure>
   <img
@@ -158,29 +172,37 @@ You can now close the SimulationSetup interface.
   <figcaption style="text-align:center">Simulation running for tutorial</figcaption>
 </figure>
 
-- Once the simulation is complete, you can close the 'Run Simulation' interface
+The simulations will take around 5mins to complete on a standard laptop.
 
 
 ## Visualising the results
-- Press 'View Results'
+- On the Launcher, press 'View Results'
 - Press 'Load Simulation'
 - Locate the folder with the pet-name given during the running of the simulation, and open it
 - You should now see the results of your simulation :)
-- You can also filter the results by choosing a parameter from the drop down menu.
-- Choose the "Stage" parameter
-- Enter '2' after the 'Equals to' tab to only visualise the output of the final stage.
+- You can also filter the results by choosing a parameter from the drop down menu. The simulation data is also displayed in a table, which you can customise the columns shown.
+- You can change the scale of the 0 axis, by changing the Visualisation Scale. Change it to 100 for these simulations, and then press View All Simulations. 
 
-For example, using the three finish distances shown earlier, you can see the effect of propagating not far enough, just right and too far.
-<figure>
-  <img
-  src="doc/img/tutorial_simulation_visualisation_1.png"
-  alt="Tutorial Simulation Sweep">
-  <figcaption style="text-align:center">Visualisation for tutorial</figcaption>
-</figure>
+The visualistion shows us all three simulations are once. This is useful for comparing the effects of changing parameters. For example, using the three finish distances shown earlier, you can see the effect of propagating not far enough, just right and too far.
 
 <figure>
   <img
-  src="doc/img/tutorial_simulation_visualisation_2.png"
-  alt="Tutorial Simulation Sweep">
-  <figcaption style="text-align:center">Visualisation for tutorial</figcaption>
+  src="doc/img/tutorial_sim_multi_visualisation.png"
+  alt="Multi-Simulation Visualisation">
+  <figcaption style="text-align:center">Multi-Simulation Visualisation</figcaption>
 </figure>
+
+Play around with the visualisation options on the left, and see how they change the propagation visualisation.
+
+You can also view these simulations in 3D, and interact with them (press the toggle ndisplay (Ctrl + Y) button near the bottom left corner). However, viewing multiple simulations in 3D can require a powerful computer.
+
+To show only one simulation, select it using the dropdown at the bottom right corner of the screen. The visualisation will automatically update to the selected simulation. You are now free to visualise and explore this simulation in 3D. 
+
+<figure>
+  <img
+  src="doc/img/tutorial_sim_single_visualisation.png"
+  alt="Single Simulation 3D Visualisation">
+  <figcaption style="text-align:center">Single Simulation 3D Visualisation</figcaption>
+</figure>
+
+Thanks for completing the Juno tutorial. You should now be ready to get started simulating on your own. If there are any issues with this tutorial, or the package in general, please open an issue on [GitHub](https://github.com/DeMarcoLab/juno/issues). 

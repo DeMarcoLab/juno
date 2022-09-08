@@ -2,21 +2,21 @@ import glob
 import logging
 import os
 from pathlib import Path
+from pprint import pprint
 
+import dask.array as da
 import imageio
 import matplotlib.pyplot as plt
+import napari
 import numpy as np
 import zarr
-from PIL import Image, ImageDraw
-import dask.array as da
 
 from juno import utils
-from juno.Lens import Lens
+from juno.beam import Beam, generate_beam
+from juno.Lens import Lens, generate_lens
+from juno.Medium import Medium
 from juno.structures import (SimulationParameters, SimulationResult,
-                                        SimulationStage)
-
-import napari
-
+                             SimulationStage)
 
 #################### PLOTTING ####################
 
@@ -407,11 +407,11 @@ def save_result_plots(
         except: 
             pass # cant plot apertures and truncation for beam...
 
-    # save propagation gifs
-    try:
-        save_propagation_gif(os.path.join(save_path, "sim.zarr"))
-    except Exception as e:
-        logging.error(f"Error during plotting GIF: {e}")
+    # save propagation gifs #TODO: remove :(
+    # try:
+    #     save_propagation_gif(os.path.join(save_path, "sim.zarr"))
+    # except Exception as e:
+    #     logging.error(f"Error during plotting GIF: {e}")
 
     plt.close(fig)
     plt.close()
@@ -464,13 +464,31 @@ def plot_lens_modifications(lens: Lens) -> plt.Figure:
 
     return fig
 
-
-def plot_simulation_setup(config: dict) -> plt.Figure:
-    # TODO: redo this function to use zarr
+def plot_simulation_setup_v2(config: dict, medium_only: bool = False) -> plt.Figure:
+    from juno.Simulation import generate_simulation_parameters, pad_simulation
+  
     arr = None
     sim_height = config["sim_parameters"]["sim_height"]
     pixel_size = config["sim_parameters"]["pixel_size"]
+    sim_wavelength = config["sim_parameters"]["sim_wavelength"]
     sim_n_pixels_h = utils._calculate_num_of_pixels(sim_height, pixel_size, True)
+
+    # TODO: add beam profile?    
+    parameters = generate_simulation_parameters(config)
+    beam: Beam = generate_beam(config["beam"], parameters)
+
+    sd, fd = beam.start_distance, beam.finish_distance
+    n_pixels_beam = utils._calculate_num_of_pixels((fd-sd), pixel_size, True)
+
+    if medium_only:
+        beam_medium = beam.output_medium.refractive_index
+    else:
+        beam_medium = 0
+
+    beam_profile = da.stack([np.clip(beam.lens.profile, 0, beam.lens.medium.refractive_index)] * 1)
+    beam_output = da.stack([np.clip(beam.lens.profile, 0, beam_medium)] * (n_pixels_beam - 1))
+
+    arr = da.vstack([beam_profile, beam_output])
 
     for conf in config["stages"]:
 
@@ -479,7 +497,7 @@ def plot_simulation_setup(config: dict) -> plt.Figure:
         sd = conf["start_distance"]
         fd = conf["finish_distance"]
         total = fd - sd
-        n_pixels = utils._calculate_num_of_pixels(total, pixel_size, True)
+        n_pixels_output = utils._calculate_num_of_pixels(total, pixel_size, True)
 
         # get lens info
         lens_name = conf["lens"]
@@ -487,29 +505,46 @@ def plot_simulation_setup(config: dict) -> plt.Figure:
             if lens_name == lc["name"]:
                 lens_height = lc["height"]
                 lens_medium = lc["medium"]
+                lens = generate_lens(lc,   Medium(lens_medium, sim_wavelength), pixel_size)
                 break
 
         lens_n_pixels_z = utils._calculate_num_of_pixels(lens_height, pixel_size, True)
 
         # create arr
-        output = np.ones(shape=(sim_n_pixels_h, n_pixels)) * output_medium
-        lens = np.ones(shape=(sim_n_pixels_h, lens_n_pixels_z)) * lens_medium
+        # profile = da.stack([lens.profile] * lens_n_pixels_z)
+        
+        if not medium_only:
+            output_medium = 0
 
-        if arr is None:
-            arr = np.hstack([lens, output])
-        else:
-            arr = np.hstack([arr, lens, output])
+        # need to pad to equal size as sim
+        # pad the lens profile to be the same size as the simulation
+        lens = pad_simulation(lens, parameters=parameters)
 
-    # create plot
-    fig = plt.figure(figsize=(10, 2))
-    plt.imshow(arr, aspect="auto", cmap="turbo")
-    clb = plt.colorbar()
-    clb.ax.set_title("Medium")
-    plt.title("Simulation Stages")
-    plt.xlabel("Propagation Distance (px)")
-    plt.ylabel("Simulation Height (px)")
-    # TODO: correct the propagation distances to mm
-    return fig
+        # apply all aperture masks
+        lens.apply_aperture_masks()
+        print(lens.profile.shape)
+        profile = create_3d_lens(lens) * lens_medium
+
+
+
+        # need to pad the sim_width
+
+
+        output = da.stack([da.ones_like(lens.profile)] * n_pixels_output) * output_medium
+        arr = da.vstack([arr, profile, output])
+        print(arr.shape)
+
+    # sim_width = config["sim_parameters"]["sim_width"]
+    # sim_n_pixels_w = utils._calculate_num_of_pixels(sim_width, pixel_size, True)
+
+    # print(sim_width , sim_n_pixels_w)
+
+    # print(arr.shape)
+    # arr = da.stack([arr]*sim_n_pixels_w, axis=2)
+    print(arr.shape)
+
+    return arr
+
 
 
 def check_simulations_are_stackable(paths):
@@ -629,24 +664,12 @@ def save_propagation_gif(path: str, vert: bool = False, hor: bool = False):
         horizontal_save_path = os.path.join(os.path.dirname(path), "horizontal.gif")
         imageio.mimsave(horizontal_save_path, np.swapaxes(sim, 0, 2), duration=0.2)
 
-
-def view_propagation_in_time(arr):
-    """show the propagation over time"""
-    for i in range(1, arr.shape[0]):
-        
-        mask = np.zeros_like(arr) 
-
-        mask[:i, :] = 1.0
-
-        view = arr * mask
-
-
 def create_3d_lens(lens: Lens) -> np.ndarray:
     """Convert the 2D lens height map into 3D profile"""
     # ref: https://stackoverflow.com/questions/59851954/numpy-use-2d-array-as-heightmap-like-index-for-3d-array
-    lens_profile = lens.profile * 1e6
+    lens_profile = lens.profile / lens.pixel_size # profile height in pixels
 
-    print(np.min(lens_profile), np.max(lens_profile))
+    # TODO: use pixelsize here to scale object correctly?
 
     l_max = int(np.max(lens_profile))
     arr3d = np.ones(shape=(l_max, lens_profile.shape[0], lens_profile.shape[1]))

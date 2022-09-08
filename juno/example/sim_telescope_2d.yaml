@@ -11,7 +11,7 @@ options:
 beam:
   width: 250.e-6
   height: 250.e-6
-  shape: Rectangular
+  shape: Circular
   source_distance: 2.0e-3
 lenses:
   - name: lens_1

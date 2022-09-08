@@ -257,7 +257,7 @@ class Lens:
         self,
         truncation_height: float = 0.0,
         radius: float = 0,
-        type: str = "value",
+        type: str = "height",
         aperture: bool = False,
     ):
         """Create the truncation mask
@@ -265,7 +265,7 @@ class Lens:
         Args:
             height (float, optional): _description_. Defaults to None.
             radius (float, optional): _description_. Defaults to 0.
-            type (str, optional): _description_. Defaults to "value".
+            type (str, optional): _description_. Defaults to "height".
             aperture (bool, optional): _description_. Defaults to False.
 
         Raises:
@@ -279,7 +279,7 @@ class Lens:
                 "A Lens profile must be defined before applying a mask. Please generate a profile first."
             )
 
-        if type == "radial":
+        if type.lower() == "radial":
             radius_px = int(radius / self.pixel_size)
 
             truncation_px = self.profile.shape[0] // 2 + radius_px + 1
@@ -319,7 +319,7 @@ class Lens:
         inner_px = int(inner_m / self.pixel_size)
         outer_px = int(outer_m / self.pixel_size)
 
-        if type == "square":
+        if type.lower() == "square":
 
             mask = np.zeros_like(self.profile, dtype=bool)
 
@@ -343,7 +343,7 @@ class Lens:
             mask[outer_y0:outer_y1, outer_x0:outer_x1] = True
             mask[min_y:max_y, min_x:max_x] = False
 
-        if type == "radial":
+        if type.lower() == "radial":
 
 
             distance = utils.create_distance_map_px(w, h)
@@ -704,6 +704,7 @@ def apply_modifications(lens: Lens, lens_config: dict) -> Lens:
             type=lens_config["truncation"]["type"],
             aperture=lens_config["truncation"]["aperture"]
         )
+
 
     if lens_config["aperture"] is not None:
         lens.create_custom_aperture(
