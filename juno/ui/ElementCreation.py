@@ -106,8 +106,8 @@ class GUIElementCreation(ElementCreation.Ui_MainWindow, QtWidgets.QMainWindow):
         self.actionSave_Configuration.triggered.connect(self.save_configuration)
         self.actionLoad_Configuration.triggered.connect(self.load_configuration)
 
-        self.actionSave_Profile.clicked.connect(self.save_profile)
-        self.actionLoad_Profile.clicked.connect(self.load_profile)
+        self.actionSave_Profile.triggered.connect(self.save_profile)
+        self.actionLoad_Profile.triggered.connect(self.load_profile)
 
     def testing_function(self):
 
@@ -329,12 +329,22 @@ class GUIElementCreation(ElementCreation.Ui_MainWindow, QtWidgets.QMainWindow):
 
     def update_layer(self):
 
-        self.update_ui_components()
-
+        # TODO: enable this properly.        
+        # self.update_ui_components()
 
         # dont update the layers when the config is updating the ui...
         if self.CONFIG_UPDATE:
             return
+
+        # TODO: double update bug??
+
+        # live update
+        self.LIVE_UPDATE = self.checkBox_live_update.isChecked()
+
+        # if not, check if button was the sender?
+        if self.LIVE_UPDATE is False:
+            if self.sender() is not self.pushButton_generate_profile:
+                return
 
         # get updated config
         try:
@@ -351,11 +361,13 @@ class GUIElementCreation(ElementCreation.Ui_MainWindow, QtWidgets.QMainWindow):
             medium = float(self.lineEdit_medium.text())
             pixelsize = float(self.lineEdit_pixelsize.text())
 
-            if pixelsize * self.lens_config["diameter"]  > 10000:
-                napari.utils.notifications.show_error(f"Lens dimensions are too large to display")
-                return
 
+            
+            if not valid_element_to_display(self.lens_config, pixelsize): 
+                napari.utils.notifications.show_error(f"Element dimensions are too large to display.")
+                return 
 
+            # generate the lens profile
             lens = generate_lens(self.lens_config, Medium(medium), pixelsize)
             lens.apply_aperture_masks()
             arr3d = plotting.create_3d_lens(lens)
@@ -367,7 +379,6 @@ class GUIElementCreation(ElementCreation.Ui_MainWindow, QtWidgets.QMainWindow):
 
         except Exception as e:
             napari.utils.notifications.show_error(f"ERROR: {traceback.format_exc()}")
-
             return
 
 
@@ -403,6 +414,19 @@ class GUIElementCreation(ElementCreation.Ui_MainWindow, QtWidgets.QMainWindow):
                 self.viewer.add_image(arr3d, name="Element", colormap="gray", rendering="iso", depiction="volume")
         except Exception as e:
             napari.utils.notifications.show_error(f"Failure to load viewer: {traceback.format_exc()}")
+
+def valid_element_to_display(config: dict, pixelsize: int, max_dim: int = 10000) -> bool:
+    """Check if the element array will be greater than the maximum allows array size for display"""
+    # TODO: add more validation stuff here
+    
+    valid_element: bool = True
+
+    for k in ["length", "diameter", "height"]:
+        if config[k] / pixelsize > max_dim:
+            valid_element = False
+            print(f"invalid dimension: {k}, {config[k]}: {config[k] / pixelsize}")
+
+    return valid_element
 
 
 def main():
