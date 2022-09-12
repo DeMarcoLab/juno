@@ -36,9 +36,9 @@ We will start by creating the lenses to place in the simulation.  By default the
 - Set the diameter to 300e-6
 - Set the lens height to 30e-6
 - Set the escape path to 0.1
-- Press 'Save Profile' and save the configuration file as 'Tutorial_lens_1.yml' under the config folder.
+- Press "File -> Save Configuration" and save the configuration file as 'tutorial_lens_1.yml' under the config folder.
 
-The ElementCreator should now look like this:
+You should now be able to rotate the lens element in 3D, so the interface now looks similar to this:
 
 <figure>
   <img
@@ -47,13 +47,13 @@ The ElementCreator should now look like this:
   <figcaption style="text-align:center">Lens Creator for Lens 1</figcaption>
 </figure>
 
-Now, repeat the process for the second lens, changing the height to 60e-6 and the diameter to 200e-6, and saving the profile in the same location as 'Tutorial_lens_2.yml'.
+Now, repeat the process for the second lens, changing the height to 60e-6 and the diameter to 200e-6, and saving the profile in the same location as 'tutorial_lens_2.yml'.
 
-You can now close the LensCreator interface.
+You can now close the Element Creation interface.
 
 ## Creating the beam
 
-The lenses we defined earlier naturally act as apertures, only allowing light through where the profile is defined, so any light outside the lens diameter will be blocked.
+The elements we defined earlier naturally act as apertures, only allowing light through where the profile is defined, so any light outside the element diameter will be blocked.
 
 Next we will create the beam.  We will be using a planar, circular beam with a diameter of 400um.
 - Press "Create Beam"
@@ -61,18 +61,16 @@ Next we will create the beam.  We will be using a planar, circular beam with a d
 On the General Tab
 - Set the beam width to 400e-6
 - Set the beam width to 400e-6
-- Set the lens shape to 'Circular', using the drop-down menu
-- Set the propagation distance to 300e-6
-- Press 'Calculate final propagation' to visualise the cross-section of the beam propagation when it enters the first lens
+- Set the shape to 'Circular', using the drop-down menu
+- Set the Distance to 300e-6
 
 On the Simulation Tab:
 - Set the pixel size to 1e-6
 - Set the simulation width to 500e-6
 - Set the simulation height to 500e-6
     - Note, the simulation width and height defined in this window have no effect other than for visualisation and construction purposes, the actual parameters will be set in the simulation setup interface.
-  
-Once complete:
-- Press 'Save Profile' and save the configuration file as 'Tutorial_beam.yml' under the config folder.
+
+Press "Generate Beam" to generate the beam propagation. 
 
 The Beam Creation interface should now look like this:
 <figure>
@@ -91,22 +89,24 @@ You can rotate the beam propagation to interact with and visualise it in 3D.
   <figcaption style="text-align:center">3D Beam Visualisation</figcaption>
 </figure>
 
+Once complete:
+- Press "File -> Save Configuration" and save the configuration file as 'tutorial_beam.yml' under the config folder.
 
 
 ## Setting up the simulation
 
-Now that we have our lenses and beam, we are ready to set them up in a simulation.
+Now that we have our elements and beam, we are ready to set them up in a simulation.
 - Press 'Setup Simulation'
 - Set pixel size to 0.25e-6
 - Set simulation height to 500e-6
 - Set simulation width to 500e-6
 - Press the [...] button after 'Sim beam' to load the beam configuration
-- Load the 'Tutorial_beam.yml' file you saved earlier
+- Load the 'tutorial_beam.yml' file you saved earlier
 - Set the number of stages to 2
 
 For stage 1:
 - Press the [...] button after 'Lens' to load the first lens configuration
-- Load the 'Tutorial_lens_1.yml' file saved earlier
+- Load the 'tutorial_lens_1.yml' file saved earlier
 - Set the output medium to 1, for air
 - Set the n_steps to 50
 - Set the step_size to 0 (the simulation defaults to n_steps)
@@ -115,25 +115,27 @@ For stage 1:
 
 For stage 2:
 - Press the [...] button after 'Lens' to load the second lens configuration
-- Load the 'Tutorial_lens_2.yml' file saved earlier
+- Load the 'tutorial_lens_2.yml' file saved earlier
 - Set the output medium to 1.33, for water
 - Set the n_steps to 50
 - Set the step_size to 0 (the simulation defaults to n_steps)
-- Press 'Use focal distance'
-- Set the start distance to 0
-- Set the finish distance to 1
-    - The simulation will set the propagation finish distance to an equivalent focal distance of a focusing lens of the same height and diameter 
+- Set the 'Use Focal Distance' checkbox.
+- Set the Start Multiple to 0
+- Set the Finish Multiple to 1
+    - The simulation will set the propagation finish distance based on the equivalent focal distance of a focusing lens of the same height and diameter 
 
 - Now that both stages have been defined, press 'Generate Simulation' to generate the simulation configuration. Depending on your computer, this might take a while.
-- Press 'Save Simulation' and save the configuration file as 'Tutorial_simulation.yml' under the config folder.
 
-The Simulation Setup interface should now look like this:
+You can now rotate the visualisation so that the interface should now look something like this:
 <figure>
   <img
   src="doc/img/tutorial_sim_setup.png"
   alt="Tutorial Simulation">
   <figcaption style="text-align:center">Simulation Setup for tutorial</figcaption>
 </figure>
+
+- Press "File -> Save Configuration" and save the configuration file as 'tutorial_simulation.yml' under the config folder.
+
 
 ## Sweeping parameters (Optional)
 While we have pre-calculated the finishing distance to match the focal distance of both of the lenses, this may not always be the case.  If you wish simulate a range of propagation distances to find the optimal position of the lenses, you can use a parameter sweep
@@ -154,13 +156,13 @@ The Simulation Parameter Sweep interface should look like this:
 </figure>
 
 - Press 'Save configuration'
-- Press 'Save Simulation' and save the configuration file as 'Tutorial_simulation.yml' under the src/lens_config folder.
+- Press "File -> Save Configuration" and save the configuration file as 'tutorial_simulation.yml' under the config folder.
 
 
 ## Running your simulation
 - On the Launcher, press 'Run Simulation'
 - Press 'Load Simulation Config'
-- - Load the 'Tutorial_simulation.yml' file saved earlier
+- - Load the 'tutorial_simulation.yml' file saved earlier
 - Press 'Run Simulation'
 - Note: The simulation will be given a 'pet name', allowing for easier identification of the simulation.  This name will be stated here, note it down to load the simulation later. You can also set the name manually in the Simulation Setup interface.
 - The progress of the simulation will be show in the command line from which you opened the user interface.
@@ -205,4 +207,6 @@ To show only one simulation, select it using the dropdown at the bottom right co
   <figcaption style="text-align:center">Single Simulation 3D Visualisation</figcaption>
 </figure>
 
-Thanks for completing the Juno tutorial. You should now be ready to get started simulating on your own. If there are any issues with this tutorial, or the package in general, please open an issue on [GitHub](https://github.com/DeMarcoLab/juno/issues). 
+Thanks for completing the Juno tutorial. You should now be ready to get started simulating on your own. For more examples, please see the example folder in the repository. This contains a number of example configurations you can load and run to play around with the package.
+
+If there are any issues with this tutorial, or the package in general, please open an issue on [GitHub](https://github.com/DeMarcoLab/juno/issues). 
