@@ -12,6 +12,10 @@ from tqdm import tqdm
 from juno import Simulation, utils, constants
 from copy import deepcopy
 
+
+import juno
+BASE_PATH = os.path.dirname(juno.__file__)
+
 class SimulationRunner:
 
     def __init__(self, config_filename: str) -> None:
@@ -34,7 +38,12 @@ class SimulationRunner:
         tmp_petname = self.petname
 
         # create logging directory
-        self.data_path: Path = os.path.join(self.config["options"]["log_dir"], str(self.petname))
+        base_dir = self.config["options"]["log_dir"]
+
+        # if abs path, use it, else, start from juno dir
+        if not os.path.isabs(base_dir):
+            base_dir = os.path.join(BASE_PATH, base_dir)
+        self.data_path: Path = os.path.join(base_dir, str(self.petname))
         
         counter = 1
         while os.path.exists(self.data_path):
