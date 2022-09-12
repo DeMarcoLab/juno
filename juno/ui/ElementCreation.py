@@ -1,14 +1,3 @@
-
-# DONE
-# create 
-# load config
-# save config
-# load profile
-
-## features
-# custom profile (load)
-# QOL: disable useless options
-
 import os
 import sys
 import traceback
@@ -20,7 +9,6 @@ import numpy as np
 import yaml
 from juno import plotting, utils, validation
 from juno.Lens import LensType, Medium, generate_lens
-from juno.ui.utils import display_error_message
 from PyQt5 import QtWidgets
 import napari.utils.notifications
 
@@ -35,6 +23,10 @@ default_lens_config = {
     "escape_path": 0.0,
 }
 
+# TODO: make this part of the config?
+import juno
+BASE_PATH = os.path.dirname(juno.__file__)
+
 class GUIElementCreation(ElementCreation.Ui_MainWindow, QtWidgets.QMainWindow):
     def __init__(self, parent=None, viewer: napari.Viewer = None):
         super().__init__(parent=parent)
@@ -44,6 +36,8 @@ class GUIElementCreation(ElementCreation.Ui_MainWindow, QtWidgets.QMainWindow):
         self.setWindowTitle("Element Creator")
 
         self.CONFIG_UPDATE = False
+        self.PROFILE_LOADED = False
+        self.PROFILE_PATH = None
 
         self.viewer = viewer
         self.setup_connections()
@@ -53,12 +47,12 @@ class GUIElementCreation(ElementCreation.Ui_MainWindow, QtWidgets.QMainWindow):
         
         # update ui parameters and viz
         self.update_ui_from_config(validated_default_config)
-        self.update_layer()
+        self.update_visualisation()
         self.show()
 
     def setup_connections(self):
 
-        self.pushButton_generate_profile.clicked.connect(self.update_layer)
+        self.pushButton_generate_profile.clicked.connect(self.update_visualisation)
 
         # comboboxes
         self.comboBox_type.addItems([type.name for type in LensType][::-1]) # lens types
@@ -66,41 +60,41 @@ class GUIElementCreation(ElementCreation.Ui_MainWindow, QtWidgets.QMainWindow):
         self.comboBox_aperture_mode.addItems(["Radial", "Square"])      # aperture modes
 
         # general
-        self.lineEdit_pixelsize.textChanged.connect(self.update_layer)
-        self.lineEdit_diameter.textChanged.connect(self.update_layer)
-        self.lineEdit_length.textChanged.connect(self.update_layer)
-        self.lineEdit_height.textChanged.connect(self.update_layer)
-        self.lineEdit_medium.textChanged.connect(self.update_layer)
-        self.lineEdit_exponent.textChanged.connect(self.update_layer)
-        self.lineEdit_escape_path.textChanged.connect(self.update_layer)
-        self.comboBox_type.currentTextChanged.connect(self.update_layer)
-        self.checkBox_invert_profile.stateChanged.connect(self.update_layer)
-        self.lineEdit_name.textChanged.connect(self.update_layer)
+        self.lineEdit_pixelsize.textChanged.connect(self.update_visualisation)
+        self.lineEdit_diameter.textChanged.connect(self.update_visualisation)
+        self.lineEdit_length.textChanged.connect(self.update_visualisation)
+        self.lineEdit_height.textChanged.connect(self.update_visualisation)
+        self.lineEdit_medium.textChanged.connect(self.update_visualisation)
+        self.lineEdit_exponent.textChanged.connect(self.update_visualisation)
+        self.lineEdit_escape_path.textChanged.connect(self.update_visualisation)
+        self.comboBox_type.currentTextChanged.connect(self.update_visualisation)
+        self.checkBox_invert_profile.stateChanged.connect(self.update_visualisation)
+        self.lineEdit_name.textChanged.connect(self.update_visualisation)
 
         # grating
-        self.checkBox_use_grating.toggled.connect(self.update_layer)
-        self.lineEdit_grating_width.textChanged.connect(self.update_layer)
-        self.lineEdit_grating_distance.textChanged.connect(self.update_layer)
-        self.lineEdit_grating_depth.textChanged.connect(self.update_layer)
-        self.checkBox_grating_x_axis.toggled.connect(self.update_layer)
-        self.checkBox_grating_y_axis.toggled.connect(self.update_layer)
-        self.checkBox_grating_centred.toggled.connect(self.update_layer)
+        self.checkBox_use_grating.toggled.connect(self.update_visualisation)
+        self.lineEdit_grating_width.textChanged.connect(self.update_visualisation)
+        self.lineEdit_grating_distance.textChanged.connect(self.update_visualisation)
+        self.lineEdit_grating_depth.textChanged.connect(self.update_visualisation)
+        self.checkBox_grating_x_axis.toggled.connect(self.update_visualisation)
+        self.checkBox_grating_y_axis.toggled.connect(self.update_visualisation)
+        self.checkBox_grating_centred.toggled.connect(self.update_visualisation)
 
         # truncation
-        self.checkBox_use_truncation.toggled.connect(self.update_layer)
-        self.comboBox_truncation_mode.currentTextChanged.connect(self.update_layer)
-        self.lineEdit_truncation_value.textChanged.connect(self.update_layer)
-        self.checkBox_truncation_aperture.toggled.connect(self.update_layer) 
+        self.checkBox_use_truncation.toggled.connect(self.update_visualisation)
+        self.comboBox_truncation_mode.currentTextChanged.connect(self.update_visualisation)
+        self.lineEdit_truncation_value.textChanged.connect(self.update_visualisation)
+        self.checkBox_truncation_aperture.toggled.connect(self.update_visualisation) 
 
         # aperture
-        self.checkBox_use_aperture.toggled.connect(self.update_layer)
-        self.comboBox_aperture_mode.currentTextChanged.connect(self.update_layer)
-        self.lineEdit_aperture_inner.textChanged.connect(self.update_layer)
-        self.lineEdit_aperture_outer.textChanged.connect(self.update_layer)
-        self.checkBox_aperture_invert.toggled.connect(self.update_layer)
+        self.checkBox_use_aperture.toggled.connect(self.update_visualisation)
+        self.comboBox_aperture_mode.currentTextChanged.connect(self.update_visualisation)
+        self.lineEdit_aperture_inner.textChanged.connect(self.update_visualisation)
+        self.lineEdit_aperture_outer.textChanged.connect(self.update_visualisation)
+        self.checkBox_aperture_invert.toggled.connect(self.update_visualisation)
 
         # buttons
-        self.pushButton_generate_profile.clicked.connect(self.update_layer)
+        self.pushButton_generate_profile.clicked.connect(self.update_visualisation)
 
         # actions
         self.actionSave_Configuration.triggered.connect(self.save_configuration)
@@ -208,72 +202,119 @@ class GUIElementCreation(ElementCreation.Ui_MainWindow, QtWidgets.QMainWindow):
 
     def load_configuration(self):
 
-        print("load profile...")
-
         filename, _ = QtWidgets.QFileDialog.getOpenFileName(
             self,
-            "Load Profile",
-            filter="All types (*.yml *.yaml *.npy) ;;Yaml config (*.yml *.yaml) ;;Numpy array (*.npy)",
+            caption="Load Profile",
+            directory=BASE_PATH,
+            filter="All types (*.yml *.yaml) ;;Yaml config (*.yml *.yaml) ;;",
         )
 
         if filename == "":
             return
 
-        if filename.endswith(".npy"):
-            print("numpy file... TODO: custom profile load")
+        # load and validate configuration
+        self.config = utils.load_yaml_config(filename)
+        self.config = validation._validate_default_lens_config(self.config)
 
-        else:
-            print("lens configuration")
-            self.lens_config = utils.load_yaml_config(filename)
-            
-            # validate config...
-            self.lens_config = validation._validate_default_lens_config(self.lens_config)
+        # custom profile treated separately
+        self.PROFILE_PATH = self.config.get("custom", None)
+        self.enable_general_properties(True if self.PROFILE_PATH is None else False)
 
-            # validate config?
-            try:
-                self.update_ui_from_config(self.lens_config)
-            except:
-                napari.utils.notifications.show_error(traceback.format_exc())
-            
-            self.update_layer() 
+        # update ui elements
+        try:
+            self.update_ui_from_config(self.config)
+        except:
+            napari.utils.notifications.show_error(traceback.format_exc())
+        
+        # update visualisation
+        self.update_visualisation()
+        napari.utils.notifications.show_info(f"Element configuration loaded: {filename})") 
 
     def save_configuration(self):
 
         try:
             self.update_config()
         except Exception as e:
-            print(f"Unable to update config... {e}")
+            napari.utils.notifications.show_error(f"Unable to update config... {traceback.format_exc()}")
 
-        filename, ext = QtWidgets.QFileDialog.getSaveFileName(self, "Save Profile", self.lens_config["name"], filter="Yaml config (*.yml *.yaml)")
+        filename, ext = QtWidgets.QFileDialog.getSaveFileName(self, 
+            caption="Save Configuration",
+            directory = os.path.join(BASE_PATH, self.config["name"]), 
+            filter="Yaml config (*.yml *.yaml)")
 
         if filename == "":
             return
 
-        self.lens_config["name"] = os.path.basename(filename).split('.')[0]
-        self.lineEdit_name.setText(self.lens_config["name"])
+        self.config["name"] = os.path.basename(filename).split('.')[0]
+        self.lineEdit_name.setText(self.config["name"])
 
         with open(filename, "w") as f:
-            yaml.safe_dump(self.lens_config, f, sort_keys=False)
+            yaml.safe_dump(self.config, f, sort_keys=False)
+
+        napari.utils.notifications.show_info(f"Element configuration saved: {filename}")
+
 
     def save_profile(self):
-        print("save profile (.npy)")
-
-        # profile must be valid?
+        
+        # get config
+        try:
+            self.update_config()
+        except Exception as e:
+            napari.utils.notifications.show_error(f"ERROR: {traceback.format_exc()}")
+            return
         
         # generate profile
+        medium = float(self.lineEdit_medium.text())
+        pixelsize = float(self.lineEdit_pixelsize.text())   
+        lens = generate_lens(self.config, Medium(medium), pixelsize)
 
         # save npy file
+        filename, ext = QtWidgets.QFileDialog.getSaveFileName(self, 
+            caption="Save Profile", 
+            directory = os.path.join(BASE_PATH, self.config["name"]), 
+            filter="Numpy File (*.npy)")
+
+        if filename == "":
+            return
+
+        # save profile
+        np.save(filename, lens.profile)
+        napari.utils.notifications.show_info(f"Element profile saved: {filename}")
 
     def load_profile(self):
-        print("load profile (.npy)")
-
+        
         # select npy file
+        filename, _ = QtWidgets.QFileDialog.getOpenFileName(
+            self,
+            caption="Load Profile",
+            directory=BASE_PATH,
+            filter="Numpy File (*.npy)",
+        )
 
-        # load profile
+        if filename == "":
+            return
+        
+        # set loaded profile
+        self.PROFILE_LOADED = True
+        self.PROFILE_PATH = filename
 
-        # set config
+        # set values and disable options
+        self.enable_general_properties(False)
+        # TODO: set the values (need lens profile...)
+        # TODO: need a way to undo this..?
 
-        # disable some options
+        # update visualisation
+        self.update_visualisation()
+        napari.utils.notifications.show_info(f"Element profile loaded: {filename}")
+
+    def enable_general_properties(self, enabled: bool = True):        
+        self.lineEdit_pixelsize.setEnabled(enabled)
+        self.lineEdit_diameter.setEnabled(enabled)
+        self.lineEdit_height.setEnabled(enabled)
+        self.lineEdit_length.setEnabled(enabled)
+        self.lineEdit_exponent.setEnabled(enabled)
+        self.comboBox_type.setEnabled(enabled)
+
 
     def update_config(self):
 
@@ -324,10 +365,14 @@ class GUIElementCreation(ElementCreation.Ui_MainWindow, QtWidgets.QMainWindow):
         else:
             lens_config["aperture"] = None
 
-        self.lens_config = lens_config
+        # custom (loaded) profile
+        lens_config["custom"] = self.PROFILE_PATH
 
 
-    def update_layer(self):
+        self.config = lens_config
+
+
+    def update_visualisation(self):
 
         # TODO: enable this properly.        
         # self.update_ui_components()
@@ -336,13 +381,8 @@ class GUIElementCreation(ElementCreation.Ui_MainWindow, QtWidgets.QMainWindow):
         if self.CONFIG_UPDATE:
             return
 
-        # TODO: double update bug??
-
-        # live update
-        self.LIVE_UPDATE = self.checkBox_live_update.isChecked()
-
-        # if not, check if button was the sender?
-        if self.LIVE_UPDATE is False:
+        # if not live updating, check if button was the sender
+        if self.checkBox_live_update.isChecked() is False:
             if self.sender() is not self.pushButton_generate_profile:
                 return
 
@@ -357,18 +397,17 @@ class GUIElementCreation(ElementCreation.Ui_MainWindow, QtWidgets.QMainWindow):
         arr3d = None
 
         try:
+            
             # params
             medium = float(self.lineEdit_medium.text())
             pixelsize = float(self.lineEdit_pixelsize.text())
-
-
-            
-            if not valid_element_to_display(self.lens_config, pixelsize): 
+           
+            if not valid_element_to_display(self.config, pixelsize): 
                 napari.utils.notifications.show_error(f"Element dimensions are too large to display.")
                 return 
 
             # generate the lens profile
-            lens = generate_lens(self.lens_config, Medium(medium), pixelsize)
+            lens = generate_lens(self.config, Medium(medium), pixelsize)
             lens.apply_aperture_masks()
             arr3d = plotting.create_3d_lens(lens)
 
@@ -394,13 +433,12 @@ class GUIElementCreation(ElementCreation.Ui_MainWindow, QtWidgets.QMainWindow):
 
 
         # https://forum.image.sc/t/update-refresh-a-layer-in-napari-julia-napari-jl/59728
-        print("update_layer")
 
         # TODO: set lens layer as active
         # TODO: find a better way to set the initial view iamges... probably better to separate
         # TODO: load profile
 
-        # update layer in place 
+        # update layers in place 
         try:
             try:
                 self.viewer.layers["Aperture Mask"].data = lens.aperture
