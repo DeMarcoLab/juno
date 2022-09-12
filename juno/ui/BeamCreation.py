@@ -14,9 +14,14 @@ from juno.beam import BeamShape, BeamSpread, DistanceMode
 from juno.Simulation import (generate_beam_simulation_stage,
                              generate_simulation_parameters,
                              propagate_stage)
-from juno.structures import SimulationOptions
+from juno.structures import SimulationOptions, SimulationParameters
 from PyQt5 import QtWidgets
+import dask.array as da
 
+PROPAGATION_DISTANCE_DISPLAY_LIMIT_PX = 100_000
+BEAM_SHAPE_DISPLAY_LIMIT_PX = 10_000
+BEAM_N_STEPS_DISPLAY_LIMIT = 1000
+BEAM_STEP_SIZE_DISPLAY_LIMIT = 1e-9
 
 class GUIBeamCreation(BeamCreation.Ui_MainWindow, QtWidgets.QMainWindow):
     def __init__(self, parent=None, viewer: napari.Viewer = None):
@@ -32,7 +37,7 @@ class GUIBeamCreation(BeamCreation.Ui_MainWindow, QtWidgets.QMainWindow):
         self.setup_connections()
 
         # # update ui parameters and viz
-        self.update_layer()
+        self.update_visualisation()
         self.show()
 
     def setup_connections(self):
@@ -45,47 +50,45 @@ class GUIBeamCreation(BeamCreation.Ui_MainWindow, QtWidgets.QMainWindow):
         self.comboBox_propagation_type.addItems(["Num Steps", "Step Size"])
 
         # general
-        self.lineEdit_name.textChanged.connect(self.update_layer)
-        self.lineEdit_beam_width.textChanged.connect(self.update_layer)
-        self.lineEdit_beam_height.textChanged.connect(self.update_layer)
-        self.lineEdit_shift_x.textChanged.connect(self.update_layer)
-        self.lineEdit_shift_y.textChanged.connect(self.update_layer)
+        self.lineEdit_name.textChanged.connect(self.update_visualisation)
+        self.lineEdit_beam_width.textChanged.connect(self.update_visualisation)
+        self.lineEdit_beam_height.textChanged.connect(self.update_visualisation)
+        self.lineEdit_shift_x.textChanged.connect(self.update_visualisation)
+        self.lineEdit_shift_y.textChanged.connect(self.update_visualisation)
         
         # shaping
-        self.comboBox_spread.currentTextChanged.connect(self.update_layer)
-        self.comboBox_shape.currentTextChanged.connect(self.update_layer)
-        self.comboBox_convergence.currentTextChanged.connect(self.update_layer)
-        self.lineEdit_convergence_value.textChanged.connect(self.update_layer)
-        self.comboBox_distance_mode.currentTextChanged.connect(self.update_layer)
-        self.lineEdit_distance_value.textChanged.connect(self.update_layer)
+        self.comboBox_spread.currentTextChanged.connect(self.update_visualisation)
+        self.comboBox_shape.currentTextChanged.connect(self.update_visualisation)
+        self.comboBox_convergence.currentTextChanged.connect(self.update_visualisation)
+        self.lineEdit_convergence_value.textChanged.connect(self.update_visualisation)
+        self.comboBox_distance_mode.currentTextChanged.connect(self.update_visualisation)
+        self.lineEdit_distance_value.textChanged.connect(self.update_visualisation)
 
         # tilt
-        self.lineEdit_tilt_x.textChanged.connect(self.update_layer)
-        self.lineEdit_tilt_y.textChanged.connect(self.update_layer)
+        self.lineEdit_tilt_x.textChanged.connect(self.update_visualisation)
+        self.lineEdit_tilt_y.textChanged.connect(self.update_visualisation)
 
         # gaussian
-        self.checkBox_gaussian_enabled.toggled.connect(self.update_layer)
-        self.lineEdit_gaussian_waist_x.textChanged.connect(self.update_layer)
-        self.lineEdit_gaussian_waist_y.textChanged.connect(self.update_layer)
-        self.lineEdit_gaussian_axial_z0.textChanged.connect(self.update_layer)
-        self.lineEdit_gaussian_axial_z_total.textChanged.connect(self.update_layer)
+        self.checkBox_gaussian_enabled.toggled.connect(self.update_visualisation)
+        self.lineEdit_gaussian_waist_x.textChanged.connect(self.update_visualisation)
+        self.lineEdit_gaussian_waist_y.textChanged.connect(self.update_visualisation)
+        self.lineEdit_gaussian_axial_z0.textChanged.connect(self.update_visualisation)
+        self.lineEdit_gaussian_axial_z_total.textChanged.connect(self.update_visualisation)
         
         # simulation
-        self.lineEdit_pixelsize.textChanged.connect(self.update_layer)
-        self.lineEdit_sim_width.textChanged.connect(self.update_layer)
-        self.lineEdit_sim_height.textChanged.connect(self.update_layer)
-        self.comboBox_propagation_type.currentTextChanged.connect(self.update_layer)
-        self.lineEdit_propagation_step.textChanged.connect(self.update_layer)
-        self.lineEdit_medium.textChanged.connect(self.update_layer)
+        self.lineEdit_pixelsize.textChanged.connect(self.update_visualisation)
+        self.lineEdit_sim_width.textChanged.connect(self.update_visualisation)
+        self.lineEdit_sim_height.textChanged.connect(self.update_visualisation)
+        self.comboBox_propagation_type.currentTextChanged.connect(self.update_visualisation)
+        self.lineEdit_propagation_step.textChanged.connect(self.update_visualisation)
+        self.lineEdit_medium.textChanged.connect(self.update_visualisation)
 
         # buttons
-        self.pushButton_generate_beam.clicked.connect(self.update_layer)
-        self.pushButton_load_config.clicked.connect(self.load_config)
-        self.pushButton_save_config.clicked.connect(self.save_config)
-
-    # def testing_function(self):
-
-    #     print("testing function!!")
+        self.pushButton_generate_beam.clicked.connect(self.update_visualisation)
+        
+        # actions
+        self.actionLoad_Configuration.triggered.connect(self.load_configuration)
+        self.actionSave_Configuration.triggered.connect(self.save_configuration)
 
     def update_ui_from_config(self, config: dict):
         # read the config, update ui elements...
@@ -147,10 +150,7 @@ class GUIBeamCreation(BeamCreation.Ui_MainWindow, QtWidgets.QMainWindow):
 
 
     def update_ui_components(self):
-
-        # enable / disable general components
-        print("updating ui components...")
-
+        """enable / disable general components"""
 
          # spread
          # TODO: also toggle the labels....
@@ -171,7 +171,6 @@ class GUIBeamCreation(BeamCreation.Ui_MainWindow, QtWidgets.QMainWindow):
         else:
             self.label_convergence_value.setText("NA")
 
-
         # distance
         if self.comboBox_distance_mode.currentText() == "Direct":
             self.label_distance_value.setText("Distance (m)")
@@ -181,41 +180,37 @@ class GUIBeamCreation(BeamCreation.Ui_MainWindow, QtWidgets.QMainWindow):
             self.label_distance_value.setText("Focal Multiple")
             
 
-    def load_config(self):
-
-        print("load config...")
-
+    def load_configuration(self):
+        """Load the beam configuration from file"""
         filename, _ = QtWidgets.QFileDialog.getOpenFileName(
             self,
             "Load Configuration",
-            filter="All types (*.yml *.yaml *.npy) ;;Yaml config (*.yml *.yaml) ;;Numpy array (*.npy)",
+            filter="All types (*.yml *.yaml *.npy) ;;Yaml config (*.yml *.yaml);;",
         )
 
         if filename == "":
             return
 
-        print("beam configuration")
+        # load beam config and validate
         beam_config = utils.load_yaml_config(filename)
-        
-        # validate config...
         beam_config = validation._validate_default_beam_config(beam_config)
 
-        # validate config?
+        # update ui
         try:
             self.update_ui_from_config(beam_config)
         except:
             napari.utils.notifications.show_error(traceback.format_exc())
             
-        self.update_layer() 
+        self.update_visualisation() 
 
-    def save_config(self):
+    def save_configuration(self):
 
         try:
             self.update_config()
         except Exception as e:
-            print(f"Unable to update config... {e}")
+            napari.utils.notifications.show_error(f"Unable to update config... {e}")
 
-        filename, ext = QtWidgets.QFileDialog.getSaveFileName(self, "Save Profile", self.lineEdit_name.text(), filter="Yaml config (*.yml *.yaml)")
+        filename, ext = QtWidgets.QFileDialog.getSaveFileName(self, "Save Configuration", self.lineEdit_name.text(), filter="Yaml config (*.yml *.yaml)")
 
         if filename == "":
             return
@@ -286,23 +281,26 @@ class GUIBeamCreation(BeamCreation.Ui_MainWindow, QtWidgets.QMainWindow):
         }
 
 
-    def update_layer(self):
-
-        print("updating layer")
+    def update_visualisation(self):
+        
+        # update ui components
         self.update_ui_components()
 
         # dont update the layers when the config is updating the ui...
         if self.CONFIG_UPDATE:
             return
 
+        # only update when button pressed, if not live-updating
+        if self.checkBox_live_update.isChecked() is False:
+            if self.sender() is not self.pushButton_generate_beam:
+                return
+
         # get updated config
         try:
             self.update_config()
         except Exception as e:
-            napari.utils.notifications.show_error(f"ERROR: {traceback.format_exc()}")
+            napari.utils.notifications.show_error(f"Error reading configuration ui: {traceback.format_exc()}")
             return
-
-        pprint(self.config)
 
         try:
 
@@ -310,33 +308,24 @@ class GUIBeamCreation(BeamCreation.Ui_MainWindow, QtWidgets.QMainWindow):
             save_plot=False)
 
             parameters = generate_simulation_parameters(self.config)
+
+
+            # validate beam shape for display
+            if not validate_beam_for_display(self.config, parameters):
+                napari.utils.notifications.show_error(f"Beam / Simulation size is too large to display.")
+                return 
+
+            # generate hte beams
             stage = generate_beam_simulation_stage(self.config, parameters)
 
+            # validate sim size for display
+            if np.max(stage.distances.shape) > PROPAGATION_DISTANCE_DISPLAY_LIMIT_PX:
+                napari.utils.notifications.show_error(f"Beam propagation distance to display. {stage.distances.shape} elements")
+                return 
+
+            # beam propagation
             result = propagate_stage(stage, parameters, options, None)
-
-
-            # TODO: use the actual propgation from sim, not this mess
-            # if stage.wavefront is not None:
-            #     previous_wavefront = stage.wavefront
-
-            # # calculate stage phase profile
-            # phase = calculate_stage_phase(stage, parameters)
-
-            # # electric field (wavefront)
-            # amplitude: float = parameters.A if stage._id == 0 else 1.0
-            # wavefront = calculate_wavefront_v2(
-            #     phase=phase,
-            #     previous_wavefront=previous_wavefront,
-            #     A=amplitude,
-            #     aperture=stage.lens.aperture,
-            # ) 
-
-            # ## propagate wavefront #TODO: replace with v3 (vectorised)
-            # result = propagate_wavefront_v2(wavefront=wavefront, 
-            #                     stage=stage, 
-            #                     parameters=parameters, 
-            #                     options=options)
-            
+           
         except:
             napari.utils.notifications.show_error(f"Failure to propagate wavefron: {traceback.format_exc()}")
             return
@@ -350,11 +339,8 @@ class GUIBeamCreation(BeamCreation.Ui_MainWindow, QtWidgets.QMainWindow):
         self.viewer.scale_bar.visible = True
 
         # load beam propgation
-    
         try:
             path = os.path.join(options.log_dir, str(stage._id), "sim.zarr")
-            print("path:", path)
-            import dask.array as da
             sim = da.from_zarr(utils.load_simulation(path))
 
         except:
@@ -372,6 +358,28 @@ class GUIBeamCreation(BeamCreation.Ui_MainWindow, QtWidgets.QMainWindow):
         except Exception as e:
             napari.utils.notifications.show_error(f"Failure to load viewer: {traceback.format_exc()}")
             return
+
+def validate_beam_for_display(config: dict, parameters: SimulationParameters) -> bool:
+    
+    valid_beam: bool = True
+
+    if parameters.sim_height / parameters.pixel_size > BEAM_SHAPE_DISPLAY_LIMIT_PX:
+        valid_beam = False
+    if parameters.sim_width / parameters.pixel_size > BEAM_SHAPE_DISPLAY_LIMIT_PX:
+        valid_beam = False
+
+    for k in ["width", "height"]:
+        if config["beam"][k] / parameters.pixel_size > BEAM_SHAPE_DISPLAY_LIMIT_PX:
+            valid_beam = False
+
+    if config["beam"]["n_steps"] > BEAM_N_STEPS_DISPLAY_LIMIT:
+        valid_beam = False
+    if "step_size" in config["beam"]:
+        if config["beam"]["step_size"] < BEAM_STEP_SIZE_DISPLAY_LIMIT:
+            valid_beam = False    
+
+    return valid_beam
+
 
 def main():
     """Launch the `piescope_gui` main application window."""
