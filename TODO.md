@@ -3,10 +3,15 @@
 @patrickcleeve2
 
 BUG
-- live update crashing for when very large dimension entered...
+- tutorial instructions wrong
+    - views not the same as default loaded
+    - 
+- Gaussian beam not displaying correctly, likely napari interpolation (need to verify)
+- Axicon visualisation is not showing correctly, likely due to napari interpolation
+
 
 General
-- see if we can reduce tutorial pixelsize, probably overkill, causing oom
+- see if we can reduce tutorial pixelsize, probably overkill, causing oom -> cant numerical issues
 
 
 Sim
@@ -15,13 +20,10 @@ Sim
 
 UI
 - clear napari notifications
-- load custom 'element' profiles in UI
-- Gaussian beam not displaying correctly, likely napari interpolation (need to verify)
-- select from table click
 - metadata: make loading metadata loading / saving work from all paths (relative / abs)
-- axicon visualisation is not showing correctly, likely due to napari interpolation
+- select from table click
 - sort results table
 - make pathing work regardless of where sim was run... 
-- remove tmp dir one Beam Creation close...
+- remove tmp dir one Beam Creation close... -> replace persistent zarr array for sim with dask into direct write
 
 
