@@ -503,16 +503,11 @@ def plot_simulation_setup_v2(config: dict, medium_only: bool = False) -> plt.Fig
         lens_name = conf["lens"]
         for lc in config["lenses"]:
             if lens_name == lc["name"]:
-                lens_height = lc["height"]
                 lens_medium = lc["medium"]
                 lens = generate_lens(lc,   Medium(lens_medium, sim_wavelength), pixel_size)
                 break
 
-        lens_n_pixels_z = utils._calculate_num_of_pixels(lens_height, pixel_size, True)
-
         # create arr
-        # profile = da.stack([lens.profile] * lens_n_pixels_z)
-        
         if not medium_only:
             output_medium = 0
 
@@ -522,29 +517,13 @@ def plot_simulation_setup_v2(config: dict, medium_only: bool = False) -> plt.Fig
 
         # apply all aperture masks
         lens.apply_aperture_masks()
-        print(lens.profile.shape)
         profile = create_3d_lens(lens) * lens_medium
 
-
-
         # need to pad the sim_width
-
-
         output = da.stack([da.ones_like(lens.profile)] * n_pixels_output) * output_medium
         arr = da.vstack([arr, profile, output])
-        print(arr.shape)
-
-    # sim_width = config["sim_parameters"]["sim_width"]
-    # sim_n_pixels_w = utils._calculate_num_of_pixels(sim_width, pixel_size, True)
-
-    # print(sim_width , sim_n_pixels_w)
-
-    # print(arr.shape)
-    # arr = da.stack([arr]*sim_n_pixels_w, axis=2)
-    print(arr.shape)
 
     return arr
-
 
 
 def check_simulations_are_stackable(paths):
@@ -664,12 +643,16 @@ def save_propagation_gif(path: str, vert: bool = False, hor: bool = False):
         horizontal_save_path = os.path.join(os.path.dirname(path), "horizontal.gif")
         imageio.mimsave(horizontal_save_path, np.swapaxes(sim, 0, 2), duration=0.2)
 
-def create_3d_lens(lens: Lens) -> np.ndarray:
+import dask.array as da
+
+def create_3d_lens(lens: Lens) -> da.Array:
     """Convert the 2D lens height map into 3D profile"""
     # ref: https://stackoverflow.com/questions/59851954/numpy-use-2d-array-as-heightmap-like-index-for-3d-array
-    lens_profile = lens.profile / lens.pixel_size # profile height in pixels
 
-    # TODO: use pixelsize here to scale object correctly?
+    # TODO: figure out why dask is incredibly slow here...
+
+    # scale profile by pixelsize
+    lens_profile = lens.profile / lens.pixel_size # profile height in pixels
 
     l_max = int(np.max(lens_profile))
     arr3d = np.ones(shape=(l_max, lens_profile.shape[0], lens_profile.shape[1]))
@@ -682,7 +665,7 @@ def create_3d_lens(lens: Lens) -> np.ndarray:
     # apply aperture
     arr3d[:, lens.aperture == 1] = 0
 
-    return arr3d
+    return da.from_array(arr3d)
 
 def view_lens3d_in_napari(arr3d: np.ndarray) -> None:
     """View the 3D lens in napari viewer"""

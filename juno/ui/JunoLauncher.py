@@ -38,7 +38,7 @@ class GUIJunoLauncher(JunoLauncher.Ui_MainWindow, QtWidgets.QMainWindow):
         self.pushButton_view_results.clicked.connect(self.launch_view_results)
 
         pixmap = QtGui.QPixmap(LOGO_FILE)
-        self.label_logo.setPixmap(pixmap) # https://www.geeksforgeeks.org/pyqt5-lower-method-for-labels/ overlay TODO
+        self.label_logo.setPixmap(pixmap)
        
     def launch_element_creation(self):
 
@@ -59,9 +59,7 @@ class GUIJunoLauncher(JunoLauncher.Ui_MainWindow, QtWidgets.QMainWindow):
     def launch_setup_simulation(self):
 
         print("launch setup_simulation")
-
         self.remove_current_docked_widgets()
-
         self.simulation_setup_ui = GUISimulationSetup(viewer=self.viewer)
         dock_widget = self.viewer.window.add_dock_widget(self.simulation_setup_ui, area='right')
         self.dock_widgets.append(dock_widget)
@@ -71,7 +69,6 @@ class GUIJunoLauncher(JunoLauncher.Ui_MainWindow, QtWidgets.QMainWindow):
 
         print("launch run_simulation")
         self.remove_current_docked_widgets()
-
         self.simulation_run_ui = GUISimulationRun(viewer=self.viewer)
         dock_widget = self.viewer.window.add_dock_widget(self.simulation_run_ui, area='right')
         self.dock_widgets.append(dock_widget)

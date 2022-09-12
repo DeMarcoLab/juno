@@ -209,7 +209,7 @@ class GUISimulationSetup(SimulationSetup.Ui_MainWindow, QtWidgets.QMainWindow):
         arr_elements = plotting.plot_simulation_setup_v2(self.simulation_config)
         arr_medium = plotting.plot_simulation_setup_v2(self.simulation_config, medium_only=True)
 
-        if arr_elements.size > 10_000_000:
+        if arr_elements.size > 100_000_000:
             self.viewer.dims.ndisplay = 2
         else:
             self.viewer.dims.ndisplay = 3
@@ -219,7 +219,7 @@ class GUISimulationSetup(SimulationSetup.Ui_MainWindow, QtWidgets.QMainWindow):
                 self.viewer.layers["Simulation Medium"].data = arr_medium
                 self.viewer.layers["Simulation Elements"].data = arr_elements 
             except KeyError as e:
-                self.viewer.add_image(arr_medium, name="Simulation Medium", colormap="magma", opacity=0.5, rendering="iso")
+                self.viewer.add_image(arr_medium, name="Simulation Medium", colormap="turbo", opacity=0.5, rendering="iso")
                 self.viewer.add_image(arr_elements, name="Simulation Elements", colormap="gray", rendering="iso")
 
                
@@ -357,7 +357,7 @@ class GUISimulationSetup(SimulationSetup.Ui_MainWindow, QtWidgets.QMainWindow):
 
                 stored_values.append(sv)
         
-        pprint(stored_values)
+        # pprint(stored_values)
 
         self.input_widgets = []
 

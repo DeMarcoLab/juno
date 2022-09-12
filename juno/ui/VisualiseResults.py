@@ -269,7 +269,7 @@ class GUIVisualiseResults(VisualiseResults.Ui_MainWindow, QtWidgets.QMainWindow)
             try:
                 self.viewer.layers[name].data = sim 
             except KeyError as e:
-                self.viewer.add_image(sim, name=name, colormap="magma", rendering="average", interpolation="bicubic", scale=scale)
+                self.viewer.add_image(sim, name=name, colormap="turbo", rendering="average", interpolation="bicubic", scale=scale)
                
         except Exception as e:
             napari.utils.notifications.show_error(f"Failure to load viewer: {traceback.format_exc()}")

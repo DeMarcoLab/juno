@@ -395,6 +395,7 @@ def propagate_wavefront_v3(
     freq_arr = generate_sq_freq_arr(wavefront, pixel_size=parameters.pixel_size)
 
     # pre-allocate sim
+    # TODO: this doesnt need to be a persistent array now, can just use the da directly
     fname = os.path.join(save_path, f"sim.zarr")
     sim_shape = (distances.shape[0], wavefront.shape[0], wavefront.shape[1])
     sim = zarr.open(fname, mode="w",
