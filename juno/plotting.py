@@ -464,7 +464,7 @@ def plot_lens_modifications(lens: Lens) -> plt.Figure:
 
     return fig
 
-def plot_simulation_setup_v2(config: dict, medium_only: bool = False) -> plt.Figure:
+def plot_simulation_setup_v2(config: dict, medium_only: bool = False) -> da.Array:
     from juno.Simulation import generate_simulation_parameters, pad_simulation
   
     arr = None

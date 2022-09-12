@@ -6,22 +6,21 @@ from pprint import pprint
 
 import juno
 import juno.ui.qtdesigner_files.SimulationSetup as SimulationSetup
-# import matplotlib.pyplot as plt
-# import numpy as np
 import yaml
 from juno import plotting, utils, validation
-# from juno.beam import generate_beam
-# from juno.Simulation import generate_simulation_parameters
 from juno.ui.ParameterSweep import GUIParameterSweep
-from juno.ui.utils import display_error_message
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtWidgets import (QCheckBox, QFileDialog, QGridLayout, QGroupBox,
                              QLabel, QLineEdit, QPushButton, QVBoxLayout)
 import napari
 import napari.utils.notifications
+import  numpy as np
+
+SIM_ELEMENTS_SIZE_DISPLAY_LIMIT = 10_000_000_000
+BASE_PATH = os.path.dirname(juno.__file__)
 
 class GUISimulationSetup(SimulationSetup.Ui_MainWindow, QtWidgets.QMainWindow):
-    def __init__(self, viewer = None, parent_gui=None):
+    def __init__(self, viewer: napari.Viewer = None, parent_gui=None):
         super().__init__(parent=parent_gui)
         self.setupUi(MainWindow=self)
         self.statusBar = QtWidgets.QStatusBar()
@@ -29,7 +28,7 @@ class GUISimulationSetup(SimulationSetup.Ui_MainWindow, QtWidgets.QMainWindow):
         self.setWindowTitle("Simulation Setup")
         
 
-        self.viewer = viewer
+        self.viewer: napari.Viewer = viewer
 
         self.simulation_config = {}
         self.SAVE_FROM_PARAMETER_SWEEP = False
@@ -43,27 +42,29 @@ class GUISimulationSetup(SimulationSetup.Ui_MainWindow, QtWidgets.QMainWindow):
 
     def setup_connections(self):
 
-        print("setting up connections")
-
         self.spinBox_sim_num_stages.valueChanged.connect(
             self.update_stage_input_display
-        )
+        )   
+
+        # buttons
         self.pushButton_generate_simulation.clicked.connect(
             self.generate_simulation_config
         )
         self.pushButton_sim_beam.clicked.connect(self.load_beam_config)
-
         self.pushButton_setup_parameter_sweep.clicked.connect(self.setup_parameter_sweep)
-        self.pushButton_save_sim_config.clicked.connect(self.save_simulation_config)
 
-        self.actionLoad_Config.triggered.connect(self.load_simulation_config)
+        # actions
+        self.actionLoad_Configuration.triggered.connect(self.load_simulation_config)
+        self.actionSave_Configuration.triggered.connect(self.save_simulation_config)
+
+        # off by default
+        self.actionSave_Configuration.setEnabled(False)
 
     def update_all_displays(self):
 
         self.update_stage_input_display()
 
     def update_simulation_config(self):
-        print("updating simulation config")
 
         sim_pixel_size = float(self.lineEdit_pixel_size.text())
         sim_width = float(self.lineEdit_sim_width.text())
@@ -103,16 +104,14 @@ class GUISimulationSetup(SimulationSetup.Ui_MainWindow, QtWidgets.QMainWindow):
     
     def setup_parameter_sweep(self):
         # param sweep ui
-        self.statusBar.showMessage("Setup Parameter Sweep")
         self.param_sweep_ui = GUIParameterSweep(self.simulation_config, parent_gui=self)
-        self.statusBar.clearMessage()
-
+        
     def save_simulation_config(self):
         
         # open file dialog
         sim_config_filename, _ = QFileDialog.getSaveFileName(self,
-                    caption="Save Simulation Config",
-                    directory=os.path.dirname(juno.__file__),
+                    caption="Save Simulation Configuration",
+                    directory=os.path.dirname(BASE_PATH),
                     filter="Yaml files (*.yml *.yaml)")
 
         if sim_config_filename:
@@ -124,21 +123,19 @@ class GUISimulationSetup(SimulationSetup.Ui_MainWindow, QtWidgets.QMainWindow):
             self.statusBar.showMessage(f"Simulation config saved to {sim_config_filename}")
 
     def load_simulation_config(self):
-        print("loading simulation config")
+
         # open file dialog
         sim_config_filename, _ = QFileDialog.getOpenFileName(self,
                     caption="Load Simulation Config",
-                    directory=os.path.dirname(juno.__file__),
+                    directory=os.path.dirname(BASE_PATH),
                     filter="Yaml files (*.yml *.yaml)"
                     )
         if sim_config_filename:
 
             config = utils.load_config(sim_config_filename)
 
-            # self.statusBar.showMessage(f"Simulation config loaded from {sim_config_filename}")
             self.update_status(f"Simulation config loaded from {sim_config_filename}")
 
-            # print("loaded config")
             # TODO: how to handle partial configs??? throw error? this will fail if sim isnt valid...
 
             # load config values into ui....
@@ -167,8 +164,6 @@ class GUISimulationSetup(SimulationSetup.Ui_MainWindow, QtWidgets.QMainWindow):
 
     def update_status(self, msg= "Generating Simulation Configuration..."):
         """update status within button press..."""
-        # self.statusBar.showMessage(msg)
-        # self.statusBar.repaint()
         napari.utils.notifications.show_info(msg)
 
 
@@ -186,17 +181,14 @@ class GUISimulationSetup(SimulationSetup.Ui_MainWindow, QtWidgets.QMainWindow):
             self.draw_simulation_stage_display()
 
             self.pushButton_setup_parameter_sweep.setEnabled(True)
-            self.pushButton_save_sim_config.setEnabled(True)
+            self.actionSave_Configuration.setEnabled(True)
 
             napari.utils.notifications.show_info(f"Generate Simulation Configuration Finished.")
 
         except Exception as e:
-            # self.statusBar.showMessage(f"Invalid Simulation Configuration...")
-            # display_error_message(f"Invalid simulation config. \n{e}")
             napari.utils.notifications.show_error(f"Invalid simulation config. \n{e}")
             self.pushButton_setup_parameter_sweep.setEnabled(False)
-            self.pushButton_save_sim_config.setEnabled(False)
-            # self.statusBar.clearMessage()
+            self.actionSave_Configuration.setEnabled(False)
 
 
 
@@ -204,24 +196,24 @@ class GUISimulationSetup(SimulationSetup.Ui_MainWindow, QtWidgets.QMainWindow):
 
         # TODO: find a way to make the viewing of this much more performant
         pixel_size = self.simulation_config["sim_parameters"]["pixel_size"] 
-        self.simulation_config["sim_parameters"]["pixel_size"] = 1e-6
+        self.simulation_config["sim_parameters"]["pixel_size"] *= self.spinBox_visualisation_scale.value() # scale visualisation
 
         arr_elements = plotting.plot_simulation_setup_v2(self.simulation_config)
         arr_medium = plotting.plot_simulation_setup_v2(self.simulation_config, medium_only=True)
 
-        if arr_elements.size > 100_000_000:
+        if (arr_elements.size + arr_medium.size) > SIM_ELEMENTS_SIZE_DISPLAY_LIMIT:
             self.viewer.dims.ndisplay = 2
         else:
             self.viewer.dims.ndisplay = 3
 
+        # 3D mode warning
+        GL_MAX_TEXTURE_SIZE = 2048 # gpu dependant?
+        if np.max(arr_elements.shape) > GL_MAX_TEXTURE_SIZE:
+            napari.utils.notifications.show_warning(f"Data shape {arr_elements.shape} exceeds GL_MAX_TEXTURE_SIZE {GL_MAX_TEXTURE_SIZE}. It is recommended to downscale the visualisation if viewing in 3D mode.")
         try:
-            try:
-                self.viewer.layers["Simulation Medium"].data = arr_medium
-                self.viewer.layers["Simulation Elements"].data = arr_elements 
-            except KeyError as e:
-                self.viewer.add_image(arr_medium, name="Simulation Medium", colormap="turbo", opacity=0.5, rendering="iso")
-                self.viewer.add_image(arr_elements, name="Simulation Elements", colormap="gray", rendering="iso")
-
+            self.viewer.layers.clear()
+            self.viewer.add_image(arr_medium, name="Simulation Medium", colormap="turbo", opacity=0.5, rendering="translucent")
+            self.viewer.add_image(arr_elements, name="Simulation Elements", colormap="gray", rendering="iso")
                
         except Exception as e:
             napari.utils.notifications.show_error(f"Failure to load viewer: {traceback.format_exc()}")
@@ -295,9 +287,7 @@ class GUISimulationSetup(SimulationSetup.Ui_MainWindow, QtWidgets.QMainWindow):
         # 14. finish_distance_lineEdit,
 
     def load_lens_config(self):
-
-        print("loading lens_config")
-
+        """Load the element configuration from file."""
         lens_config_filename, _ = QFileDialog.getOpenFileName(
             self, "Select Lens Configuration", os.path.dirname(juno.__file__), "Yaml files (*.yml *.yaml)"
         )
@@ -501,11 +491,6 @@ def load_stage_config_widgets(config, all_widgets):
         if widgets[10].isChecked():
             widgets[12].setText(str(stage_config["focal_distance_start_multiple"]))
             widgets[14].setText(str(stage_config["focal_distance_multiple"]))
-
-# def update_status(statusBar, msg):
-    # statusBar.clearMessage()
-    # statusBar.showMessage(msg)
-
 
 def main():
     """Launch the main application window. """
