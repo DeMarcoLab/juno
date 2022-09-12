@@ -101,8 +101,13 @@ class GUIElementCreation(ElementCreation.Ui_MainWindow, QtWidgets.QMainWindow):
 
         # buttons
         self.pushButton_generate_profile.clicked.connect(self.update_layer)
-        self.pushButton_load_profile.clicked.connect(self.load_profile)
-        self.pushButton_save_profile.clicked.connect(self.save_profile)
+
+        # actions
+        self.actionSave_Configuration.triggered.connect(self.save_configuration)
+        self.actionLoad_Configuration.triggered.connect(self.load_configuration)
+
+        self.actionSave_Profile.clicked.connect(self.save_profile)
+        self.actionLoad_Profile.clicked.connect(self.load_profile)
 
     def testing_function(self):
 
@@ -201,7 +206,7 @@ class GUIElementCreation(ElementCreation.Ui_MainWindow, QtWidgets.QMainWindow):
         self.lineEdit_aperture_outer.setEnabled(use_aperture)
         self.checkBox_aperture_invert.setEnabled(use_aperture)
 
-    def load_profile(self):
+    def load_configuration(self):
 
         print("load profile...")
 
@@ -232,7 +237,7 @@ class GUIElementCreation(ElementCreation.Ui_MainWindow, QtWidgets.QMainWindow):
             
             self.update_layer() 
 
-    def save_profile(self):
+    def save_configuration(self):
 
         try:
             self.update_config()
@@ -249,6 +254,26 @@ class GUIElementCreation(ElementCreation.Ui_MainWindow, QtWidgets.QMainWindow):
 
         with open(filename, "w") as f:
             yaml.safe_dump(self.lens_config, f, sort_keys=False)
+
+    def save_profile(self):
+        print("save profile (.npy)")
+
+        # profile must be valid?
+        
+        # generate profile
+
+        # save npy file
+
+    def load_profile(self):
+        print("load profile (.npy)")
+
+        # select npy file
+
+        # load profile
+
+        # set config
+
+        # disable some options
 
     def update_config(self):
 
