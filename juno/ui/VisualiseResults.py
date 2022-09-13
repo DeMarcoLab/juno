@@ -18,6 +18,7 @@ from PyQt5.QtCore import QAbstractTableModel, Qt
 from PyQt5.QtWidgets import (QComboBox, QGridLayout, QGroupBox, QHeaderView,
                              QLabel, QLineEdit, QTableView, QVBoxLayout)
 
+from pprint import pprint
 
 class MODIFIER(Enum):
     EQUAL_TO = auto()
@@ -60,8 +61,8 @@ class GUIVisualiseResults(VisualiseResults.Ui_MainWindow, QtWidgets.QMainWindow)
         self.pushButton_reset_data.clicked.connect(self.load_dataframe)
         self.spinBox_num_filters.valueChanged.connect(self.update_filter_display)
 
-        self.pushButton_open_napari.clicked.connect(lambda: self.view_simulation(view_all=True))
-        self.pushButton_open_napari.setVisible(False)
+        self.pushButton_update_visualisation.clicked.connect(self.update_visualisation)
+        self.pushButton_update_visualisation.setVisible(False)
         self.comboBox_napari_sim.setVisible(False)
         self.lineEdit_show_columns.setVisible(False)
         self.lineEdit_show_columns.setText("stage, lens, height, exponent")
@@ -106,12 +107,11 @@ class GUIVisualiseResults(VisualiseResults.Ui_MainWindow, QtWidgets.QMainWindow)
         self.df = utils.load_run_simulation_data(self.directory)
 
         self.update_filter_display()
-
+        from pprint import pprint
+        pprint(self.df)
         self.update_simulation_display(df=self.df)
 
     def update_column_data(self):
-
-        print("updating column data")
 
         for widget in self.filter_widgets:
 
@@ -135,7 +135,7 @@ class GUIVisualiseResults(VisualiseResults.Ui_MainWindow, QtWidgets.QMainWindow)
                     unique_vals = list(self.df[col_name].unique())
                     label_value.setText(f"values: {unique_vals}")
             except Exception as e:
-                print(e)
+                napari.utils.notifications.show_error(f"Error updating columns: {e}")
 
     def filter_by_each_filter(self):
 
@@ -158,8 +158,6 @@ class GUIVisualiseResults(VisualiseResults.Ui_MainWindow, QtWidgets.QMainWindow)
             except:
                 value = "an error occured getting the value"
 
-            print(f"Filtered to {len(df_filter)} simulation stages.")
-            print(col_name, col_type, modifier, value)
 
         self.label_num_filtered_simulations.setText(f"Filtered to {len(df_filter)} simulation stages.")
         self.update_simulation_display(df_filter)
@@ -190,16 +188,14 @@ class GUIVisualiseResults(VisualiseResults.Ui_MainWindow, QtWidgets.QMainWindow)
         cols_text = self.lineEdit_show_columns.text().split(", ")
 
         df["path"] = df["log_dir"] + "/" + df["petname"]
-        filter_cols = [col for col in df.columns if col in cols_text] + ["petname", "path"]
+        filter_cols = [col for col in df.columns if col in cols_text] + ["petname", "path", "started"] 
         df = df[filter_cols]       
-
-        print("updating simulation display")
-        print(df)
+        df = df.sort_values(by="started", ascending=True)
 
         self.paths = [path for path in df["path"].unique()]
         self.STACKABLE = plotting.check_simulations_are_stackable(self.paths)
         if self.STACKABLE:
-            self.pushButton_open_napari.setVisible(True)
+            self.pushButton_update_visualisation.setVisible(True)
 
         # visualisation
         # update available sims for napari
@@ -216,8 +212,7 @@ class GUIVisualiseResults(VisualiseResults.Ui_MainWindow, QtWidgets.QMainWindow)
             pass
         self.comboBox_napari_sim.clear()
         self.comboBox_napari_sim.addItems([os.path.basename(path) for path in df["petname"].unique()])
-        self.comboBox_napari_sim.currentTextChanged.connect(lambda: self.view_simulation(view_all=False))
-
+        self.comboBox_napari_sim.currentTextChanged.connect(self.update_visualisation)
 
         # results table
         if self.table_view is None:
@@ -226,25 +221,28 @@ class GUIVisualiseResults(VisualiseResults.Ui_MainWindow, QtWidgets.QMainWindow)
             self.table_view.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
             self.tableLayout.addWidget(self.table_view)
 
-        df = df.drop(columns=["path"])
+        df = df.drop(columns=["path", "started"])
         model = pandasModel(df)
         self.table_view.setModel(model)
         self.tableLayout.update()
 
-        self.view_simulation(view_all=True)
+        self.update_visualisation()
 
         return 
     
-    def view_simulation(self, view_all=False):
+    def update_visualisation(self):
         # view sims
         
         if self.STACKABLE is False:
             napari.utils.notifications.show_warning("Simulations do not have the same dimensions, and therefore cannot be displayed together.")
 
         self.viewer.layers.clear()
+        self.viewer.dims.ndisplay = 2
 
-        if view_all:
-            self.viewer.dims.ndisplay = 2
+
+        if self.checkBox_show_all_simulations.isChecked():
+
+            # TODO: need to sort the results by something, likely started, or user defined column
             name = "simulations"
             simulation_names = [self.comboBox_napari_sim.itemText(i) for i in range(self.comboBox_napari_sim.count())]
             paths = [os.path.join(self.directory, sim_name) for sim_name in simulation_names]
@@ -254,7 +252,6 @@ class GUIVisualiseResults(VisualiseResults.Ui_MainWindow, QtWidgets.QMainWindow)
             name = simulation_names[0]
             path = os.path.join(self.directory, name)
             sim = plotting.load_full_sim_propagation_v2(path)
-            self.viewer.dims.ndisplay = 2
 
         SCALE_DIM = float(self.doubleSpinBox_scale.text())
         scale = [SCALE_DIM, 1, 1]
@@ -263,7 +260,6 @@ class GUIVisualiseResults(VisualiseResults.Ui_MainWindow, QtWidgets.QMainWindow)
         # use logarithmic plots
         if bool(self.checkBox_log_plots.isChecked()):
             sim = np.log(sim + 1e-12) 
-            print("LOGARITHMIC PLOTS")
 
         try:
             try:
@@ -278,6 +274,8 @@ class GUIVisualiseResults(VisualiseResults.Ui_MainWindow, QtWidgets.QMainWindow)
         sim_height = int(sim.shape[1] // len(simulation_names))
         points = np.array([[0, int(x*sim_height)] for x in range(len(simulation_names))])
         features = {"name": simulation_names}
+
+        # i think i need to set the labels for each z-axis ? so it sticks with it as the view changes?
 
         # TODO: get the labels to move when the viewer axes changes
 
