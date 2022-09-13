@@ -8,10 +8,11 @@ BUG
     - 
 - Gaussian beam not displaying correctly, likely napari interpolation (need to verify)
 - Axicon visualisation is not showing correctly, likely due to napari interpolation
-
+- Suppress error/warning messages in stout
+- Remove development print statements etc
 
 General
-- see if we can reduce tutorial pixelsize, probably overkill, causing oom -> cant numerical issues
+- see if we can reduce tutorial pixelsize, probably overkill, causing oom -> cant numerical issues, what is a better solution?
 
 
 Sim
