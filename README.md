@@ -22,6 +22,7 @@ On Linux/Mac - Open Terminal:
 $ git clone https://github.com/DeMarcoLab/juno.git
 $ cd juno
 $ conda env create -f environment.yml
+$ conda activate juno
 $ pip install -e .
 
 ```

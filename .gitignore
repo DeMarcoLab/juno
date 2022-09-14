@@ -41,3 +41,4 @@ juno/example/sim_telescope_2d_charizard.yaml
 juno.egg-info/*
 juno/ui/tmp/*
 !environment.yml
+juno.egg-info/PKG-INFO

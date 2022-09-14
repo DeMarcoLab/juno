@@ -11,7 +11,7 @@ dependencies:
   - tqdm
   - pyyaml
   - imageio
-  - pyqt5
+  # - pyqt5
   - zarr
   - dask
   - napari
