@@ -186,7 +186,7 @@ class GUISimulationSetup(SimulationSetup.Ui_MainWindow, QtWidgets.QMainWindow):
             napari.utils.notifications.show_info(f"Generate Simulation Configuration Finished.")
 
         except Exception as e:
-            napari.utils.notifications.show_error(f"Invalid simulation config. \n{e}")
+            napari.utils.notifications.show_error(f"Invalid simulation config. \n{traceback.format_exc()}")
             self.pushButton_setup_parameter_sweep.setEnabled(False)
             self.actionSave_Configuration.setEnabled(False)
 

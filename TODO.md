@@ -5,11 +5,7 @@
 BUG
 - tutorial instructions wrong
     - views not the same as default loaded
-    - 
-- Gaussian beam not displaying correctly, likely napari interpolation (need to verify)
-- Axicon visualisation is not showing correctly, likely due to napari interpolation
 - Suppress error/warning messages in stout
-- Remove development print statements etc
 
 General
 - see if we can reduce tutorial pixelsize, probably overkill, causing oom -> cant numerical issues, what is a better solution?
@@ -24,7 +20,7 @@ UI
 - metadata: make loading metadata loading / saving work from all paths (relative / abs)
 - select from table click
 - sort results table
-- make pathing work regardless of where sim was run... 
+- make pathing work regardless of where sim was run...  (try isabspath...)
 - remove tmp dir one Beam Creation close... -> replace persistent zarr array for sim with dask into direct write
 
 

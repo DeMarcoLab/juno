@@ -295,6 +295,7 @@ class Beam:
 
 def create_gaussian(r0: tuple, w0: float, z0: float, parameters:SimulationParameters, theta:float = 0, phi: float = 0) -> np.ndarray:
 
+    # TODO: @david reference?
     wavelength, A = parameters.sim_wavelength, parameters.A
 
     px_x = utils._calculate_num_of_pixels(parameters.sim_width,parameters.pixel_size, odd=True)

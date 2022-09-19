@@ -347,8 +347,7 @@ class GUIBeamCreation(BeamCreation.Ui_MainWindow, QtWidgets.QMainWindow):
             napari.utils.notifications.show_error(f"Failure to load simulation: {traceback.format_exc()}")
             return
 
-        SCALE_DIM = 100
-
+        SCALE_DIM = 10
         # update layer in place 
         try:
             try:
