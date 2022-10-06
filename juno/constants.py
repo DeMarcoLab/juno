@@ -55,6 +55,6 @@ REQUIRED_SIMULATION_PARAMETER_KEYS = [
 REQUIRED_SIMULATION_STAGE_KEYS = ["lens", "output"]
 REQUIRED_BEAM_KEYS = ["width", "height"]
 REQUIRED_LENS_KEYS = ["name", "medium", "diameter", "height", "exponent"]
-REQUIRED_LENS_GRATING_KEYS = ["width", "distance", "depth", "x", "y", "centred"]
+REQUIRED_LENS_GRATING_KEYS = ["width", "distance", "depth", "x", "y", "centred","mode", "blur", "inner_radius"]
 REQUIRED_LENS_TRUNCATION_KEYS = ["height", "radius", "type", "aperture"]
 REQUIRED_LENS_APERTURE_KEYS = ["inner", "outer", "type", "invert"]

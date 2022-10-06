@@ -58,6 +58,7 @@ class GUIElementCreation(ElementCreation.Ui_MainWindow, QtWidgets.QMainWindow):
         self.comboBox_type.addItems([type.name for type in LensType][::-1]) # lens types
         self.comboBox_truncation_mode.addItems(["Height", "Radial"])    # truncation modes
         self.comboBox_aperture_mode.addItems(["Radial", "Square"])      # aperture modes
+        self.comboBox_grating_mode.addItems(["Axial", "Radial"])        # grating modes
 
         # general
         self.lineEdit_pixelsize.textChanged.connect(self.update_visualisation)
@@ -79,6 +80,9 @@ class GUIElementCreation(ElementCreation.Ui_MainWindow, QtWidgets.QMainWindow):
         self.checkBox_grating_x_axis.toggled.connect(self.update_visualisation)
         self.checkBox_grating_y_axis.toggled.connect(self.update_visualisation)
         self.checkBox_grating_centred.toggled.connect(self.update_visualisation)
+        self.checkBox_grating_blur.toggled.connect(self.update_visualisation)
+        self.lineEdit_grating_inner_radius.textChanged.connect(self.update_visualisation)
+        self.comboBox_grating_mode.currentTextChanged.connect(self.update_visualisation)
 
         # truncation
         self.checkBox_use_truncation.toggled.connect(self.update_visualisation)
@@ -133,6 +137,9 @@ class GUIElementCreation(ElementCreation.Ui_MainWindow, QtWidgets.QMainWindow):
             self.checkBox_grating_x_axis.setChecked(bool(config["grating"]["x"]))
             self.checkBox_grating_y_axis.setChecked(bool(config["grating"]["y"]))
             self.checkBox_grating_centred.setChecked(bool(config["grating"]["centred"]))
+            self.checkBox_grating_blur.setChecked(bool(config["grating"]["blur"]))
+            self.comboBox_grating_mode.setCurrentText(config["grating"]["mode"])
+            self.lineEdit_grating_inner_radius.setText(str(config["grating"]["inner_radius"]))
 
         # # truncation
         use_truncation = bool(config["truncation"])
@@ -185,6 +192,9 @@ class GUIElementCreation(ElementCreation.Ui_MainWindow, QtWidgets.QMainWindow):
         self.checkBox_grating_x_axis.setEnabled(use_grating)
         self.checkBox_grating_y_axis.setEnabled(use_grating)
         self.checkBox_grating_centred.setEnabled(use_grating)
+        self.checkBox_grating_blur.setEnabled(use_grating)
+        self.comboBox_grating_mode.setEnabled(use_grating)
+        self.lineEdit_grating_inner_radius.setEnabled(use_grating)
 
         # enable / disable truncation components
         use_truncation = self.checkBox_use_truncation.isChecked()
@@ -342,6 +352,10 @@ class GUIElementCreation(ElementCreation.Ui_MainWindow, QtWidgets.QMainWindow):
             lens_config["grating"]["x"] = bool(self.checkBox_grating_x_axis.isChecked())
             lens_config["grating"]["y"] = bool(self.checkBox_grating_y_axis.isChecked())
             lens_config["grating"]["centred"] = bool(self.checkBox_grating_centred.isChecked())
+            lens_config["grating"]["mode"] =str(self.comboBox_grating_mode.currentText())
+            lens_config["grating"]["inner_radius"] = float(self.lineEdit_grating_width.text())
+            lens_config["grating"]["blur"] = bool(self.checkBox_grating_blur.isChecked())
+
         else:
             lens_config["grating"] = None
         

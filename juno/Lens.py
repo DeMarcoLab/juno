@@ -18,6 +18,9 @@ class GratingSettings:
     depth: float  # metres
     axis: int = 1
     centred: bool = True
+    mode: str = "axial"
+    blur: bool = False
+    inner_radius: float = 0
     distance_px: int = None  # pixels
     width_px: int = None  # pixels
 
@@ -238,7 +241,7 @@ class Lens:
 
         # grating
         if grating:
-            self.profile[self.grating_mask] -= self.grating_depth
+            self.profile = self.profile - self.grating_mask
 
         # truncation
         if truncation:
@@ -378,23 +381,53 @@ class Lens:
         # cannot apply gratings to 1d array
         if self.profile.shape[0] == 1:
             y_axis = False
-
+        
         settings.width_px = int(settings.width / self.pixel_size)
         settings.distance_px = int(settings.distance / self.pixel_size)
 
-        grating_coords_x = calculate_grating_coords(self.profile, settings, axis=1)
-        grating_coords_y = calculate_grating_coords(self.profile, settings, axis=0)
+        mask = np.zeros_like(self.profile, dtype=np.float32)
 
-        mask = np.zeros_like(self.profile, dtype=np.uint8)
+        if settings.mode.lower() == "axial":
 
-        if x_axis:
-            mask[:, grating_coords_x] = 1
+            grating_coords_x = calculate_grating_coords(self.profile, settings, axis=1)
+            grating_coords_y = calculate_grating_coords(self.profile, settings, axis=0)
 
-        if y_axis:
-            mask[grating_coords_y, :] = 1
+            if x_axis:
+                mask[:, grating_coords_x] = 1
 
-        self.grating_mask = mask == 1
-        self.grating_depth = settings.depth
+            if y_axis:
+                mask[grating_coords_y, :] = 1
+
+        if settings.mode.lower() == "radial":
+            from juno import utils
+            
+            width = settings.width
+            distance = settings.distance
+            inner_m = settings.inner_radius
+            outer_m = inner_m + width
+
+            h, w = self.profile.shape
+
+            inner_px = int(inner_m / self.pixel_size)
+            outer_px = int(outer_m / self.pixel_size)
+            while (outer_px < np.sqrt(np.power(w/2, 2) + np.power(h/2, 2))):
+                
+                inner_px = int(inner_m / self.pixel_size)
+                outer_px = int(outer_m / self.pixel_size)
+
+                distance_arr = utils.create_distance_map_px(w, h)
+                mask += ((distance_arr <= outer_px) * (distance_arr >= inner_px))
+
+                inner_m = outer_m + distance
+                outer_m = inner_m + width
+
+        # mask = mask.astype(float)
+
+        if settings.blur:
+            mask = ndimage.gaussian_filter(mask, sigma=1)
+
+        self.grating_mask = mask * settings.depth
+
 
     def apply_aperture_masks(self):
         from juno import utils
@@ -690,6 +723,9 @@ def apply_modifications(lens: Lens, lens_config: dict) -> Lens:
             distance=lens_config["grating"]["distance"],
             depth=lens_config["grating"]["depth"],
             centred=lens_config["grating"]["centred"],
+            mode=lens_config["grating"]["mode"],
+            blur=lens_config["grating"]["blur"],
+            inner_radius=lens_config["grating"]["inner_radius"]
         )
         lens.create_grating_mask(
             grating_settings,
