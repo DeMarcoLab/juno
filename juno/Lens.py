@@ -421,8 +421,6 @@ class Lens:
                 inner_m = outer_m + distance
                 outer_m = inner_m + width
 
-        # mask = mask.astype(float)
-
         if settings.blur:
             mask = ndimage.gaussian_filter(mask, sigma=1)
 

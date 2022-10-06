@@ -353,7 +353,7 @@ class GUIElementCreation(ElementCreation.Ui_MainWindow, QtWidgets.QMainWindow):
             lens_config["grating"]["y"] = bool(self.checkBox_grating_y_axis.isChecked())
             lens_config["grating"]["centred"] = bool(self.checkBox_grating_centred.isChecked())
             lens_config["grating"]["mode"] =str(self.comboBox_grating_mode.currentText())
-            lens_config["grating"]["inner_radius"] = float(self.lineEdit_grating_width.text())
+            lens_config["grating"]["inner_radius"] = float(self.lineEdit_grating_inner_radius.text())
             lens_config["grating"]["blur"] = bool(self.checkBox_grating_blur.isChecked())
 
         else:
@@ -429,6 +429,9 @@ class GUIElementCreation(ElementCreation.Ui_MainWindow, QtWidgets.QMainWindow):
                 lens.grating_mask = np.zeros_like(lens.profile)
             if lens.truncation_mask is None:
                 lens.truncation_mask = np.zeros_like(lens.profile)
+
+            # type change for grating mask visualisation
+            lens.grating_mask = lens.grating_mask.astype(bool)
 
         except Exception as e:
             napari.utils.notifications.show_error(f"ERROR: {traceback.format_exc()}")
