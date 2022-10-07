@@ -1,19 +1,17 @@
-import numpy as np
-
-import logging
 import datetime
-import time
-
-import pandas as pd
-import os
 import json
-import yaml
-import petname
-
-import zarr
-from juno import validation
-
+import logging
+import os
+import time
 from pathlib import Path
+
+import numpy as np
+import pandas as pd
+import petname
+import yaml
+import zarr
+
+from juno import validation
 
 
 #################### DATA / IO ####################
@@ -27,6 +25,18 @@ def load_np_arr(fname: str) -> np.ndarray:
     """Load a numpy array from disk"""
     arr = np.load(fname)
     return arr
+
+
+def save_profile_zarr(arr: np.ndarray, path: Path) -> None:
+
+    zarr.save(path, arr)
+
+def load_profile_zarr(path:Path) -> np.ndarray:
+
+    arr = np.asarray(zarr.load(path))
+
+    return arr
+
 
 def save_metadata(config: dict, log_dir: str) -> None:
     

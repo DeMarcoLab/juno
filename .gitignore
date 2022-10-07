@@ -42,3 +42,4 @@ juno.egg-info/*
 juno/ui/tmp/*
 !environment.yml
 juno.egg-info/PKG-INFO
+**/*.zarr/*
