@@ -19,7 +19,7 @@ class GratingSettings:
     axis: int = 1
     centred: bool = True
     mode: str = "axial"
-    blur: bool = False
+    blur: float = 0.0
     inner_radius: float = 0
     distance_px: int = None  # pixels
     width_px: int = None  # pixels
@@ -422,7 +422,7 @@ class Lens:
                 outer_m = inner_m + width
 
         if settings.blur:
-            mask = ndimage.gaussian_filter(mask, sigma=1)
+            mask = ndimage.gaussian_filter(mask, sigma=settings.blur)
 
         self.grating_mask = mask * settings.depth
 
