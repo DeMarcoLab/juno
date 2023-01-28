@@ -46,3 +46,5 @@ juno.egg-info/PKG-INFO
 
 
 !mkdocs.yml
+# !docs.yml
+!.github/workflows/*
