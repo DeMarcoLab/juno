@@ -60,6 +60,7 @@ beam:
 
 
 The configurable Beam parameters are:
+
 - Width: The initial width of the beam (metres).
 - Height: The initial height of the beam (metres).
 - DistanceMode: the method for calculating the beam propagation distance [Direct, Diameter, Focal].

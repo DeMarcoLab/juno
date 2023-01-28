@@ -28,7 +28,7 @@ $ pip install -e .
 ```
 
 ### Tutorial
-For a tutorial walkthrough for using the package please see [Tutorial.md](TUTORIAL.md)
+For a tutorial walkthrough for using the package please see [Tutorial.md](docs/TUTORIAL.md)
 
 
 ### User Interface
@@ -44,7 +44,7 @@ The example folder contains a few simulation configurations using common lens ty
  - Axicon Lens (2D)
  - Telescope (1D and 2D)
 
-For more information about all the available configuration parameters and options, please see [Configuration.md](Configuration.md).
+For more information about all the available configuration parameters and options, please see [Configuration.md](docs/Configuration.md).
 
 
 ### Command Line
@@ -57,7 +57,7 @@ This is useful for running large parameter sweeps on HPC setups.
 
 
 ### Documentation
-For more detailed documentation please see [Documentation.md](Documentation.md)
+For more detailed documentation please see [Documentation.md](docs/Documentation.md)
 
 
 ## Citation

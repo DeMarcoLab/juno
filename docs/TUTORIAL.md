@@ -5,7 +5,7 @@ The following is a step by step guide on how to design, create, simulate and vis
 We are going to be creating a two-lens telescope using two focusing lenses of diameter 300um and 200um respectively.
 <figure>
   <img
-  src="doc/img/tutorial_telescope.png"
+  src="/img/tutorial_telescope.png"
   alt="Tutorial Telescope">
   <figcaption style="text-align:center">Tutorial telescope</figcaption>
 </figure>
@@ -22,7 +22,7 @@ You will see the following launcher open:
 
 <figure>
   <img
-  src="doc/img/home.png"
+  src="/img/home.png"
   alt="Tutorial Lens">
   <figcaption style="text-align:center">Juno Launcher</figcaption>
 </figure>
@@ -42,7 +42,7 @@ You should now be able to rotate the lens element in 3D, so the interface now lo
 
 <figure>
   <img
-  src="doc/img/tutorial_lens_01.png"
+  src="/img/tutorial_lens_01.png"
   alt="Tutorial Lens">
   <figcaption style="text-align:center">Lens Creator for Lens 1</figcaption>
 </figure>
@@ -75,7 +75,7 @@ Press "Generate Beam" to generate the beam propagation.
 The Beam Creation interface should now look like this:
 <figure>
   <img
-  src="doc/img/tutorial_beam.png"
+  src="/img/tutorial_beam.png"
   alt="Tutorial Beam">
   <figcaption style="text-align:center">Tutorial Beam Creation</figcaption>
 </figure>
@@ -84,7 +84,7 @@ You can rotate the beam propagation to interact with and visualise it in 3D.
 
 <figure>
   <img
-  src="doc/img/tutorial_beam_3D.png"
+  src="/img/tutorial_beam_3D.png"
   alt="Tutorial Beam">
   <figcaption style="text-align:center">3D Beam Visualisation</figcaption>
 </figure>
@@ -129,7 +129,7 @@ For stage 2:
 You can now rotate the visualisation so that the interface should now look something like this:
 <figure>
   <img
-  src="doc/img/tutorial_sim_setup.png"
+  src="/img/tutorial_sim_setup.png"
   alt="Tutorial Simulation">
   <figcaption style="text-align:center">Simulation Setup for tutorial</figcaption>
 </figure>
@@ -150,7 +150,7 @@ While we have pre-calculated the finishing distance to match the focal distance 
 The Simulation Parameter Sweep interface should look like this:
 <figure>
   <img
-  src="doc/img/tutorial_sim_sweep.png"
+  src="/img/tutorial_sim_sweep.png"
   alt="Tutorial Simulation Sweep">
   <figcaption style="text-align:center">Parameter Sweeping for tutorial</figcaption>
 </figure>
@@ -169,7 +169,7 @@ The Simulation Parameter Sweep interface should look like this:
 
 <figure>
   <img
-  src="doc/img/tutorial_sim_run.png"
+  src="/img/tutorial_sim_run.png"
   alt="Tutorial Run Simulation">
   <figcaption style="text-align:center">Simulation running for tutorial</figcaption>
 </figure>
@@ -189,7 +189,7 @@ The visualistion shows us all three simulations are once. This is useful for com
 
 <figure>
   <img
-  src="doc/img/tutorial_sim_multi_visualisation.png"
+  src="/img/tutorial_sim_multi_visualisation.png"
   alt="Multi-Simulation Visualisation">
   <figcaption style="text-align:center">Multi-Simulation Visualisation</figcaption>
 </figure>
@@ -202,7 +202,7 @@ To show only one simulation, select it using the dropdown at the bottom right co
 
 <figure>
   <img
-  src="doc/img/tutorial_sim_single_visualisation.png"
+  src="/img/tutorial_sim_single_visualisation.png"
   alt="Single Simulation 3D Visualisation">
   <figcaption style="text-align:center">Single Simulation 3D Visualisation</figcaption>
 </figure>
