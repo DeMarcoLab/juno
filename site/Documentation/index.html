@@ -556,7 +556,7 @@
 - Output Medium: the output medium which the lens propagates into. </p>
 <figure>
   <img
-  src="img/sim_config.png"
+  src="../img/sim_config.png"
   alt="Simulation Structure Definitions">
   <figcaption style="text-align:center">Simulation Structure Definitions</figcaption>
 </figure>
@@ -577,7 +577,7 @@
 </ul>
 <figure>
   <img
-  src="img/coordinate_system.png"
+  src="../img/coordinate_system.png"
   alt="Coordinate System">
   <figcaption style="text-align:center">Coordinate System</figcaption>
 </figure>
@@ -600,7 +600,7 @@
 <p>Lenses must fit within the simulation (width / height). However, lenses that are smaller than the simulation will be padded to the simulation size. This padding is apertured and prevents light from propagating through (please see the aperture section for details on the apertures). The simulation will raise an error if you try to load a lens larger than the simulation.</p>
 <figure>
   <img
-  src="img/lens_padding.png"
+  src="../img/lens_padding.png"
   alt="Lens Padding">
   <figcaption style="text-align:center">Lens Padding</figcaption>
 </figure>
@@ -617,7 +617,7 @@
 </ul>
 <figure>
   <img
-  src="img/lens_profile.png"
+  src="../img/lens_profile.png"
   alt="Lens Profile">
   <figcaption style="text-align:center">Lens Profile 2D</figcaption>
 </figure>
@@ -641,7 +641,7 @@
 7. Apply Apertures</p>
 <figure>
   <img
-  src="img/lens_modifications.png"
+  src="../img/lens_modifications.png"
   alt="Lens Modifications">
   <figcaption style="text-align:center">Lens Modifications</figcaption>
 </figure>
@@ -657,7 +657,7 @@
 </ol>
 <figure>
   <img
-  src="img/lens_aperture.png"
+  src="../img/lens_aperture.png"
   alt="Lens Aperture">
   <figcaption style="text-align:center">Lens Aperture</figcaption>
 </figure>
@@ -689,7 +689,7 @@ lenses:
 The beam tilt refers to the initial angle the of the beam compared to the propagation axis (z-axis). The beam supports two different tilts, x and y and they are defined as follows:</p>
 <figure>
   <img
-  src="img/beam_tilt.png"
+  src="../img/beam_tilt.png"
   alt="Beam Tilt">
   <figcaption style="text-align:center">Beam Tilt</figcaption>
 </figure>
@@ -702,7 +702,7 @@ The beam tilt refers to the initial angle the of the beam compared to the propag
 The convergence angle (theta) is defined as half the total internal propaagation angle. This defines the convergence / divergence of the beam.</p>
 <figure>
   <img
-  src="img/convergence.png"
+  src="../img/convergence.png"
   alt="Beam Convergence">
   <figcaption style="text-align:center">Beam Convergence</figcaption>
 </figure>
@@ -713,7 +713,7 @@ The convergence angle (theta) is defined as half the total internal propaagation
 <p>This interface allows you to create, save and load lens profiles. Standard profiles are defined by a diameter, height, exponent and lens type (cylindrical or spherical). Additional modifiations such as gratings, escape paths, truncation and apertures also be applied.</p>
 <figure>
   <img
-  src="img/tutorial_lens.png"
+  src="../img/tutorial_lens.png"
   alt="Lens Creator">
   <figcaption style="text-align:center">Lens Creator</figcaption>
 </figure>
@@ -722,7 +722,7 @@ The convergence angle (theta) is defined as half the total internal propaagation
 <p>This interface allows you to create and save the initial beam setup. A beam defines the initial propagation into the simulation and can be modified in a number of ways, including size, shape, spread, distance, tilt and other properties.</p>
 <figure>
   <img
-  src="img/tutorial_beam.png"
+  src="../img/tutorial_beam.png"
   alt="Beam Creator">
   <figcaption style="text-align:center">Beam Creator</figcaption>
 </figure>
@@ -736,7 +736,7 @@ The convergence angle (theta) is defined as half the total internal propaagation
 <p>This interface also allows you to setup parameter sweeps for most numerical parameters in the simulation. This allows you to run a large number of simulation combinations easily.</p>
 <figure>
   <img
-  src="img/tutorial_sim_setup_3.png"
+  src="../img/tutorial_sim_setup_3.png"
   alt="Simulation Setup">
   <figcaption style="text-align:center">Simulation Setup</figcaption>
 </figure>
@@ -745,7 +745,7 @@ The convergence angle (theta) is defined as half the total internal propaagation
 <p>This interface allows you to load a simulation config and run the simulations. A progress bar will display the overall progress of the simulations.</p>
 <figure>
   <img
-  src="img/tutorial_sim_run.png"
+  src="../img/tutorial_sim_run.png"
   alt="Run Simulation UI">
   <figcaption style="text-align:center">Run Simulation UI</figcaption>
 </figure>
@@ -754,7 +754,7 @@ The convergence angle (theta) is defined as half the total internal propaagation
 <p>This interface allows you to load multiple simulations, filter the results, and visualise the propagation. </p>
 <figure>
   <img
-  src="img/tutorial_sim_visualisation_3.png"
+  src="../img/tutorial_sim_visualisation_3.png"
   alt="Simulation Visualisation UI">
   <figcaption style="text-align:center">Simulation Visualisation UI</figcaption>
 </figure>
@@ -762,7 +762,7 @@ The convergence angle (theta) is defined as half the total internal propaagation
 <p>The interface also provides functionality to load the full simulation propagation in napari for interactive exploration. For simulations of the same shape, you can explore these all at once by pressing the view all button. </p>
 <figure>
   <img
-  src="img/tutorial_sim_vis_napari.png"
+  src="../img/tutorial_sim_vis_napari.png"
   alt="Simulation Visualisation Napari">
   <figcaption style="text-align:center">Simulation Visualisation Napari</figcaption>
 </figure>
@@ -772,7 +772,7 @@ The convergence angle (theta) is defined as half the total internal propaagation
 <p>If you define a simulation stage that contains a lens and output with the same medium, the simulation will assume you want to create a double sided lens. This will try to invert the lens profile and medium at the inlet, by constructing the inverted profile from the previous output's medium instead. </p>
 <figure>
   <img
-  src="img/invert_lens.png"
+  src="../img/invert_lens.png"
   alt="Double Sided Lens">
   <figcaption style="text-align:center">Double Sided Lens</figcaption>
 </figure>

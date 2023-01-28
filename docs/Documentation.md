@@ -14,7 +14,7 @@ The structure of the simulation can be clasified into three main components:
 
 <figure>
   <img
-  src="img/sim_config.png"
+  src="../img/sim_config.png"
   alt="Simulation Structure Definitions">
   <figcaption style="text-align:center">Simulation Structure Definitions</figcaption>
 </figure>
@@ -42,7 +42,7 @@ Propagation along the optical axis is refered to as the z-axis. The wave propaga
 
 <figure>
   <img
-  src="img/coordinate_system.png"
+  src="../img/coordinate_system.png"
   alt="Coordinate System">
   <figcaption style="text-align:center">Coordinate System</figcaption>
 </figure>
@@ -72,7 +72,7 @@ Lenses must fit within the simulation (width / height). However, lenses that are
 
 <figure>
   <img
-  src="img/lens_padding.png"
+  src="../img/lens_padding.png"
   alt="Lens Padding">
   <figcaption style="text-align:center">Lens Padding</figcaption>
 </figure>
@@ -94,7 +94,7 @@ The profile of a lens can be generated in two ways: generated from parameters or
 
 <figure>
   <img
-  src="img/lens_profile.png"
+  src="../img/lens_profile.png"
   alt="Lens Profile">
   <figcaption style="text-align:center">Lens Profile 2D</figcaption>
 </figure>
@@ -124,7 +124,7 @@ Specifically, the lens are generated in the following order:
 
 <figure>
   <img
-  src="img/lens_modifications.png"
+  src="../img/lens_modifications.png"
   alt="Lens Modifications">
   <figcaption style="text-align:center">Lens Modifications</figcaption>
 </figure>
@@ -142,7 +142,7 @@ Apertures are a special type of modification that prevent light from propagating
 
 <figure>
   <img
-  src="img/lens_aperture.png"
+  src="../img/lens_aperture.png"
   alt="Lens Aperture">
   <figcaption style="text-align:center">Lens Aperture</figcaption>
 </figure>
@@ -189,7 +189,7 @@ The beam tilt refers to the initial angle the of the beam compared to the propag
 
 <figure>
   <img
-  src="img/beam_tilt.png"
+  src="../img/beam_tilt.png"
   alt="Beam Tilt">
   <figcaption style="text-align:center">Beam Tilt</figcaption>
 </figure>
@@ -205,7 +205,7 @@ The convergence angle (theta) is defined as half the total internal propaagation
 
 <figure>
   <img
-  src="img/convergence.png"
+  src="../img/convergence.png"
   alt="Beam Convergence">
   <figcaption style="text-align:center">Beam Convergence</figcaption>
 </figure>
@@ -220,7 +220,7 @@ This interface allows you to create, save and load lens profiles. Standard profi
 
 <figure>
   <img
-  src="img/tutorial_lens.png"
+  src="../img/tutorial_lens.png"
   alt="Lens Creator">
   <figcaption style="text-align:center">Lens Creator</figcaption>
 </figure>
@@ -230,7 +230,7 @@ This interface allows you to create and save the initial beam setup. A beam defi
 
 <figure>
   <img
-  src="img/tutorial_beam.png"
+  src="../img/tutorial_beam.png"
   alt="Beam Creator">
   <figcaption style="text-align:center">Beam Creator</figcaption>
 </figure>
@@ -246,7 +246,7 @@ This interface also allows you to setup parameter sweeps for most numerical para
 
 <figure>
   <img
-  src="img/tutorial_sim_setup_3.png"
+  src="../img/tutorial_sim_setup_3.png"
   alt="Simulation Setup">
   <figcaption style="text-align:center">Simulation Setup</figcaption>
 </figure>
@@ -257,7 +257,7 @@ This interface allows you to load a simulation config and run the simulations. A
 
 <figure>
   <img
-  src="img/tutorial_sim_run.png"
+  src="../img/tutorial_sim_run.png"
   alt="Run Simulation UI">
   <figcaption style="text-align:center">Run Simulation UI</figcaption>
 </figure>
@@ -268,7 +268,7 @@ This interface allows you to load multiple simulations, filter the results, and 
 
 <figure>
   <img
-  src="img/tutorial_sim_visualisation_3.png"
+  src="../img/tutorial_sim_visualisation_3.png"
   alt="Simulation Visualisation UI">
   <figcaption style="text-align:center">Simulation Visualisation UI</figcaption>
 </figure>
@@ -277,7 +277,7 @@ The interface also provides functionality to load the full simulation propagatio
 
 <figure>
   <img
-  src="img/tutorial_sim_vis_napari.png"
+  src="../img/tutorial_sim_vis_napari.png"
   alt="Simulation Visualisation Napari">
   <figcaption style="text-align:center">Simulation Visualisation Napari</figcaption>
 </figure>
@@ -290,7 +290,7 @@ If you define a simulation stage that contains a lens and output with the same m
 
 <figure>
   <img
-  src="img/invert_lens.png"
+  src="../img/invert_lens.png"
   alt="Double Sided Lens">
   <figcaption style="text-align:center">Double Sided Lens</figcaption>
 </figure>
