@@ -5,7 +5,7 @@ The following is a step by step guide on how to design, create, simulate and vis
 We are going to be creating a two-lens telescope using two focusing lenses of diameter 300um and 200um respectively.
 <figure>
   <img
-  src="img/tutorial_telescope.png"
+  src="../img/tutorial_telescope.png"
   alt="Tutorial Telescope">
   <figcaption style="text-align:center">Tutorial telescope</figcaption>
 </figure>
@@ -22,7 +22,7 @@ You will see the following launcher open:
 
 <figure>
   <img
-  src="img/home.png"
+  src="../img/home.png"
   alt="Tutorial Lens">
   <figcaption style="text-align:center">Juno Launcher</figcaption>
 </figure>
