@@ -27,6 +27,7 @@ You will see the following launcher open:
   <figcaption style="text-align:center">Juno Launcher</figcaption>
 </figure>
 
+![Home](img/home.png)
 
 ## Creating the Lenses
 
