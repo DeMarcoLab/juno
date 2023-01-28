@@ -1,0 +1,12 @@
+site_name: Juno Docs
+
+theme: 
+  name: "material"
+
+plugins:
+  - mkdocstrings
+
+nav:
+  - index.md
+  - started.md
+  - reference.md
