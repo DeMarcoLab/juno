@@ -1,3 +1,0 @@
-[console_scripts]
-juno = juno.run_simulation:run_main
-juno_ui = juno.ui.main:main
