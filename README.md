@@ -61,7 +61,26 @@ For more detailed documentation please see [Documentation.md](Documentation.md)
 
 
 ## Citation
-TODO: details
+```
+@misc{https://doi.org/10.48550/arxiv.2212.12540,
+  doi = {10.48550/ARXIV.2212.12540},
+  
+  url = {https://arxiv.org/abs/2212.12540},
+  
+  author = {Dierickx, David and Cleeve, Patrick and Gorelick, Sergey and Whisstock, James C. and De Marco, Alex},
+  
+  keywords = {Instrumentation and Detectors (physics.ins-det), Numerical Analysis (math.NA), Optics (physics.optics), FOS: Physical sciences, FOS: Physical sciences, FOS: Mathematics, FOS: Mathematics},
+  
+  title = {Juno: a Python-based graphical package for optical system design},
+  
+  publisher = {arXiv},
+  
+  year = {2022},
+  
+  copyright = {Creative Commons Attribution Share Alike 4.0 International}
+}
+
+```
 
 ## Tests
 [![Python package](https://github.com/DeMarcoLab/juno/actions/workflows/python-package.yml/badge.svg)](https://github.com/DeMarcoLab/juno/actions/workflows/python-package.yml)
