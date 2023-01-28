@@ -1,0 +1,606 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+      
+        <link rel="prev" href="../Documentation/">
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.4.2, mkdocs-material-9.0.6">
+    
+    
+      
+        <title>Configuration - Juno Docs</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.558e4712.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.2505c338.min.css">
+      
+      
+
+    
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/_mkdocstrings.css">
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="" data-md-color-accent="">
+  
+    
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#configuration" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="Juno Docs" class="md-header__button md-logo" aria-label="Juno Docs" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2Z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Juno Docs
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Configuration
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="Juno Docs" class="md-nav__button md-logo" aria-label="Juno Docs" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"/></svg>
+
+    </a>
+    Juno Docs
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        Juno
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../started/" class="md-nav__link">
+        Getting Started
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../TUTORIAL/" class="md-nav__link">
+        Simulation Tutorial
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference/" class="md-nav__link">
+        API Reference
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../Documentation/" class="md-nav__link">
+        Documentation
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+    
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          Configuration
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        Configuration
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#simulation-parameters" class="md-nav__link">
+    Simulation Parameters:
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#simulation-options" class="md-nav__link">
+    Simulation Options
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#beam-parameters" class="md-nav__link">
+    Beam Parameters
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#lens-parameters" class="md-nav__link">
+    Lens Parameters
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#stage-parameters" class="md-nav__link">
+    Stage Parameters
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#simulation-parameters" class="md-nav__link">
+    Simulation Parameters:
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#simulation-options" class="md-nav__link">
+    Simulation Options
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#beam-parameters" class="md-nav__link">
+    Beam Parameters
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#lens-parameters" class="md-nav__link">
+    Lens Parameters
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#stage-parameters" class="md-nav__link">
+    Stage Parameters
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="configuration">Configuration</h1>
+<p>The available simulation configuration parameters are as follows:</p>
+<h2 id="simulation-parameters">Simulation Parameters:</h2>
+<pre><code class="language-yaml">sim_parameters:
+  A: 10000
+  pixel_size: 1.e-6 
+  sim_width: 500.e-6
+  sim_height: 500.e-6
+  sim_wavelength: 488.e-9
+
+</code></pre>
+<p>The configurable global simulation parameters are:</p>
+<ul>
+<li>A: The initial amplitude of the wavefront. </li>
+<li>Pixel Size: The pixel size of the simulation (metres).</li>
+<li>Sim Width: The width of the simulation (metres).</li>
+<li>Sim Height: The height of the simulation (metres).</li>
+<li>Sim Wavelength: The wavelength of light used in the simulation (metres).</li>
+</ul>
+<h2 id="simulation-options">Simulation Options</h2>
+<pre><code class="language-yaml">options:
+  log_dir: log
+  save_plot: true
+  debug: false
+
+</code></pre>
+<p>The configurable simulation options are:
+- Log Dir: The directory to save the simulation results and plots.
+- Save Plot: Flag to save the simulation intermediate and result plots.
+- Debug: Flag to debug the simulation, which provides additional information (bool).</p>
+<h2 id="beam-parameters">Beam Parameters</h2>
+<pre><code class="language-yaml">beam:
+  distance_mode: &quot;direct&quot;   # &quot;Direct&quot;, &quot;Width&quot;, &quot;Focal&quot;
+  spread: &quot;plane&quot;           # &quot;Plane&quot;, &quot;Converging&quot;, &quot;Diverging&quot;
+  shape: &quot;rectangular&quot;        # &quot;Circular&quot;, &quot;Rectangular&quot;
+  width: 300.e-6 
+  height: 300.e-6 
+  position_x: 100.e-6 
+  position_y:  0.e-6
+  theta: 45.0 
+  numerical_aperture: null 
+  tilt_x: 0.0 
+  tilt_y: 0.0 
+  source_distance: 0.1e-3
+  final_diameter: 10.0e-6 
+  focal_multiple: null 
+  n_steps: 2
+  step_size: 0.001
+
+</code></pre>
+<p>The configurable Beam parameters are:</p>
+<ul>
+<li>Width: The initial width of the beam (metres).</li>
+<li>Height: The initial height of the beam (metres).</li>
+<li>DistanceMode: the method for calculating the beam propagation distance [Direct, Diameter, Focal].</li>
+<li>Direct: Propagate for a fixed distance</li>
+<li>Diameter: Propagate based on the final diameter of the beam.</li>
+<li>Focal: Propagate based on the focal distance of the equivalent lens.</li>
+<li>Spread: The spread of the beam propagation [Plane, Converging, Diverging]</li>
+<li>Plane: A planar beam</li>
+<li>Converging: A converging beam</li>
+<li>Diverging: A diverging beam.</li>
+<li>Shape: The shape of the beam propagation [Rectangular, Circular]</li>
+<li>Rectangular: Rectangular beam shape [Spread.Plane]</li>
+<li>Circular: Circular beam shape [Spread.Plane, Spread.Converging, Spread.Diverging]</li>
+<li>Position X: The position of the beam from the centre of the simulation in the x-axis (metres).</li>
+<li>Position Y: The position of the beam from the centre of the simulation in the y-axis (metres). </li>
+<li>Theta: The convergence angle of the beam (degrees). [Spread.Converging, Spread.Diverging] </li>
+<li>Numerical Aperture: The numerical aperture of the beam (dimensionless). [Spread.Converging, Spread.Diverging] </li>
+<li>Tilt X: The tilt of the beam propagation along the x-axis (degrees).</li>
+<li>Tilt Y: The tilt of the beam propgation along the y-axis (degrees).</li>
+<li>Source Distance: The total propgation distance of the beam [DistanceMode.Direct].</li>
+<li>Final Diameter: The final diameter of the beam after propagation [DistanceMode.Diameter]. </li>
+<li>Focal Multiple: The multiple of focal length to propagate the beam [DistanceMode.Focal].</li>
+<li>Num Steps: The number of propagation steps.</li>
+<li>Step Size: The distance between propagation steps. (metres)</li>
+</ul>
+<p>Some paramters are mutually exclusive, and others will only be used based on other parameters. For example; theta and numerical aperture are mutually exclusive (theta will be used if both are defined), and are only used for Converging/Diverging beam spreads.</p>
+<h2 id="lens-parameters">Lens Parameters</h2>
+<pre><code class="language-yaml">lenses:
+- name: lens_1
+  medium: 2.348 
+  diameter: 300.e-6 
+  height: 10.e-6 
+  exponent: 2.0 
+  lens_type:  &quot;Cylindrical&quot;     # Cylindrical, Spherical 
+  length: 30.e-9
+  escape_path: 0.1
+  inverted: false 
+  grating: 
+    width: 10.e-6 
+    distance: 20.e-6 
+    depth: 0.15e-6  
+    x: true
+    y: false
+    centred: true
+  truncation: 
+    height: 3.e-6  
+    radius: 50.e-6  
+    type: radial # radial, value
+    aperture: false
+  aperture:
+    inner: 50.e-6  
+    outer: 100.e-6  
+    type: radial   # radial, square
+    invert: false
+</code></pre>
+<p>The configurable lens parameters are:</p>
+<ul>
+<li>Name: The name of the lens (this must match the stage config).</li>
+<li>Medium: The refractive index of the medium the lens is made from.</li>
+<li>Diameter: The diameter of the lens (metres).</li>
+<li>Height: The height of the lens (metres).</li>
+<li>Exponent: The exponent of the lens profile. </li>
+<li>LensType: The type of lens to create [LensType.Spherical, LensType.Cylindrical].</li>
+<li>Length: The length of the cylindrical lens (metres) [LensType.Cylindrical].</li>
+<li>Escape Path: The fraction of the lens diameter to add as an escape path (e.g. 0.1 = 10% of diameter).</li>
+<li>Inverted: Flag to invert the lens profile (bool)</li>
+<li>Grating: Apply diffraction gratings to the lens<ul>
+<li>Width: The width of the grating (metres)</li>
+<li>Distance: The distance between gratings (metres)</li>
+<li>Depth: The depth of the gratings (metres)</li>
+<li>X: Flag to apply gratings along the x-axis (bool)</li>
+<li>Y: Flag to apply gratings along the y-axis (bool)</li>
+<li>Centred: Flag to centre the gratings (bool)</li>
+</ul>
+</li>
+<li>Truncation: Truncate the height of the lens<ul>
+<li>Type: The truncation method to apply [value, radial]</li>
+<li>Height: The height to truncate the lens [Type.value]</li>
+<li>Radius: The radius to truncation the lens [Type.radial]</li>
+<li>Aperture: Flag to apply an aperture on the truncated area (bool).</li>
+</ul>
+</li>
+<li>Aperture: Aperture an area of the lens<ul>
+<li>Type: The aperture method to apply [radial, square]</li>
+<li>Inner: The inner dimension of the aperture (metres).</li>
+<li>Outer: The outer dimension of the aperture (metres).</li>
+<li>Invert: Flag to invert the apertured area (i.e. non-apertured areas become apertured) (bool).</li>
+</ul>
+</li>
+</ul>
+<p><strong>Experimental Parameters</strong></p>
+<p>The lens config also provides two experimental parameters that can be used without any guarantees:</p>
+<pre><code class="language-yaml">custom: /path/to/custom/profile.npy
+custom_config: /path/to/custom/config.yaml
+</code></pre>
+<p>These parameters work in the following way
+- Custom: Loads a numpy array as the lens profile, allowing the use of any profile not supported by package tools. (.npy) If a .npy file is provided, the profile is loaded. If a directory is provided, the Simulation Runner will sweep through each custom profile in the directory. 
+- Custom Config: Override the current lens config with the config provided (.yaml). This is useful for passing through metadata regarding custom loaded profiles, and running larger sweeps on these profiles. </p>
+<p>N.B. These features aren't officially supported and are highly experimental and subject to change.</p>
+<h2 id="stage-parameters">Stage Parameters</h2>
+<pre><code class="language-yaml">stages:
+  - lens: lens_1
+    output: 1.0 
+    n_steps: 100 
+    start_distance: 0
+    finish_distance: 2.0e-3 
+  - lens: lens_2
+    output: 1.33 
+    step_size: 0.1e-3 
+    use_equivalent_focal_distance: true
+    focal_distance_start_multiple: 0.0
+    focal_distance_multiple: 2.0 
+
+</code></pre>
+<p>The configurable simulation stage parameters are:</p>
+<ul>
+<li>Lens: The name of the lens to use. This must match that found in the lens section.</li>
+<li>Output: The refractive index of the medium to propagate into. </li>
+<li>Num Steps: The number of steps to propagate the wave.</li>
+<li>Step Size: The distance between steps of the wave propagation (metres).</li>
+<li>Start Distance: The distance to start simulating the wave propagation (metres).</li>
+<li>Finish Distance: The distance to finish simulating the wave propagation (metres).</li>
+<li>Use Equivalent Focal Distance: Flag to use the equivalent focal distance to calculate the distances. (bool)</li>
+<li>Focal Distance Start Multiple: The multiple of focal distance to use for the start distance. </li>
+<li>Focal Distance Multiple:  The multiple of the focal distance to use for the finish distance. </li>
+</ul>
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    <script id="__config" type="application/json">{"base": "..", "features": [], "search": "../assets/javascripts/workers/search.e5c33ebb.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.51d95adb.min.js"></script>
+      
+    
+  </body>
+</html>
