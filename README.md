@@ -27,8 +27,13 @@ $ pip install -e .
 
 ```
 
+### Documentation
+
+For more documentation, please see the [website](https://demarcolab.github.io/juno)
+
+
 ### Tutorial
-For a tutorial walkthrough for using the package please see [Tutorial.md](docs/TUTORIAL.md)
+For a tutorial walkthrough for using the package please see [Tutorial](https://demarcolab.github.io/juno/TUTORIAL)
 
 
 ### User Interface
@@ -44,7 +49,7 @@ The example folder contains a few simulation configurations using common lens ty
  - Axicon Lens (2D)
  - Telescope (1D and 2D)
 
-For more information about all the available configuration parameters and options, please see [Configuration.md](docs/Configuration.md).
+For more information about all the available configuration parameters and options, please see [Configuration](https://demarcolab.github.io/juno/Configuration/).
 
 
 ### Command Line
@@ -57,7 +62,7 @@ This is useful for running large parameter sweeps on HPC setups.
 
 
 ### Documentation
-For more detailed documentation please see [Documentation.md](docs/Documentation.md)
+For more detailed documentation please see [Documentation](https://demarcolab.github.io/juno/Documentation)
 
 
 ## Citation
