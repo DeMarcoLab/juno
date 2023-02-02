@@ -13,3 +13,4 @@ imageio
 zarr
 pyqt5
 dask
+napari
