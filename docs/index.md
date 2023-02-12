@@ -23,7 +23,7 @@ We believe Juno provides the following advantages over existing solutions:
 User-Friendly Interface
 Juno has been designed with ease of use in mind, allowing users to take advantage of its capabilities without the need for programming or optics experience. The entire application can be used through its user interface, making it accessible to a wide range of users and reducing the barrier to entry. This makes it an ideal tool for researchers who are looking to explore new ideas and strategies, as well as those who are new to the field.
 
-![Juno Element Creator 3D](../img/juno_element_3d.png)
+![Juno Element Creator 3D](img/juno_element_3d.png)
 
 Juno is designed to run on a personal computer, eliminating the need for large computational resources. This makes it an accessible option for researchers who may not have access to extensive computational resources, but still want to take advantage of its capabilities. However, if users do want to increase the size of their simulations, they do not need to rewrite any code. This makes it a versatile tool for researchers who may be working on projects that require significant computational resources, but still want to take advantage of its ease of use and low barrier to entry.
 
@@ -35,7 +35,7 @@ Juno utilises three libraries (zarr, dask and napari) to enable scalability.Zarr
 
 For visualisation, napari natively supports zarr/dask arrays enabling interactive visualisation of large arrays. This means the research can visualse the entire simulation, without having to rely on downscaling results, or taking 'slices' through the simulation.  
 
-![Juno Multi Viz 3D](../img/juno_result_multi_3d.png)
+![Juno Multi Viz 3D](img/juno_result_multi_3d.png)
 
 When HPC resources are available, the researcher can run large sweeps on the hardware using the exact same configuration they used on their laptop, and then transfer results back to their laptop for offline analysis. We believe this results in much greater 'researcher utilisation', as the researcher can perform analysis, or set up new simulations while a sweep runs, and doesn't have to wait for additional visualisation cluster resources to analyse their results.  
 
@@ -60,7 +60,7 @@ Juno provides researchers with a native experiment management system that helps 
 
 One of the key features of Juno is its inbuilt parameter sweep tools, which allow users to iterate through many different designs for exploration and optimization. This feature makes it easy for researchers to test multiple scenarios and find the best solution for their needs.
 
-![Juno Parameter Sweep](../img/juno_setup_sweep.png)
+![Juno Parameter Sweep](img/juno_setup_sweep.png)
 
 Simulations performed in Juno retain the configuration and metadata used during the run, so users are able to review or re-run simulations as needed. This feature makes it easy for researchers to keep track of their work, and quickly make changes or adjustments as necessary.
 
@@ -75,17 +75,17 @@ In the case study discussed in the paper, we use Juno to examine the performance
 
 As shown in Figure 9, we observed that the fabricated gratings significantly diverged from the idealized simulation gratings. This resulted in unreliable simulation performance and a need for a solution.
 
-![Case Study 01a](../img/case_study_00.png)
+![Case Study 01a](img/case_study_00.png)
 
 
 To resolve the issue, we used interferometry measurements of the fabricated element and imported the profile into Juno (Figure 10). These measurements revealed that the manufactured gratings had sloped walls compared to the perfect square simulation gratings.
 
-![Case Study 01a](../img/case_study_01.png)
+![Case Study 01a](img/case_study_01.png)
 
 With the help of Juno, we were able to re-simulate the system using the measured gratings and achieved better simulation performance (Figure 12). They also added the ability for users to apply these more realistic gratings to their elements in Juno, further reducing the discrepancy between simulated and actual performance.
 
 
-![Case Study 01a](../img/case_study_02.png)
+![Case Study 01a](img/case_study_02.png)
 
 The case study demonstrates the usefulness of Juno in resolving performance divergence in diffraction gratings. By allowing users to apply more realistic gratings to their elements, Juno provides a better understanding of the actual performance of the system, making it a valuable tool for researchers in this field. 
 
