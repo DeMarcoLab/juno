@@ -6,7 +6,7 @@
 </figure>
 
 # Juno
-juno is python package for designing lenses by performing full wave simulations.
+juno is a simulation package for optical system design using full wave propagation.
 
 ## Getting Started
 
