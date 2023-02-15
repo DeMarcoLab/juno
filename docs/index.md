@@ -29,9 +29,9 @@ Juno is designed to run on a personal computer, eliminating the need for large c
 
 ### Computational Scalability
 
-The wave propagation method supported by Juno is a numerical simulation, which often requires very high resolution simulation to produce accurate results. However, when a user tries to run a large simulation on their laptop / desktop it will often crash if the simulation tries to allocate more memory than is available. This either results in the user scaling down the simulation, utilising expensive HPC resources, or using memory management techniques that reduce computational efficiecy (the sim is a big matrix multiply). In addition, usually forces the research to perform small scale simulations on their device to check everything is working, before scaling up which can produce numerical issues, and is time-consuming. 
+The wave propagation method supported by Juno is a numerical simulation, which often requires very high resolution simulation to produce accurate results. However, when a user tries to run a large simulation on their laptop / desktop it will often crash if the simulation tries to allocate more memory than is available. This either results in the user scaling down the simulation, utilising expensive HPC resources, or using memory management techniques that reduce computational efficiecy (the sim is a big matrix multiply). In addition, it usually forces the researcher to perform small scale simulations on their device to check everything is working, before scaling up which can produce numerical issues, and is time-consuming. 
 
-Juno utilises three libraries (zarr, dask and napari) to enable scalability.Zarr and Dask allow efficient storage and lazy processing for large arrays (larger than memory), allowing higher resolution simulations to be run than would be possible with standard array libraries (numpy) on a personal laptop. This means the user can run at the resolution they want, without worrying about memory issues. 
+Juno utilises three libraries (zarr, dask and napari) to enable scalability. Zarr and Dask allow efficient storage and lazy processing for large arrays (larger than memory), allowing higher resolution simulations to be run than would be possible with standard array libraries (numpy) on a personal laptop. This means the user can run at the resolution they want, without worrying about memory issues. 
 
 For visualisation, napari natively supports zarr/dask arrays enabling interactive visualisation of large arrays. This means the research can visualse the entire simulation, without having to rely on downscaling results, or taking 'slices' through the simulation.  
 
@@ -101,8 +101,11 @@ We hope that Juno will provide a way to better iterate system design, and speed 
 ## Getting Started
 
 For more information, please see:
+
 - Paper: https://arxiv.org/abs/2212.12540
+
 - Code: https://github.com/deMarcoLab/juno
+
 - Please see, [Getting Started](started.md)
 
 ### Feedback and Issues
