@@ -40,6 +40,7 @@ For visualisation, napari natively supports zarr/dask arrays enabling interactiv
 When HPC resources are available, the researcher can run large sweeps on the hardware using the exact same configuration they used on their laptop, and then transfer results back to their laptop for offline analysis. We believe this results in much greater 'researcher utilisation', as the researcher can perform analysis, or set up new simulations while a sweep runs, and doesn't have to wait for additional visualisation cluster resources to analyse their results.  
 
 In future, we will be upgrading the package with the following performance improvements:
+
 - GPU acceleration on main simulation propagation calculations.
 - Native support for parallelising simulation sweeps on HPC.
 - Native supprot for caching simulation stage propagation for re-use.
@@ -91,9 +92,7 @@ The case study demonstrates the usefulness of Juno in resolving performance dive
 
 We hope that Juno will provide a way to better iterate system design, and speed up the loop between conceptual design and real world performance. 
 
-### Novel Element Design
-- Custom Elements, post-simulation analysis tool (David) 
-
+More case studies will be added in the future.
 
 ---
 
@@ -102,9 +101,9 @@ We hope that Juno will provide a way to better iterate system design, and speed 
 
 For more information, please see:
 
-- Paper: https://arxiv.org/abs/2212.12540
+- Paper: [https://arxiv.org/abs/2212.12540](https://arxiv.org/abs/2212.12540)
 
-- Code: https://github.com/deMarcoLab/juno
+- Code: [Github](https://github.com/deMarcoLab/juno)
 
 - Please see, [Getting Started](started.md)
 
