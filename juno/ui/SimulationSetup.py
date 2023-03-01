@@ -520,16 +520,11 @@ def load_stage_config_widgets(config, all_widgets):
             widgets[14].setText(str(stage_config["focal_distance_multiple"]))
 
 def main():
-    """Launch the main application window. """
-    application = QtWidgets.QApplication([])
     import napari
     viewer = napari.Viewer(ndisplay=3)
     simulation_setup_ui = GUISimulationSetup(viewer=viewer)                                          
     viewer.window.add_dock_widget(simulation_setup_ui, area='right')                  
-
-    application.aboutToQuit.connect(simulation_setup_ui.disconnect)  # cleanup & teardown
-    sys.exit(application.exec_())
-
+    napari.run()
 
 if __name__ == "__main__":
     main()
