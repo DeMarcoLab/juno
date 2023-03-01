@@ -197,6 +197,21 @@ class Ui_MainWindow(object):
         self.retranslateUi(MainWindow)
         self.tabWidget.setCurrentIndex(0)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
+        MainWindow.setTabOrder(self.pushButton_visualise_simulation, self.lineEdit_pixel_size)
+        MainWindow.setTabOrder(self.lineEdit_pixel_size, self.lineEdit_sim_width)
+        MainWindow.setTabOrder(self.lineEdit_sim_width, self.lineEdit_sim_height)
+        MainWindow.setTabOrder(self.lineEdit_sim_height, self.lineEdit_sim_wavelength)
+        MainWindow.setTabOrder(self.lineEdit_sim_wavelength, self.lineEdit_sim_amplitude)
+        MainWindow.setTabOrder(self.lineEdit_sim_amplitude, self.pushButton_sim_beam)
+        MainWindow.setTabOrder(self.pushButton_sim_beam, self.lineEdit_log_dir)
+        MainWindow.setTabOrder(self.lineEdit_log_dir, self.lineEdit_sim_name)
+        MainWindow.setTabOrder(self.lineEdit_sim_name, self.checkBox_save_plot)
+        MainWindow.setTabOrder(self.checkBox_save_plot, self.tabWidget)
+        MainWindow.setTabOrder(self.tabWidget, self.spinBox_sim_num_stages)
+        MainWindow.setTabOrder(self.spinBox_sim_num_stages, self.scrollArea_stages)
+        MainWindow.setTabOrder(self.scrollArea_stages, self.pushButton_generate_simulation)
+        MainWindow.setTabOrder(self.pushButton_generate_simulation, self.pushButton_setup_parameter_sweep)
+        MainWindow.setTabOrder(self.pushButton_setup_parameter_sweep, self.spinBox_visualisation_scale)
 
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate

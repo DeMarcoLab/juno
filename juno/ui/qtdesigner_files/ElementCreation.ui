@@ -572,6 +572,40 @@
    </property>
   </action>
  </widget>
+ <tabstops>
+  <tabstop>tabWidget</tabstop>
+  <tabstop>lineEdit_name</tabstop>
+  <tabstop>lineEdit_pixelsize</tabstop>
+  <tabstop>lineEdit_diameter</tabstop>
+  <tabstop>lineEdit_length</tabstop>
+  <tabstop>lineEdit_height</tabstop>
+  <tabstop>lineEdit_exponent</tabstop>
+  <tabstop>lineEdit_medium</tabstop>
+  <tabstop>comboBox_type</tabstop>
+  <tabstop>lineEdit_escape_path</tabstop>
+  <tabstop>checkBox_invert_profile</tabstop>
+  <tabstop>checkBox_live_update</tabstop>
+  <tabstop>pushButton_generate_profile</tabstop>
+  <tabstop>comboBox_truncation_mode</tabstop>
+  <tabstop>checkBox_use_truncation</tabstop>
+  <tabstop>checkBox_grating_y_axis</tabstop>
+  <tabstop>lineEdit_grating_depth</tabstop>
+  <tabstop>checkBox_grating_centred</tabstop>
+  <tabstop>checkBox_aperture_invert</tabstop>
+  <tabstop>comboBox_grating_mode</tabstop>
+  <tabstop>lineEdit_grating_inner_radius</tabstop>
+  <tabstop>lineEdit_aperture_outer</tabstop>
+  <tabstop>lineEdit_grating_distance</tabstop>
+  <tabstop>checkBox_use_aperture</tabstop>
+  <tabstop>comboBox_aperture_mode</tabstop>
+  <tabstop>lineEdit_truncation_value</tabstop>
+  <tabstop>checkBox_grating_x_axis</tabstop>
+  <tabstop>checkBox_truncation_aperture</tabstop>
+  <tabstop>lineEdit_aperture_inner</tabstop>
+  <tabstop>lineEdit_grating_blur</tabstop>
+  <tabstop>lineEdit_grating_width</tabstop>
+  <tabstop>checkBox_use_grating</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
 </ui>

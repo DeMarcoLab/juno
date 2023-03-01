@@ -415,6 +415,24 @@
    </property>
   </action>
  </widget>
+ <tabstops>
+  <tabstop>pushButton_visualise_simulation</tabstop>
+  <tabstop>lineEdit_pixel_size</tabstop>
+  <tabstop>lineEdit_sim_width</tabstop>
+  <tabstop>lineEdit_sim_height</tabstop>
+  <tabstop>lineEdit_sim_wavelength</tabstop>
+  <tabstop>lineEdit_sim_amplitude</tabstop>
+  <tabstop>pushButton_sim_beam</tabstop>
+  <tabstop>lineEdit_log_dir</tabstop>
+  <tabstop>lineEdit_sim_name</tabstop>
+  <tabstop>checkBox_save_plot</tabstop>
+  <tabstop>tabWidget</tabstop>
+  <tabstop>spinBox_sim_num_stages</tabstop>
+  <tabstop>scrollArea_stages</tabstop>
+  <tabstop>pushButton_generate_simulation</tabstop>
+  <tabstop>pushButton_setup_parameter_sweep</tabstop>
+  <tabstop>spinBox_visualisation_scale</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
 </ui>
