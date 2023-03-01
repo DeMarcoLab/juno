@@ -137,7 +137,7 @@ class GUISimulationSetup(SimulationSetup.Ui_MainWindow, QtWidgets.QMainWindow):
             with open(sim_config_filename, "w") as f:
                 yaml.safe_dump(self.simulation_config, f)
 
-            self.statusBar.showMessage(f"Simulation config saved to {sim_config_filename}")
+            napari.utils.notifications.show_info(f"Simulation config saved to {sim_config_filename}")
 
     def load_simulation_config(self):
 
