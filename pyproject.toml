@@ -1,9 +1,9 @@
 [build-system]
-requires = [
-    "setuptools>=42",
-    "wheel"
-]
+requires = ["wheel", "setuptools>=45", "setuptools_scm[toml]>=6.2"]
 build-backend = "setuptools.build_meta"
+
+[tool.setuptools_scm]
+write_to = "juno/_version.py"
 
 [project]
 name = "juno"
@@ -12,7 +12,7 @@ authors = [
     {name = "Patrick Cleeve", email = "Patrick.Cleeve@monash.edu"}
 ]
 readme = "README.md"
-requires-python = ">=3.7"
+requires-python = ">=3.9"
 classifiers = [
     "Programming Language :: Python :: 3",
     "License :: OSI Approved :: MIT License",
