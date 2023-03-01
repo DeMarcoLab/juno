@@ -370,9 +370,9 @@ def validate_beam_for_display(config: dict, parameters: SimulationParameters) ->
     for k in ["width", "height"]:
         if config["beam"][k] / parameters.pixel_size > BEAM_SHAPE_DISPLAY_LIMIT_PX:
             valid_beam = False
-
-    if config["beam"]["n_steps"] > BEAM_N_STEPS_DISPLAY_LIMIT:
-        valid_beam = False
+    if "n_steps" in config["beam"]:
+        if config["beam"]["n_steps"] > BEAM_N_STEPS_DISPLAY_LIMIT:
+            valid_beam = False
     if "step_size" in config["beam"]:
         if config["beam"]["step_size"] < BEAM_STEP_SIZE_DISPLAY_LIMIT:
             valid_beam = False    
