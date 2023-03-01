@@ -26,19 +26,19 @@ class GUISimulationSetup(SimulationSetup.Ui_MainWindow, QtWidgets.QMainWindow):
         self.statusBar = QtWidgets.QStatusBar()
         self.setStatusBar(self.statusBar)
         self.setWindowTitle("Simulation Setup")
-        
 
         self.viewer: napari.Viewer = viewer
 
         self.simulation_config = {}
         self.SAVE_FROM_PARAMETER_SWEEP = False
         self.input_widgets = []
+        self._validated_simulation_config = False
 
         self.setup_connections()
 
         self.update_all_displays()
 
-        self.showNormal()
+        self._update_ui_components()
 
     def setup_connections(self):
 
@@ -52,13 +52,30 @@ class GUISimulationSetup(SimulationSetup.Ui_MainWindow, QtWidgets.QMainWindow):
         )
         self.pushButton_sim_beam.clicked.connect(self.load_beam_config)
         self.pushButton_setup_parameter_sweep.clicked.connect(self.setup_parameter_sweep)
+        self.pushButton_visualise_simulation.clicked.connect(self.visualise_simulation)
 
         # actions
         self.actionLoad_Configuration.triggered.connect(self.load_simulation_config)
         self.actionSave_Configuration.triggered.connect(self.save_simulation_config)
 
-        # off by default
-        self.actionSave_Configuration.setEnabled(False)
+    def _update_ui_components(self):
+
+        # clear viewer
+        self.viewer.layers.clear()
+
+        # enable parameter sweep
+        self.pushButton_setup_parameter_sweep.setVisible(self._validated_simulation_config)
+        self.pushButton_setup_parameter_sweep.setEnabled(self._validated_simulation_config)
+        
+        # enable saving
+        self.actionSave_Configuration.setEnabled(self._validated_simulation_config)
+        
+        # enable visualisation
+        self.label_visualisation_scale.setVisible(self._validated_simulation_config)
+        self.spinBox_visualisation_scale.setVisible(self._validated_simulation_config)
+        self.pushButton_visualise_simulation.setVisible(self._validated_simulation_config)
+        self.pushButton_visualise_simulation.setEnabled(self._validated_simulation_config)
+
 
     def update_all_displays(self):
 
@@ -162,6 +179,10 @@ class GUISimulationSetup(SimulationSetup.Ui_MainWindow, QtWidgets.QMainWindow):
             load_stage_config_widgets(config, self.input_widgets)
             self.SIMULATION_CONFIG_LOADED = True
 
+            # update ui
+            self._validated_simulation_config = False
+            self._update_ui_components()
+
     def update_status(self, msg= "Generating Simulation Configuration..."):
         """update status within button press..."""
         napari.utils.notifications.show_info(msg)
@@ -177,11 +198,11 @@ class GUISimulationSetup(SimulationSetup.Ui_MainWindow, QtWidgets.QMainWindow):
             self.read_stage_input_values()
 
             validation._validate_simulation_config(self.simulation_config)
-            napari.utils.notifications.show_info(f"Valid Simulation Configuration. Plotting Setup...")
-            self.draw_simulation_stage_display()
+            napari.utils.notifications.show_info(f"Valid Simulation Configuration.")
 
-            self.pushButton_setup_parameter_sweep.setEnabled(True)
-            self.actionSave_Configuration.setEnabled(True)
+            # update ui            
+            self._validated_simulation_config = True
+            self._update_ui_components()
 
             napari.utils.notifications.show_info(f"Generate Simulation Configuration Finished.")
 
@@ -192,7 +213,11 @@ class GUISimulationSetup(SimulationSetup.Ui_MainWindow, QtWidgets.QMainWindow):
 
 
 
-    def draw_simulation_stage_display(self):
+    def visualise_simulation(self):
+
+        self.pushButton_visualise_simulation.setEnabled(False)
+        self.pushButton_visualise_simulation.setText("Visualising...")
+        self.pushButton_visualise_simulation.setStyleSheet("background-color: orange")
 
         # TODO: find a way to make the viewing of this much more performant
         pixel_size = self.simulation_config["sim_parameters"]["pixel_size"] 
@@ -220,6 +245,10 @@ class GUISimulationSetup(SimulationSetup.Ui_MainWindow, QtWidgets.QMainWindow):
 
         # reset pixel_size
         self.simulation_config["sim_parameters"]["pixel_size"] = pixel_size
+
+        self.pushButton_visualise_simulation.setEnabled(False)
+        self.pushButton_visualise_simulation.setText("Visualise Simulation")
+        self.pushButton_visualise_simulation.setStyleSheet("background-color: gray")
 
     def read_stage_input_values(self):
 
@@ -331,8 +360,6 @@ class GUISimulationSetup(SimulationSetup.Ui_MainWindow, QtWidgets.QMainWindow):
             napari.utils.notifications.show_error(f"Invalid config. \n{e}")
 
     def update_stage_input_display(self):
-
-        print("updating stage display")
 
         sim_num_stages = int(self.spinBox_sim_num_stages.value())
 
