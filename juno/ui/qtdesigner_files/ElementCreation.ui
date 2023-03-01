@@ -135,13 +135,6 @@
                 </property>
                </widget>
               </item>
-              <item row="8" column="1">
-               <widget class="QLineEdit" name="lineEdit_escape_path">
-                <property name="text">
-                 <string>0.0</string>
-                </property>
-               </widget>
-              </item>
               <item row="5" column="1">
                <widget class="QLineEdit" name="lineEdit_exponent">
                 <property name="text">
@@ -188,6 +181,16 @@
                <widget class="QCheckBox" name="checkBox_invert_profile">
                 <property name="text">
                  <string>Invert Profile</string>
+                </property>
+               </widget>
+              </item>
+              <item row="8" column="1">
+               <widget class="QDoubleSpinBox" name="doubleSpinBox_escape_path">
+                <property name="maximum">
+                 <double>2.000000000000000</double>
+                </property>
+                <property name="singleStep">
+                 <double>0.010000000000000</double>
                 </property>
                </widget>
               </item>
@@ -582,7 +585,6 @@
   <tabstop>lineEdit_exponent</tabstop>
   <tabstop>lineEdit_medium</tabstop>
   <tabstop>comboBox_type</tabstop>
-  <tabstop>lineEdit_escape_path</tabstop>
   <tabstop>checkBox_invert_profile</tabstop>
   <tabstop>checkBox_live_update</tabstop>
   <tabstop>pushButton_generate_profile</tabstop>
