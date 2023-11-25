@@ -30,7 +30,7 @@
           <enum>QTabWidget::Rounded</enum>
          </property>
          <property name="currentIndex">
-          <number>1</number>
+          <number>0</number>
          </property>
          <widget class="QWidget" name="tab_general">
           <attribute name="title">
@@ -135,13 +135,6 @@
                 </property>
                </widget>
               </item>
-              <item row="8" column="1">
-               <widget class="QLineEdit" name="lineEdit_escape_path">
-                <property name="text">
-                 <string>0.0</string>
-                </property>
-               </widget>
-              </item>
               <item row="5" column="1">
                <widget class="QLineEdit" name="lineEdit_exponent">
                 <property name="text">
@@ -188,6 +181,16 @@
                <widget class="QCheckBox" name="checkBox_invert_profile">
                 <property name="text">
                  <string>Invert Profile</string>
+                </property>
+               </widget>
+              </item>
+              <item row="8" column="1">
+               <widget class="QDoubleSpinBox" name="doubleSpinBox_escape_path">
+                <property name="maximum">
+                 <double>2.000000000000000</double>
+                </property>
+                <property name="singleStep">
+                 <double>0.010000000000000</double>
                 </property>
                </widget>
               </item>
@@ -515,6 +518,19 @@
       </layout>
      </widget>
     </item>
+    <item row="1" column="0">
+     <spacer name="verticalSpacer_3">
+      <property name="orientation">
+       <enum>Qt::Vertical</enum>
+      </property>
+      <property name="sizeHint" stdset="0">
+       <size>
+        <width>20</width>
+        <height>40</height>
+       </size>
+      </property>
+     </spacer>
+    </item>
    </layout>
   </widget>
   <widget class="QMenuBar" name="menubar">
@@ -523,7 +539,7 @@
      <x>0</x>
      <y>0</y>
      <width>365</width>
-     <height>20</height>
+     <height>21</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -559,6 +575,39 @@
    </property>
   </action>
  </widget>
+ <tabstops>
+  <tabstop>tabWidget</tabstop>
+  <tabstop>lineEdit_name</tabstop>
+  <tabstop>lineEdit_pixelsize</tabstop>
+  <tabstop>lineEdit_diameter</tabstop>
+  <tabstop>lineEdit_length</tabstop>
+  <tabstop>lineEdit_height</tabstop>
+  <tabstop>lineEdit_exponent</tabstop>
+  <tabstop>lineEdit_medium</tabstop>
+  <tabstop>comboBox_type</tabstop>
+  <tabstop>checkBox_invert_profile</tabstop>
+  <tabstop>checkBox_live_update</tabstop>
+  <tabstop>pushButton_generate_profile</tabstop>
+  <tabstop>comboBox_truncation_mode</tabstop>
+  <tabstop>checkBox_use_truncation</tabstop>
+  <tabstop>checkBox_grating_y_axis</tabstop>
+  <tabstop>lineEdit_grating_depth</tabstop>
+  <tabstop>checkBox_grating_centred</tabstop>
+  <tabstop>checkBox_aperture_invert</tabstop>
+  <tabstop>comboBox_grating_mode</tabstop>
+  <tabstop>lineEdit_grating_inner_radius</tabstop>
+  <tabstop>lineEdit_aperture_outer</tabstop>
+  <tabstop>lineEdit_grating_distance</tabstop>
+  <tabstop>checkBox_use_aperture</tabstop>
+  <tabstop>comboBox_aperture_mode</tabstop>
+  <tabstop>lineEdit_truncation_value</tabstop>
+  <tabstop>checkBox_grating_x_axis</tabstop>
+  <tabstop>checkBox_truncation_aperture</tabstop>
+  <tabstop>lineEdit_aperture_inner</tabstop>
+  <tabstop>lineEdit_grating_blur</tabstop>
+  <tabstop>lineEdit_grating_width</tabstop>
+  <tabstop>checkBox_use_grating</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
 </ui>

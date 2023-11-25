@@ -381,6 +381,11 @@ def validate_beam_configuration(settings: BeamSettings):
         if settings.source_distance is None:
             raise ValueError(f"A source_distance must be provided for {settings.distance_mode}")
 
+        # check if step size greater than propagation distance
+        if settings.step_size is not None:
+            if settings.step_size > settings.source_distance:
+                raise ValueError(f"The step_size ({settings.step_size:.2e}m) must be less than the source_distance ({settings.source_distance:.2e}m) for {settings.distance_mode}.")
+
     if settings.distance_mode == DistanceMode.Focal:
         if settings.beam_spread not in [BeamSpread.Converging, BeamSpread.Diverging]:
             raise ValueError(f"BeamSpread must be Converging, or Diverging for {settings.distance_mode} (currently {settings.beam_spread})")

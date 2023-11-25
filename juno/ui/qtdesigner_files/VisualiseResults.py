@@ -143,7 +143,16 @@ class Ui_MainWindow(object):
 
         self.retranslateUi(MainWindow)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
-        MainWindow.setTabOrder(self.pushButton_load_simulation, self.scroll_area_filter)
+        MainWindow.setTabOrder(self.pushButton_load_simulation, self.spinBox_num_filters)
+        MainWindow.setTabOrder(self.spinBox_num_filters, self.scroll_area_filter)
+        MainWindow.setTabOrder(self.scroll_area_filter, self.lineEdit_show_columns)
+        MainWindow.setTabOrder(self.lineEdit_show_columns, self.pushButton_reset_data)
+        MainWindow.setTabOrder(self.pushButton_reset_data, self.pushButton_filter_data)
+        MainWindow.setTabOrder(self.pushButton_filter_data, self.checkBox_log_plots)
+        MainWindow.setTabOrder(self.checkBox_log_plots, self.checkBox_show_all_simulations)
+        MainWindow.setTabOrder(self.checkBox_show_all_simulations, self.doubleSpinBox_scale)
+        MainWindow.setTabOrder(self.doubleSpinBox_scale, self.comboBox_napari_sim)
+        MainWindow.setTabOrder(self.comboBox_napari_sim, self.pushButton_update_visualisation)
 
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate

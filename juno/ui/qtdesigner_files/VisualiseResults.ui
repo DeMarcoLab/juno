@@ -276,7 +276,16 @@
  </widget>
  <tabstops>
   <tabstop>pushButton_load_simulation</tabstop>
+  <tabstop>spinBox_num_filters</tabstop>
   <tabstop>scroll_area_filter</tabstop>
+  <tabstop>lineEdit_show_columns</tabstop>
+  <tabstop>pushButton_reset_data</tabstop>
+  <tabstop>pushButton_filter_data</tabstop>
+  <tabstop>checkBox_log_plots</tabstop>
+  <tabstop>checkBox_show_all_simulations</tabstop>
+  <tabstop>doubleSpinBox_scale</tabstop>
+  <tabstop>comboBox_napari_sim</tabstop>
+  <tabstop>pushButton_update_visualisation</tabstop>
  </tabstops>
  <resources/>
  <connections/>
