@@ -137,7 +137,7 @@ class GUIElementCreation(ElementCreation.Ui_MainWindow, QtWidgets.QMainWindow):
             self.checkBox_grating_x_axis.setChecked(bool(config["grating"]["x"]))
             self.checkBox_grating_y_axis.setChecked(bool(config["grating"]["y"]))
             self.checkBox_grating_centred.setChecked(bool(config["grating"]["centred"]))
-            self.lineEdit_grating_blur.setText(float(config["grating"]["blur"]))
+            self.lineEdit_grating_blur.setText(str(config["grating"]["blur"]))
             self.comboBox_grating_mode.setCurrentText(config["grating"]["mode"])
             self.lineEdit_grating_inner_radius.setText(str(config["grating"]["inner_radius"]))
 
