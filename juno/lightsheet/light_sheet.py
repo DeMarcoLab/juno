@@ -79,7 +79,7 @@ def calculate_sheet_size_pixels(image, threshold_value):
     cz = index_max
     cx = image.shape[1] // 2
 
-    min_z, max_z = cz, cz
+    min_z, max_z = 0, image.shape[0]
     # find min, max values less than threshold
     for z_idx in range(cz, image.shape[0], 1):
         val = image[z_idx, cx]
