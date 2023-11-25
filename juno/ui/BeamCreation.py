@@ -73,7 +73,7 @@ class GUIBeamCreation(BeamCreation.Ui_MainWindow, QtWidgets.QMainWindow):
         self.lineEdit_gaussian_waist_x.textChanged.connect(self.update_visualisation)
         self.lineEdit_gaussian_waist_y.textChanged.connect(self.update_visualisation)
         self.lineEdit_gaussian_axial_z0.textChanged.connect(self.update_visualisation)
-        self.lineEdit_gaussian_axial_z_total.textChanged.connect(self.update_visualisation)
+        # self.lineEdit_gaussian_axial_z_total.textChanged.connect(self.update_visualisation)
         
         # simulation
         self.lineEdit_pixelsize.textChanged.connect(self.update_visualisation)
@@ -131,7 +131,7 @@ class GUIBeamCreation(BeamCreation.Ui_MainWindow, QtWidgets.QMainWindow):
         self.lineEdit_gaussian_waist_x.setText(str(config["gaussian_wx"]))
         self.lineEdit_gaussian_waist_y.setText(str(config["gaussian_wy"]))
         self.lineEdit_gaussian_axial_z0.setText(str(config["gaussian_z0"]))
-        self.lineEdit_gaussian_axial_z_total.setText(str(config["gaussian_z"]))
+        # self.lineEdit_gaussian_axial_z_total.setText(str(config["gaussian_z"]))
 
         # simulation
         if config["step_size"] is None:
@@ -191,17 +191,17 @@ class GUIBeamCreation(BeamCreation.Ui_MainWindow, QtWidgets.QMainWindow):
         if filename == "":
             return
 
-        # load beam config and validate
-        beam_config = utils.load_yaml_config(filename)
-        beam_config = validation._validate_default_beam_config(beam_config)
-
-        # update ui
         try:
+            # load beam config and validate
+            beam_config = utils.load_yaml_config(filename)
+            beam_config = validation._validate_default_beam_config(beam_config)
+
+            # update ui
             self.update_ui_from_config(beam_config)
+            self.update_visualisation() 
         except:
             napari.utils.notifications.show_error(traceback.format_exc())
             
-        self.update_visualisation() 
 
     def save_configuration(self):
 
@@ -266,7 +266,7 @@ class GUIBeamCreation(BeamCreation.Ui_MainWindow, QtWidgets.QMainWindow):
             beam_config["gaussian_wx"] = float(self.lineEdit_gaussian_waist_x.text())
             beam_config["gaussian_wy"] = float(self.lineEdit_gaussian_waist_y.text())
             beam_config["gaussian_z0"] = float(self.lineEdit_gaussian_axial_z0.text())
-            beam_config["gaussian_z"] = float(self.lineEdit_gaussian_axial_z_total.text())
+            # beam_config["gaussian_z"] = float(self.lineEdit_gaussian_axial_z_total.text())
 
         # sim parameters
         parameters_config["A"] = float(self.lineEdit_sim_amplitude.text())
@@ -370,9 +370,9 @@ def validate_beam_for_display(config: dict, parameters: SimulationParameters) ->
     for k in ["width", "height"]:
         if config["beam"][k] / parameters.pixel_size > BEAM_SHAPE_DISPLAY_LIMIT_PX:
             valid_beam = False
-
-    if config["beam"]["n_steps"] > BEAM_N_STEPS_DISPLAY_LIMIT:
-        valid_beam = False
+    if "n_steps" in config["beam"]:
+        if config["beam"]["n_steps"] > BEAM_N_STEPS_DISPLAY_LIMIT:
+            valid_beam = False
     if "step_size" in config["beam"]:
         if config["beam"]["step_size"] < BEAM_STEP_SIZE_DISPLAY_LIMIT:
             valid_beam = False    

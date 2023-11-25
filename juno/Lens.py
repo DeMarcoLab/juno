@@ -776,6 +776,12 @@ def calculate_escape_path_dimensions(lens: Lens, ep: float):
     lens_h, lens_w = lens.profile.shape
     ep_h, ep_w = int(lens_h * (1 + ep)), int(lens_w * (1 + ep))
 
+    # ensure the escape path is odd
+    if ep_h % 2 == 0:
+        ep_h += 1
+    if ep_w % 2 == 0:
+        ep_w += 1
+
     return (ep_h, ep_w)
 
 

@@ -252,6 +252,13 @@ def test_validate_beam_configuration(beam_settings):
     with pytest.raises(ValueError):
         validate_beam_configuration(settings)
 
+    # distance mode direct with step size greater than source distance
+    settings.distance_mode = DistanceMode.Direct
+    settings.source_distance = 1e-3
+    settings.step_size = 2e-3
+    with pytest.raises(ValueError):
+        validate_beam_configuration(settings)
+
 
 
 

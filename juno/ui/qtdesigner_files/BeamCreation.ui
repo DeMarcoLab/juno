@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>396</width>
+    <width>418</width>
     <height>700</height>
    </rect>
   </property>
@@ -51,7 +51,7 @@
           <enum>QTabWidget::Rounded</enum>
          </property>
          <property name="currentIndex">
-          <number>0</number>
+          <number>2</number>
          </property>
          <widget class="QWidget" name="tab_general">
           <attribute name="title">
@@ -299,13 +299,6 @@
            <string>Gaussian</string>
           </attribute>
           <layout class="QGridLayout" name="gridLayout_7">
-           <item row="5" column="0">
-            <widget class="QLabel" name="label_gaussian_z_total">
-             <property name="text">
-              <string>Total Distance (z)</string>
-             </property>
-            </widget>
-           </item>
            <item row="0" column="0">
             <widget class="QLabel" name="label_gaussian_header">
              <property name="font">
@@ -355,9 +348,6 @@
              </property>
             </spacer>
            </item>
-           <item row="5" column="1">
-            <widget class="QLineEdit" name="lineEdit_gaussian_axial_z_total"/>
-           </item>
            <item row="4" column="0">
             <widget class="QLabel" name="label_gaussian_z0">
              <property name="text">
@@ -369,6 +359,13 @@
             <widget class="QLabel" name="label_gaussian_waist_y">
              <property name="text">
               <string>Waist Radius (Y)</string>
+             </property>
+            </widget>
+           </item>
+           <item row="5" column="0" colspan="2">
+            <widget class="QLabel" name="label_gaussian_z_total">
+             <property name="text">
+              <string>Total Distance (z) is controlled by propagation distance in the General tab.</string>
              </property>
             </widget>
            </item>
@@ -553,7 +550,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>396</width>
+     <width>418</width>
      <height>21</height>
     </rect>
    </property>
@@ -578,6 +575,36 @@
    </property>
   </action>
  </widget>
+ <tabstops>
+  <tabstop>tabWidget</tabstop>
+  <tabstop>lineEdit_name</tabstop>
+  <tabstop>lineEdit_beam_width</tabstop>
+  <tabstop>lineEdit_beam_height</tabstop>
+  <tabstop>lineEdit_shift_x</tabstop>
+  <tabstop>lineEdit_shift_y</tabstop>
+  <tabstop>comboBox_spread</tabstop>
+  <tabstop>comboBox_shape</tabstop>
+  <tabstop>comboBox_convergence</tabstop>
+  <tabstop>lineEdit_convergence_value</tabstop>
+  <tabstop>comboBox_distance_mode</tabstop>
+  <tabstop>lineEdit_distance_value</tabstop>
+  <tabstop>lineEdit_tilt_x</tabstop>
+  <tabstop>lineEdit_tilt_y</tabstop>
+  <tabstop>checkBox_live_update</tabstop>
+  <tabstop>pushButton_generate_beam</tabstop>
+  <tabstop>checkBox_gaussian_enabled</tabstop>
+  <tabstop>lineEdit_gaussian_waist_x</tabstop>
+  <tabstop>lineEdit_gaussian_waist_y</tabstop>
+  <tabstop>lineEdit_gaussian_axial_z0</tabstop>
+  <tabstop>lineEdit_pixelsize</tabstop>
+  <tabstop>lineEdit_sim_width</tabstop>
+  <tabstop>lineEdit_sim_height</tabstop>
+  <tabstop>lineEdit_sim_wavelength</tabstop>
+  <tabstop>lineEdit_sim_amplitude</tabstop>
+  <tabstop>comboBox_propagation_type</tabstop>
+  <tabstop>lineEdit_propagation_step</tabstop>
+  <tabstop>lineEdit_medium</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
 </ui>

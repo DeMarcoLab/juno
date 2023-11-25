@@ -653,8 +653,9 @@ def create_3d_lens(lens: Lens) -> da.Array:
 
     # scale profile by pixelsize
     lens_profile = lens.profile / lens.pixel_size # profile height in pixels
-
+        
     l_max = int(np.max(lens_profile))
+    l_max = max(l_max, 1) # make sure l_max is at least 1
     arr3d = np.ones(shape=(l_max, lens_profile.shape[0], lens_profile.shape[1]))
 
     for y in range(lens.profile.shape[0]):

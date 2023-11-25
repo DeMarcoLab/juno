@@ -101,6 +101,13 @@
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
  </widget>
+ <tabstops>
+  <tabstop>pushButton_create_element</tabstop>
+  <tabstop>pushButton_create_beam</tabstop>
+  <tabstop>pushButton_setup_sim</tabstop>
+  <tabstop>pushButton_run_simulation</tabstop>
+  <tabstop>pushButton_view_results</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
 </ui>
