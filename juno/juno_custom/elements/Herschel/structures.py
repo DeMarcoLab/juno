@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 
 import numpy as np
+from juno.Lens import Lens
 
 @dataclass
 class HerschelSettings:
@@ -65,10 +66,24 @@ class HerschelSettings:
         )
 
 @dataclass
-class HerschelResults:
-    """Class to hold the results of generating the Herschel element."""
-    lens_roots: np.ndarray = None  # the roots of the lens surface
-    lens_x_first: np.ndarray = None  # the radial points of the first lens surface
-    lens_y_first: np.ndarray = None  # the height values of the first lens surface
-    lens_x_second: np.ndarray = None  # the radial points of the second lens surface
-    lens_y_second: np.ndarray = None  # the height values of the second lens surface
+class HerschelProfilesRaw:
+    """Class to hold the intermediate results of generating the Herschel element."""
+    roots: np.ndarray = None  # the roots of the lens surface
+    x_first: np.ndarray = None  # the radial points of the first lens surface
+    y_first: np.ndarray = None  # the height values of the first lens surface
+    x_second: np.ndarray = None  # the radial points of the second lens surface
+    y_second: np.ndarray = None  # the height values of the second lens surface
+
+@dataclass
+class HerschelProfiles:
+    """Class to hold the final results of generating the Herschel element."""
+    x_first: np.ndarray = None # Juno lens object for the first lens surface
+    y_first: np.ndarray = None # Juno lens object for the second lens surface
+    x_second: np.ndarray = None # points of the first lens surface
+    y_second: np.ndarray = None # points of the second lens surface
+
+@dataclass
+class HerschelLenses:
+    """Class to hold Herschel Juno lens objects"""
+    first: Lens = None # Juno lens object for the first lens surface
+    second: Lens = None # Juno lens object for the second lens surface
