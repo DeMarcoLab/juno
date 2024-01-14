@@ -3,15 +3,10 @@ import numpy as np
 from scipy import optimize
 
 from juno import utils
-from juno.Lens import Lens, LensType, LensSettings
-from juno.Medium import Medium
 from juno.juno_custom.elements.Herschel import equations as eq
-from juno.juno_custom.elements.Herschel.structures import (
-    HerschelLenses,
-    HerschelProfiles,
-    HerschelProfilesRaw,
-    HerschelSettings,
-)
+from juno.juno_custom.elements.Herschel.structures import *
+from juno.Lens import Lens, LensSettings, LensType
+from juno.Medium import Medium
 
 
 def create_raw_profiles(settings: HerschelSettings) -> HerschelProfilesRaw:
@@ -89,7 +84,8 @@ def calculate_profiles(
 
 
 def generate_lenses(
-    settings: HerschelSettings, profiles: HerschelProfiles
+    settings: HerschelSettings,
+    profiles: HerschelProfiles,
 ) -> HerschelLenses:
     x_second = profiles.x_second
 
@@ -140,6 +136,67 @@ def generate_lenses(
     )
 
 
+def calculate_padding(
+    profiles: HerschelProfiles,
+    lenses: HerschelLensesPadded,
+    settings: HerschelSettings,
+    sim_settings: HerschelSimSettings,
+    pixel_size: float,
+):
+    if sim_settings.sim_width is not None:
+        n_pixels = utils._calculate_num_of_pixels(sim_settings.sim_width, pixel_size)
+        # n_pixels = parameters.sim_width//parameters.step
+        pad_width_first = (n_pixels - lenses.first.profile.shape[1]) // 2
+        pad_width_second = (n_pixels - lenses.second.profile.shape[1]) // 2
+        pad_width_second_points = (n_pixels - profiles.x_second.shape[0]) // 2
+        lens_first = np.pad(
+            lenses.first.profile,
+            ((0, 0), (pad_width_first, pad_width_first)),
+            mode="constant",
+            constant_values=0,
+        )
+        lens_second = np.pad(
+            lenses.second.profile,
+            ((0, 0), (pad_width_second, pad_width_second)),
+            mode="constant",
+            constant_values=0,
+        )
+        lens_points_first = np.pad(
+            profiles.x_first,
+            (pad_width_first, pad_width_first),
+            mode="constant",
+            constant_values=np.NaN,
+        )
+        lens_points_second = np.pad(
+            profiles.x_second,
+            (pad_width_second_points, pad_width_second_points),
+            mode="constant",
+            constant_values=np.NaN,
+        )
+
+        # create arrays that are the same length as lens_points_first and lens_points_second
+        lens_padding_first = np.zeros(lens_first.shape)
+        lens_padding_second = np.zeros(lens_second.shape)
+
+        # where these arrays were padded, set to 1 in the padding arrays
+        lens_padding_first[0][:pad_width_first] = 1
+        lens_padding_first[0][-pad_width_first:] = 1
+        lens_padding_second[0][:pad_width_second] = 1
+        lens_padding_second[0][-pad_width_second:] = 1
+
+        lenses.first.profile = lens_first
+        lenses.second.profile = lens_second
+
+        return HerschelLensesPadded(
+            first=lenses.first,
+            second=lenses.second,
+            first_padding=lens_padding_first,
+            second_padding=lens_padding_second,
+            # first_padding=lens_points_first,
+            # second_padding=lens_points_second,
+        )
+
+
 def display_ray_tracing(
     settings: HerschelSettings, results: HerschelProfilesRaw, buffer: float = 1.1
 ):
@@ -153,7 +210,7 @@ def display_ray_tracing(
             (settings.z_medium_i + settings.thickness) * buffer,
         ]
     )
-    skip = 3
+    skip = 20
 
     for i, point in enumerate(results.y_first[::skip]):
         i = i * skip
@@ -177,4 +234,21 @@ def display_ray_tracing(
         linewidth=2,
         color="red",
     )
+
+    plt.figure()
+    for i, point in enumerate(results.y_first[::skip]):
+        i = i * skip
+        o_x = [0, results.x_first[i]]
+        o_y = [settings.z_medium_o, 0]
+        i_x = [0, results.x_second[i]]
+        i_y = [
+            settings.z_medium_i + settings.thickness,
+            settings.thickness,
+        ]
+        x = [results.x_first[i], results.x_second[i]]
+        y = [0, settings.thickness]
+        plt.plot(x, y, linestyle="--")
+        plt.plot(o_x, o_y, linestyle="dotted")
+        plt.plot(i_x, i_y, linestyle="dotted")
+
     plt.show()
