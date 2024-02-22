@@ -1,0 +1,905 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+      
+        <link rel="prev" href="../TUTORIAL/">
+      
+      
+        <link rel="next" href="../Configuration/">
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.5.3, mkdocs-material-9.5.10">
+    
+    
+      
+        <title>Documentation - Juno Docs</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.7e359304.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/_mkdocstrings.css">
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#documentation" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="Juno Docs" class="md-header__button md-logo" aria-label="Juno Docs" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2Z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Juno Docs
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Documentation
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+      <script>var media,input,key,value,palette=__md_get("__palette");if(palette&&palette.color){"(prefers-color-scheme)"===palette.color.media&&(media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']"),palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent"));for([key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="Juno Docs" class="md-nav__button md-logo" aria-label="Juno Docs" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"/></svg>
+
+    </a>
+    Juno Docs
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Juno
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../started/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Getting Started
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../TUTORIAL/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Simulation Tutorial
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  <span class="md-ellipsis">
+    Documentation
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  <span class="md-ellipsis">
+    Documentation
+  </span>
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#simulation-structure" class="md-nav__link">
+    <span class="md-ellipsis">
+      Simulation Structure
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#implementation-details" class="md-nav__link">
+    <span class="md-ellipsis">
+      Implementation Details
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Implementation Details">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#coordinate-systems" class="md-nav__link">
+    <span class="md-ellipsis">
+      Coordinate Systems
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#global-parameters-and-padding" class="md-nav__link">
+    <span class="md-ellipsis">
+      Global Parameters and Padding
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#lens-creation" class="md-nav__link">
+    <span class="md-ellipsis">
+      Lens Creation
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#beam-creation" class="md-nav__link">
+    <span class="md-ellipsis">
+      Beam Creation
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#user-interface" class="md-nav__link">
+    <span class="md-ellipsis">
+      User Interface
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="User Interface">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#lens-creator" class="md-nav__link">
+    <span class="md-ellipsis">
+      Lens Creator
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#beam-creator" class="md-nav__link">
+    <span class="md-ellipsis">
+      Beam Creator
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#simulation-setup" class="md-nav__link">
+    <span class="md-ellipsis">
+      Simulation Setup
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#run-simulation" class="md-nav__link">
+    <span class="md-ellipsis">
+      Run Simulation
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#visualise-results" class="md-nav__link">
+    <span class="md-ellipsis">
+      Visualise Results
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#additional-notes" class="md-nav__link">
+    <span class="md-ellipsis">
+      Additional Notes
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Additional Notes">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#double-sided-lens" class="md-nav__link">
+    <span class="md-ellipsis">
+      "Double Sided Lens"
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../Configuration/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Configuration
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#simulation-structure" class="md-nav__link">
+    <span class="md-ellipsis">
+      Simulation Structure
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#implementation-details" class="md-nav__link">
+    <span class="md-ellipsis">
+      Implementation Details
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Implementation Details">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#coordinate-systems" class="md-nav__link">
+    <span class="md-ellipsis">
+      Coordinate Systems
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#global-parameters-and-padding" class="md-nav__link">
+    <span class="md-ellipsis">
+      Global Parameters and Padding
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#lens-creation" class="md-nav__link">
+    <span class="md-ellipsis">
+      Lens Creation
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#beam-creation" class="md-nav__link">
+    <span class="md-ellipsis">
+      Beam Creation
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#user-interface" class="md-nav__link">
+    <span class="md-ellipsis">
+      User Interface
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="User Interface">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#lens-creator" class="md-nav__link">
+    <span class="md-ellipsis">
+      Lens Creator
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#beam-creator" class="md-nav__link">
+    <span class="md-ellipsis">
+      Beam Creator
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#simulation-setup" class="md-nav__link">
+    <span class="md-ellipsis">
+      Simulation Setup
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#run-simulation" class="md-nav__link">
+    <span class="md-ellipsis">
+      Run Simulation
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#visualise-results" class="md-nav__link">
+    <span class="md-ellipsis">
+      Visualise Results
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#additional-notes" class="md-nav__link">
+    <span class="md-ellipsis">
+      Additional Notes
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Additional Notes">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#double-sided-lens" class="md-nav__link">
+    <span class="md-ellipsis">
+      "Double Sided Lens"
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+<h1 id="documentation">Documentation</h1>
+<p>This document contains the explanations for the simulation structure, coordinate systems and general overview</p>
+<p>N.B: This software is currently in development and breaking changes may be made.</p>
+<h2 id="simulation-structure">Simulation Structure</h2>
+<p>Lens simulations operates using free space wave propagation.</p>
+<p>The structure of the simulation can be clasified into three main components:
+- Beam: The initial wave propagation into the system
+- Lens: The lens profile under analysis 
+- Output Medium: the output medium which the lens propagates into. </p>
+<figure>
+  <img
+  src="../img/sim_config.png"
+  alt="Simulation Structure Definitions">
+  <figcaption style="text-align:center">Simulation Structure Definitions</figcaption>
+</figure>
+
+<p>We refer to the collection of Lens -&gt; Ouput Medium pairs as a simulation stage. Multiple simulation stages may be chained together to form long optical systems. </p>
+<p>Therefore, the simulation can be summarised as having the basic structure:</p>
+<p>Beam -&gt; Lens -&gt; Output -&gt; Lens -&gt; Output</p>
+<p>Beam -&gt; Stage -&gt; Stage (where Stage = Lens/Beam -&gt; Output)</p>
+<p>(Note: under the hood, the beam is also a stage that can be customised in the same way (e.g refractive index, propagation distances). However, it is a special case as it defines the initial propagation into the system and so it is better to think of it separately.)</p>
+<h2 id="implementation-details">Implementation Details</h2>
+<p>The following describes the implementation details including coordinate systems used, and operations.</p>
+<h3 id="coordinate-systems">Coordinate Systems</h3>
+<p>Propagation along the optical axis is refered to as the z-axis. The wave propagates along the z-axis. The width (x-axis) and height (y-axis) are defined perpendicular to the z-axis. The beam and lens are defining in the x-y coordinate system, with the height extending into the z-axis.</p>
+<ul>
+<li>z-axis: out of the page, positive out</li>
+<li>x-axis: horizontal, positive right</li>
+<li>y-axis: vertical, positive down</li>
+</ul>
+<figure>
+  <img
+  src="../img/coordinate_system.png"
+  alt="Coordinate System">
+  <figcaption style="text-align:center">Coordinate System</figcaption>
+</figure>
+
+<p>All properties of lens, beams, or stages are defined in a similar manner. In general the definitions follow the convention:
+- width/diameter : x-axis
+- height: y-axis
+- depth: z-axis</p>
+<h3 id="global-parameters-and-padding">Global Parameters and Padding</h3>
+<p>A core set of parameters define the limits of the simulation, and restrict the elements that can be simulated and influence simulation performance. </p>
+<p><strong>Global Parameters</strong></p>
+<p>The simulation shares a number of core parameters:
+- Simulation Width
+- Simulation Height
+- Simulation Pixel Size
+- Simulation Wavelength
+- Simulation Amplitude </p>
+<p>These parameters are fixed across the entire simulation, and all stages share these parameters for definition. These parameters restrict the maximum size of the lenses, and beams that can be used in the simulation.  </p>
+<p><strong>Padding</strong></p>
+<p>Lenses must fit within the simulation (width / height). However, lenses that are smaller than the simulation will be padded to the simulation size. This padding is apertured and prevents light from propagating through (please see the aperture section for details on the apertures). The simulation will raise an error if you try to load a lens larger than the simulation.</p>
+<figure>
+  <img
+  src="../img/lens_padding.png"
+  alt="Lens Padding">
+  <figcaption style="text-align:center">Lens Padding</figcaption>
+</figure>
+
+<p>N.B. the lenses above are the same size.</p>
+<p>In general, if you expect light to hit the 'walls' of the simulation you should make your simulation much larger (padding) than your lenses. This is because any light that touches the edge of the simulation will wrap around to the other side of the simulation, invalidating the results. (N.B. this will likely be dealt with in a future iteration, but currently is undefined behaviour.) </p>
+<h3 id="lens-creation">Lens Creation</h3>
+<p>The creation of lenses is separated into two parts: profile generation and applying modifications.</p>
+<p><strong>Profile Generation</strong></p>
+<p>The profile of a lens can be generated in two ways: generated from parameters or from a numpy array.</p>
+<ul>
+<li>To generate a profile, choose the required parameters: diameter, exponent, height, lens_type, medium.</li>
+<li>To load a numpy array, select the .npy file to load. It is your responsibility to ensure that the sizes and shapes of the lense fit within the simulation.</li>
+</ul>
+<figure>
+  <img
+  src="../img/lens_profile.png"
+  alt="Lens Profile">
+  <figcaption style="text-align:center">Lens Profile 2D</figcaption>
+</figure>
+
+<p>For more detail about the lens configuration please see <a href="../Configuration/">Configuration.md</a></p>
+<p><strong>Modifications</strong></p>
+<p>Modifications are additional operations that can be applied to a lens profile, and include:
+- Inversion
+- Escape Path 
+- Gratings
+- Truncation
+- Aperture</p>
+<p>All modifications are calculated based on the base profile, and are applied independently. For example, a truncation will be calculated on the base profile height, and not after applying gratings.</p>
+<p>Specifically, the lens are generated in the following order:
+1. Generate / Load Profile
+2. Invert Profile
+3. Create Escape Path
+4. Calculate Grating, Truncation, and Aperture modifications
+5. Apply Gratings
+6. Apply Truncation
+7. Apply Apertures</p>
+<figure>
+  <img
+  src="../img/lens_modifications.png"
+  alt="Lens Modifications">
+  <figcaption style="text-align:center">Lens Modifications</figcaption>
+</figure>
+
+<p><strong>Aperture</strong></p>
+<p>Apertures are a special type of modification that prevent light from propagating through. There are several kinds of apertures than can be applied to lenses:</p>
+<ol>
+<li>Non Lens Area: The area outside of the lens profile, but within the rectangular bounds of the profile dimensions. It is automatically apertured.</li>
+<li>Custom Aperture: The aperture defined by the user in the configuration. </li>
+<li>Truncation Aperture: The aperture defined by the user in the configuration, if truncation aperture is selected.</li>
+<li>Simulation Aperture: The area outside the lens profile, but within the simulation bounds (i.e. padded area). It is automatically apertured.</li>
+<li>Loaded Aperture: The aperture that has been loaded alongside a loaded lens profile (see loading profiles section). </li>
+</ol>
+<figure>
+  <img
+  src="../img/lens_aperture.png"
+  alt="Lens Aperture">
+  <figcaption style="text-align:center">Lens Aperture</figcaption>
+</figure>
+
+<p>All these aperture plots are available in the logging directory once the simulation completes.</p>
+<p><strong>Loading Profiles</strong></p>
+<p>If you are unable to create a lens using the available tools in the package, you can create it by some other means and load the profile as a numpy array. </p>
+<p>To load a custom profile:
+- In the lens config:
+    - add the "custom" key and provide a path to the lens profile .npy file.
+    - (optional) add a custom aperture to the same directory as the lens profile, and rename it to {profile_name}.aperture.npy. This aperture will be loaded and applied to your custom lens profile.</p>
+<p>For example, your config and file system should look like:</p>
+<pre><code class="language-bash">
+path/to/custom/lens/
+    profile.npy
+
+</code></pre>
+<pre><code class="language-yaml">
+lenses:
+- name: custom_lens:
+    ...
+    custom: path/to/custom/lens/profile.npy
+...
+</code></pre>
+<p>It is your responsibility to check that loaded profiles match the simulation dimensions.</p>
+<h3 id="beam-creation">Beam Creation</h3>
+<p>The beams share the same coordinate system as Lenses, with two additional properties, tilt, and convergence.</p>
+<p><strong>Tilt</strong>
+The beam tilt refers to the initial angle the of the beam compared to the propagation axis (z-axis). The beam supports two different tilts, x and y and they are defined as follows:</p>
+<figure>
+  <img
+  src="../img/beam_tilt.png"
+  alt="Beam Tilt">
+  <figcaption style="text-align:center">Beam Tilt</figcaption>
+</figure>
+
+<p>An alternative way to think about this, is that the beam can pitch and yaw, but cannot roll.
+- y-tilt controls pitch.
+- x-tilt controls yaw.</p>
+<p>TODO: double check the wording on this.</p>
+<p><strong>Convergence</strong>
+The convergence angle (theta) is defined as half the total internal propaagation angle. This defines the convergence / divergence of the beam.</p>
+<figure>
+  <img
+  src="../img/convergence.png"
+  alt="Beam Convergence">
+  <figcaption style="text-align:center">Beam Convergence</figcaption>
+</figure>
+
+<h2 id="user-interface">User Interface</h2>
+<p>We provide several user interfaces for creating each element of the simulation.</p>
+<h3 id="lens-creator">Lens Creator</h3>
+<p>This interface allows you to create, save and load lens profiles. Standard profiles are defined by a diameter, height, exponent and lens type (cylindrical or spherical). Additional modifiations such as gratings, escape paths, truncation and apertures also be applied.</p>
+<figure>
+  <img
+  src="../img/tutorial_lens.png"
+  alt="Lens Creator">
+  <figcaption style="text-align:center">Lens Creator</figcaption>
+</figure>
+
+<h3 id="beam-creator">Beam Creator</h3>
+<p>This interface allows you to create and save the initial beam setup. A beam defines the initial propagation into the simulation and can be modified in a number of ways, including size, shape, spread, distance, tilt and other properties.</p>
+<figure>
+  <img
+  src="../img/tutorial_beam.png"
+  alt="Beam Creator">
+  <figcaption style="text-align:center">Beam Creator</figcaption>
+</figure>
+
+<h3 id="simulation-setup">Simulation Setup</h3>
+<p>This interface allows you to create, save and load a simulation configuration. The configuration defines your simulation setup and includes:
+- Global Simulation Parameters: e.g. simulation width, height, pixel_size and wavelength
+- Simulation Options: e.g. logging directory, simulation name
+- Beam Settings: the beam configuration
+- Stage Settings: a combination of a lens configuration and output settings, e.g. output medium, propaagation distances and step sizes. </p>
+<p>This interface also allows you to setup parameter sweeps for most numerical parameters in the simulation. This allows you to run a large number of simulation combinations easily.</p>
+<figure>
+  <img
+  src="../img/tutorial_sim_setup_3.png"
+  alt="Simulation Setup">
+  <figcaption style="text-align:center">Simulation Setup</figcaption>
+</figure>
+
+<h3 id="run-simulation">Run Simulation</h3>
+<p>This interface allows you to load a simulation config and run the simulations. A progress bar will display the overall progress of the simulations.</p>
+<figure>
+  <img
+  src="../img/tutorial_sim_run.png"
+  alt="Run Simulation UI">
+  <figcaption style="text-align:center">Run Simulation UI</figcaption>
+</figure>
+
+<h3 id="visualise-results">Visualise Results</h3>
+<p>This interface allows you to load multiple simulations, filter the results, and visualise the propagation. </p>
+<figure>
+  <img
+  src="../img/tutorial_sim_visualisation_3.png"
+  alt="Simulation Visualisation UI">
+  <figcaption style="text-align:center">Simulation Visualisation UI</figcaption>
+</figure>
+
+<p>The interface also provides functionality to load the full simulation propagation in napari for interactive exploration. For simulations of the same shape, you can explore these all at once by pressing the view all button. </p>
+<figure>
+  <img
+  src="../img/tutorial_sim_vis_napari.png"
+  alt="Simulation Visualisation Napari">
+  <figcaption style="text-align:center">Simulation Visualisation Napari</figcaption>
+</figure>
+
+<h2 id="additional-notes">Additional Notes</h2>
+<h3 id="double-sided-lens">"Double Sided Lens"</h3>
+<p>If you define a simulation stage that contains a lens and output with the same medium, the simulation will assume you want to create a double sided lens. This will try to invert the lens profile and medium at the inlet, by constructing the inverted profile from the previous output's medium instead. </p>
+<figure>
+  <img
+  src="../img/invert_lens.png"
+  alt="Double Sided Lens">
+  <figcaption style="text-align:center">Double Sided Lens</figcaption>
+</figure>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    <script id="__config" type="application/json">{"base": "..", "features": [], "search": "../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.8fd75fb4.min.js"></script>
+      
+    
+  </body>
+</html>
